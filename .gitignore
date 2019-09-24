@@ -1,0 +1,17 @@
+
+node_modules
+dist
+test
+src/**.js
+
+/coverage
+/docs
+.nyc_output
+*.log
+
+.DS_Store
+src/types/coverage/
+
+crash.log
+
+build
