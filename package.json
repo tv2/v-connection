@@ -1,0 +1,9 @@
+{
+  "name": "v-connection",
+  "version": "0.0.1",
+  "description": "Sofie TV Automation Viz MSE connection library",
+  "main": "index.js",
+  "repository": "https://github.com/olzzon/v-connection",
+  "author": "Richard Cartwright",
+  "license": "MIT"
+}
