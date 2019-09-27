@@ -1,6 +1,6 @@
 const ws = require('ws')
 
-let webby = new ws('ws://localhost:8595');
+let webby = new ws('ws://192.168.1.3:8595');
 
 webby.on('open', () => {
   console.log('Open');

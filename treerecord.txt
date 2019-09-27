@@ -1,0 +1,191 @@
+1 protocol noevents
+error {15}not implemented 1
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:26 2/0/0 items, 26 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:25 2/0/0 items, 25 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:25 2/0/0 items, 25 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:24 2/0/0 items, 24 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:24 2/0/0 items, 24 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:23 2/0/0 items, 23 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:23 2/0/0 items, 23 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:22 2/0/0 items, 22 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:22 2/0/0 items, 22 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:21 2/0/0 items, 21 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:21 2/0/0 items, 21 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:20 2/0/0 items, 20 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:20 2/0/0 items, 20 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:19 2/0/0 items, 19 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:19 2/0/0 items, 19 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:18 2/0/0 items, 18 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:18 2/0/0 items, 18 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:17 2/0/0 items, 17 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:17 2/0/0 items, 17 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:16 2/0/0 items, 16 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:16 2/0/0 items, 16 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:15 2/0/0 items, 15 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:15 2/0/0 items, 15 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:14 2/0/0 items, 14 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:14 2/0/0 items, 14 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:13 2/0/0 items, 13 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:13 2/0/0 items, 13 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:12 2/0/0 items, 12 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:12 2/0/0 items, 12 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:11 2/0/0 items, 11 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:11 2/0/0 items, 11 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:10 2/0/0 items, 10 secs)
+* changed #142840967 status {0}
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 31 status prequeue
+* changed #142840967 status prequeue
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 31 status pre
+* changed #13061527 status {72}Error: Command 'take' skipped because no viz or channel was configured.
+
+* node #12892663 #13061495 #13061527 #13061175 dispatch_element element handler # type dispatch_element
+* changed #142840967 status pre
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 description {24}Firstname Lastname/title creator Mosart available 1.00 take_count 31 loaded 0.00
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:10 2/0/0 items, 10 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {140}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:09 2/0/0 items, 9 secs)
+* changed #12892663 status {140}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:09 2/0/0 items, 9 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {140}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:08 2/0/0 items, 8 secs)
+* changed #12892663 status {140}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:08 2/0/0 items, 8 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {140}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:07 2/0/0 items, 7 secs)
+* changed #12892663 status {140}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:07 2/0/0 items, 7 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {140}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:06 2/0/0 items, 6 secs)
+* changed #12892663 status {140}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:10:00.000000Z) -00:06 2/0/0 items, 6 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {75}/logic/save/persist 2019-09-26T17:10:00.000000Z -00:04 2/1/0 items, 5 secs)
+* changed #142840967 status {0}
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 31 status prequeue
+* changed #142840967 status prequeue
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 31 status pre
+* changed #142840967 take_count 31
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 32 status pre
+* changed #146312239 #text out
+* node #146280679 # #146312239 # _ text {329}STATE_<entry name="LOWER">
+    <entry name="object">TV2/PILOT_TEMPLATES/SPORT/OL2016/overlays/Bund</entry>
+    <entry name="location">$object</entry>
+    <entry name="state">IN</entry>
+    <entry name="data">
+        <entry name="20">Firstname Lastname</entry>
+        <entry name="21">title</entry>
+    </entry>
+</entry>
+* changed #146319007 #text O
+* node #146293111 # #146319007 # _ text IN
+* changed #12892663 status {75}/logic/save/persist 2019-09-26T17:10:00.000000Z -00:04 2/1/0 items, 5 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {168}/logic/element/viz/load_object_on_layer/else/else/else/state (struct `anonymous namespace'::planning_state) 2019-09-26T17:09:57.298699Z {1} -00:01 2/2/0 items, 63 secs)
+* changed #142840967 status pre
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 description {24}Firstname Lastname/title creator Mosart available 1.00 take_count 32 loaded 0.00
+* changed #12892663 status {168}/logic/element/viz/load_object_on_layer/else/else/else/state (struct `anonymous namespace'::planning_state) 2019-09-26T17:09:57.298699Z {1} -00:01 2/2/0 items, 63 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {76}/logic/save/persist 2019-09-26T17:10:00.000000Z -00:02 2/1/0 items, 62 secs)
+* changed #12892663 status {76}/logic/save/persist 2019-09-26T17:10:00.000000Z -00:02 2/1/0 items, 62 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {76}/logic/save/persist 2019-09-26T17:10:00.000000Z -00:01 2/1/0 items, 61 secs)
+* changed #12892663 status {76}/logic/save/persist 2019-09-26T17:10:00.000000Z -00:01 2/1/0 items, 61 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {76}/logic/save/persist 2019-09-26T17:10:00.000000Z -00:00 2/1/0 items, 60 secs)
+* changed #12892663 status {76}/logic/save/persist 2019-09-26T17:10:00.000000Z -00:00 2/1/0 items, 60 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:59 2/0/0 items, 59 secs)
+* changed #142840967 status {0}
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 32 status prequeue
+* changed #142840967 status prequeue
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 32 status pre
+* changed #146312239 #text {329}STATE_<entry name="LOWER">
+    <entry name="object">TV2/PILOT_TEMPLATES/SPORT/OL2016/overlays/Bund</entry>
+    <entry name="location">$object</entry>
+    <entry name="state">IN</entry>
+    <entry name="data">
+        <entry name="20">Firstname Lastname</entry>
+        <entry name="21">title</entry>
+    </entry>
+</entry>
+* node #146280679 # #146312239 # _ text out
+* changed #146319007 #text IN
+* node #146293111 # #146319007 # _ text O
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:59 2/0/0 items, 59 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {168}/logic/element/viz/load_object_on_layer/else/else/else/state (struct `anonymous namespace'::planning_state) 2019-09-26T17:10:02.914537Z {1} -00:01 2/1/0 items, 58 secs)
+* changed #142840967 status pre
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 description {24}Firstname Lastname/title creator Mosart available 1.00 take_count 32 loaded 0.00
+* changed #12892663 status {168}/logic/element/viz/load_object_on_layer/else/else/else/state (struct `anonymous namespace'::planning_state) 2019-09-26T17:10:02.914537Z {1} -00:01 2/1/0 items, 58 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:57 2/0/0 items, 57 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:57 2/0/0 items, 57 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:56 2/0/0 items, 56 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:56 2/0/0 items, 56 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:55 2/0/0 items, 55 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:55 2/0/0 items, 55 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:54 2/0/0 items, 54 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:54 2/0/0 items, 54 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:53 2/0/0 items, 53 secs)
+* changed #142840967 status {0}
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 32 status prequeue
+* changed #142840967 status prequeue
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 32 status pre
+* changed #142840967 take_count 32
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 loaded 0.00 creator Mosart available 1.00 description {24}Firstname Lastname/title take_count 33 status pre
+* changed #146312239 #text out
+* node #146280679 # #146312239 # _ text {329}STATE_<entry name="LOWER">
+    <entry name="object">TV2/PILOT_TEMPLATES/SPORT/OL2016/overlays/Bund</entry>
+    <entry name="location">$object</entry>
+    <entry name="state">IN</entry>
+    <entry name="data">
+        <entry name="20">Firstname Lastname</entry>
+        <entry name="21">title</entry>
+    </entry>
+</entry>
+* changed #146319007 #text O
+* node #146293111 # #146319007 # _ text IN
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:53 2/0/0 items, 53 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {168}/logic/element/viz/load_object_on_layer/else/else/else/state (struct `anonymous namespace'::planning_state) 2019-09-26T17:10:09.153105Z {1} -00:01 2/1/0 items, 52 secs)
+* changed #142840967 status pre
+* node #71599031 # #142840967 #142857031 100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 element element #142807479 description {24}Firstname Lastname/title creator Mosart available 1.00 take_count 33 loaded 0.00
+* changed #12892663 status {168}/logic/element/viz/load_object_on_layer/else/else/else/state (struct `anonymous namespace'::planning_state) 2019-09-26T17:10:09.153105Z {1} -00:01 2/1/0 items, 52 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:50 2/0/0 items, 50 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:50 2/0/0 items, 50 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:49 2/0/0 items, 49 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:49 2/0/0 items, 49 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:48 2/0/0 items, 48 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:48 2/0/0 items, 48 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:47 2/0/0 items, 47 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:47 2/0/0 items, 47 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:46 2/0/0 items, 46 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:46 2/0/0 items, 46 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:45 2/0/0 items, 45 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:45 2/0/0 items, 45 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:44 2/0/0 items, 44 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:44 2/0/0 items, 44 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:43 2/0/0 items, 43 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:43 2/0/0 items, 43 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:42 2/0/0 items, 42 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:42 2/0/0 items, 42 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:41 2/0/0 items, 41 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:41 2/0/0 items, 41 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:40 2/0/0 items, 40 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:40 2/0/0 items, 40 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:39 2/0/0 items, 39 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:39 2/0/0 items, 39 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:38 2/0/0 items, 38 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:38 2/0/0 items, 38 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:37 2/0/0 items, 37 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:37 2/0/0 items, 37 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:36 2/0/0 items, 36 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:36 2/0/0 items, 36 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:35 2/0/0 items, 35 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:35 2/0/0 items, 35 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:34 2/0/0 items, 34 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:34 2/0/0 items, 34 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:33 2/0/0 items, 33 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:33 2/0/0 items, 33 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:32 2/0/0 items, 32 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:32 2/0/0 items, 32 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:31 2/0/0 items, 31 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:31 2/0/0 items, 31 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:30 2/0/0 items, 30 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:30 2/0/0 items, 30 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:29 2/0/0 items, 29 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:29 2/0/0 items, 29 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:28 2/0/0 items, 28 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:28 2/0/0 items, 28 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:27 2/0/0 items, 27 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:27 2/0/0 items, 27 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:26 2/0/0 items, 26 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:26 2/0/0 items, 26 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:25 2/0/0 items, 25 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:25 2/0/0 items, 25 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:24 2/0/0 items, 24 secs)
+* changed #12892663 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:24 2/0/0 items, 24 secs)
+* node #12892455 # #12892663 #30063687 scheduler element scheduler #12892231 status {141}(/logic/init/timematch/interval (class mediasequencer::plugin::timematch_child_tag) 2019-09-26T17:11:00.000000Z) -00:23 2/0/0 items, 23 secs)
