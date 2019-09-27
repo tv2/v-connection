@@ -38,4 +38,33 @@ Each VizEngine has a _handler_ that is a representation of state of that device.
 
     /config/profiles/<profile_name>
 
-A profile groups together all the handlers used by a playlist. Typically, an automation system creates itself a single profile within the MSE with its own name, e.g. _SOFIE_. 
+A profile groups together all the handlers used by a playlist. Typically, an automation system creates itself a single profile within the MSE with its own name, e.g. _SOFIE_. Commands are sent via profiles.
+
+### Elements
+
+    /storage/shows/{<uuid>}/elements/<element_name>
+		/storage/playlists/{<uuid>}/elements/<ref_id>
+		/external/pilotdb/elements/<element_key>
+
+Elements are the specification of an instance of a master template created by providing the data. For example, a lower third element (_bund_) contains a reference to the lower third master template and the _name_ and _title_ fields to be displayed.
+
+Elements can be internal or external.
+
+* An external element is held in a system called _pilot_ and is completely specified and managed from there, including its template. Pilot is used for large and complex graphical elements. Internal elements, used for fullscreen graphics and graphics that change. Note that in current workflows, the right arrow key is used to navigate between each part of the graphics (`continue` command).
+
+* An internal element has its template and data stored within the MSE. These are typically used for simple overlays. It is good practice to create a separate element within a show for each instance that is to be used. This allows the elements to be initialized and taken without delay.
+
+### Commands
+
+    POST /config/profile/<profile_name>/<command>
+
+Commands cause the VixEngine to take actions, including:
+
+* `take` - Show a given graphical element, animating in. This can also be used to update the data in a graphic and, if and only if the data has changed, will run the animation again.
+* `out` - Hide a graphic, causing the out animation to run.
+* `update` - Update the contents of a graphic without any animation - not really used.
+* `continue` - Move to the next state for the graphic. Used for complex fullscreens and controlled by pressing the right arrow key in Mosart. (Also `continue_reverse`.)
+* `cut` - cut short a graphic without animating out - not used.
+* `initialize`, `cue`, `prepare` - to be explored.
+
+Initialize and clean commands are available for playlists and shows. These need further investigation.
