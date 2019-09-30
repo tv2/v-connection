@@ -44,6 +44,11 @@ A specific show at a specific date and time has its own playlist. An automation 
 
 Each [Viz Engine](https://www.vizrt.com/products/viz-engine) has a _handler_ that is a representation of state of that device. This includes the ability to check what (the MSE thinks) the engine is displaying. An automation systems has to create the handlers it intends to use on initialisation, including hostname.
 
+A studio may be configured with more than one Viz Engine. This can be used to:
+
+* Separate broadcast feed graphics from video walls or other displays;
+* Provide different _variants_ of graphics for different target platforms, for example one for HD TV and one for viewing the stream on a mobile phone. 
+
 ### Profile
 
     /config/profiles/<profile_name>
@@ -84,9 +89,11 @@ Commands cause the [Viz Engine](https://www.vizrt.com/products/viz-engine) to pe
 
 Initialize and clean commands are available for playlists and shows. These need further investigation.
 
+The body of a command message contains the VDOM path reference to the element that the action is to target.
+
 ### Layers
 
-tbc
+Master templates contain layers.
 
 ### Channels
 

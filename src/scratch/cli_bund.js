@@ -28,7 +28,7 @@ webby.on('open', () => {
       uri: 'http://192.168.1.3:8580/profiles/MOSART/out',
       body: '/storage/shows/{239F365A-5671-43F3-AD44-D44EB7C4F206}/elements/100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0'
     })
-  }, 10000);
+  }, 10500);
 });
 
 webby.on('upgrade', () => {
