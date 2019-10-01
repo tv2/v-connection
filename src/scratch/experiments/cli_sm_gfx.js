@@ -11,14 +11,14 @@ let change = `<entry name="data">
 webby.on('open', () => {
   console.log('Open 1');
   webby.send('1 protocol peptalk noevents\n\n');
-  webby.send(`2 get {117}/storage/shows/{239F365A-5671-43F3-AD44-D44EB7C4F206}/elements/100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0/data\n\n`)
-  webby.send(`3 replace {117}/storage/shows/{239F365A-5671-43F3-AD44-D44EB7C4F206}/elements/100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0/data {${change.length}}${change}\n\n`);
+  webby.send(`2 get {72}/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}/elements/SUPERFLY2\n\n`)
+  // webby.send(`3 replace {76}/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}/elements/SUPERFLY/data {${change.length}}${change}\n\n`);
 
   setTimeout(() => {
     request.post({
       method: 'POST',
       uri: 'http://62918c05.ngrok.io/profiles/MOSART/take',
-      body: '/storage/shows/{239F365A-5671-43F3-AD44-D44EB7C4F206}/elements/100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0'
+      body: '/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}/elements/SUPERFLY2'
     });
 		console.log('>>> Take requested');
   }, 500);
@@ -27,7 +27,7 @@ webby.on('open', () => {
     request.post({
       method: 'POST',
       uri: 'http://62918c05.ngrok.io/profiles/MOSART/out',
-      body: '/storage/shows/{239F365A-5671-43F3-AD44-D44EB7C4F206}/elements/100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0'
+      body: '/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}/elements/SUPERFLY2'
     });
 		console.log('>>> Out requested');
   }, 10500);
