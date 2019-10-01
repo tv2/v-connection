@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2017",
+    "noImplicitAny": true,
+    "outDir": "./dist",
+    "sourceMap": true
+  },
+  "extends": "./config/tsconfig.base",
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "src/**/*spec.ts",
+    "src/**/__mocks__/*"
+  ]
+}

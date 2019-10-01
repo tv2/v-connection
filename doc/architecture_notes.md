@@ -108,7 +108,7 @@ Here are some contrived examples:
 * `42 set attribute /path/to/element {9}new value`
   - result on success is `42 ok`
 * `43 get /path/to/element 10` (10 is the depth of the tree - optional)
-  - result on success is `43` follows by XML for the element at that path
+  - result on success is `43` followed by XML for the element at that path
 * `44 replace /path/to/element {33}<entry name="fred">ginger</entry>`
   - result on success is `44 ok`
 
