@@ -145,3 +145,70 @@ So as to work with the XML structures in a Javascript-like format, the following
 * [`xml2js`](https://www.npmjs.com/package/xml2js) to convert XML to Javascript Objects and to programmatically build XML elements for sending to the MSE. Using this module, it should be difficult to generate syntactically-bad XML.
 
 The structure of this prototype will be used as the basis of ongoing development.
+
+### Required information
+
+This section describes information the v-connection library is likely to need to do its job. Some information may not be required
+
+#### Configuration
+
+As part of its configuration, the v-connection library will need some or all of the following information:
+
+* Viz Engine host names or ip addresses and an _alias_ for making reference to their handlers. ***Does Sofie configure these handlers?*** ***Does Sofie monitor health and/or state of a Viz Engine?***
+* A _profile_ name - Mosart used `MOSART` so Sofie should probably use `SOFIE`. ***Does Sofie create the profile?*** ***Do we set the show (`directory`) at this point?***
+* _Execution groups_ and mappings to Viz Engine aliases. Names are typically `DSK` and `FULL1` but may differ in more complex setups, e.g. large graphic walls. ***Does Sofie configure this?***
+* MSE hostname or IP address. Also, port numbers for HTTP/REST traffic (defaults to `8580`) and PepTalk over websockets (defaults to `8595`) if different from defaults.
+
+It is assumed that the show will be loaded into MSE via another tool, such as Viz Trio. ***Is this the case?***
+
+#### Per rundown
+
+##### Initialisation
+
+Information that must be provided on the Initialisation of a rundown in a gallery prior to the first take. ***Where does this information come from upstream?***
+
+* Which show is in use? A UUID, e.g. `/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}`
+* Create a new playlist.
+ - Has a UUID _name_ e.g. `{B1607743-7FD0-45D5-98EE-50C152EFB4EC}`
+ - Also has a _description_ e.g. `NEWS.ON-AIR-NEWS02`
+ - May contain a profile reference, e.g. `/config/profiles/SOFIE`
+* Create a show element (overlays) or playlist element (fullscreens / complex) per graphics _piece_:
+  - For pilot elements:
+	  - External reference, e.g. `/external/pilotdb/elements/2236983`
+ - For overlays (internal elements):
+    - Name of the master template, e.g. _Bund_, _Topt_, _Ident_.
+    - Name for the element instance, e.g. `100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_1`
+    - Initial data values according the templates `model_xml` schema. For example, for a _Bund_, `{ "name": "Richard", "title": "Coder" }` ***For templates with numbers labelling fields, should we use names or numbers here?***
+
+Elements will need to be created and updated as the rundown changes. ***OK?***
+
+***Should Sofie send any show/playlist initialisation commands?***
+
+Some shows require a page to be taken in then out prior to displaying elements to establish a specific style. ***How will Sofie do this?***
+
+#### Execution
+
+For the playout of each graphics piece, send commands where each one includes either the show (internal) or pilot (external) references:
+
+* `cue` the element just prior to the `take`
+* `take` the element to display it
+* `continue` the element to advance graphics state ***TV 2 Mosart users press the right arrow key to do this - what is the Sofie equivalent?***
+* `out` to remove the element with animation
+
+Note that `cut` can be used to remove an element without the animation.
+
+At the end of a segment, `take` the _ALL_OUT_ element to clear all layers.
+
+#### Deactivation
+
+At the end of a rundown, some tidying up is required:
+
+* Remove all internal elements created in a show.
+* Clean up the playlist. ***Is this a good idea?***
+* ***Anything else? Call the show/playlist clean command?***
+
+***When should this be done? Allow time for post-rundown analysis?***
+
+### State
+
+As far as possible, the v-connection library should not store any state. It should read and write from the VDOM tree as required to perform any business logic.
