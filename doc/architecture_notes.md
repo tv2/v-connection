@@ -148,13 +148,13 @@ The structure of this prototype will be used as the basis of ongoing development
 
 ### Required information
 
-This section describes information the v-connection library is likely to need to do its job. Some information may not be required
+This section describes information the v-connection library is likely to need to do its job. Some information may not be required depending of the agreed workflow. Questions are shown in ***bold italic***.
 
 #### Configuration
 
 As part of its configuration, the v-connection library will need some or all of the following information:
 
-* Viz Engine host names or ip addresses and an _alias_ for making reference to their handlers. ***Does Sofie configure these handlers?*** ***Does Sofie monitor health and/or state of a Viz Engine?***
+* Viz Engine host names or ip addresses and an _alias_ for making reference to their handlers. ***Does Sofie configure these handlers?*** ***Does Sofie monitor health and/or state of a Viz Engine (as well as an MSE)?***
 * A _profile_ name - Mosart used `MOSART` so Sofie should probably use `SOFIE`. ***Does Sofie create the profile?*** ***Do we set the show (`directory`) at this point?***
 * _Execution groups_ and mappings to Viz Engine aliases. Names are typically `DSK` and `FULL1` but may differ in more complex setups, e.g. large graphic walls. ***Does Sofie configure this?***
 * MSE hostname or IP address. Also, port numbers for HTTP/REST traffic (defaults to `8580`) and PepTalk over websockets (defaults to `8595`) if different from defaults.
@@ -186,7 +186,7 @@ Elements will need to be created and updated as the rundown changes. ***OK?***
 
 Some shows require a page to be taken in then out prior to displaying elements to establish a specific style. ***How will Sofie do this?***
 
-#### Execution
+##### Execution
 
 For the playout of each graphics piece, send commands where each one includes either the show (internal) or pilot (external) references:
 
@@ -199,7 +199,7 @@ Note that `cut` can be used to remove an element without the animation.
 
 At the end of a segment, `take` the _ALL_OUT_ element to clear all layers.
 
-#### Deactivation
+##### Deactivation
 
 At the end of a rundown, some tidying up is required:
 
