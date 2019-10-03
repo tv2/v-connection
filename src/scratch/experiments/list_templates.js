@@ -35,7 +35,6 @@ webby.on('open', async () => {
 		console.log(res);
 		let json = await parser.parseStringPromise(res.slice(11));
 		console.dir(json.entry.element.map(x => x.$.name), { depth: 10 });
-
 	} catch (err) {
 		console.error(err);
 	} finally {
