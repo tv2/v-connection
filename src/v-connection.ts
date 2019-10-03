@@ -12,6 +12,8 @@ interface VRundown {
 	profile: string
 	listTemplates: () => Promise<string[]>
 	readTemplate (templateName: string): Promise<VTemplate>
+	createElement (templateName: string, elementName: string, textFields: string[]): Promise<InternalElement>
+	createElement (templateName: string, vcpid: number): Promise<ExternalElement>
 	listElements (): Promise<string[]>
 	readElement (elementName: string): Promise<VElement>
  	deleteElement (elementName: string): Promise<CommandResult>
