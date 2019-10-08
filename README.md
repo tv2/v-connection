@@ -6,7 +6,9 @@ This library is currently experimental. It currently contains:
 
 * [_blog_ about what has been discovered so far](./doc/architecture_notes.md);
 * [terminology related to the VDOM tree](./doc/VDOM_terminology.md);
-* [simple prototype application that has been used to control a Viz Engine via MSE](./src/scratch/cli_bund.js).
+* [simple prototype application that has been used to control a Viz Engine via MSE](./src/scratch/cli_bund.js);
+* [draft typescript interface](./src/v-connection.ts).
+
 
 ## Abstract
 This library bridges the Vizrt Media Sequencer Engine and typescript to all the [Sofie TV Automation system](https://github.com/nrkno/Sofie-TV-automation) to control graphics generation.
