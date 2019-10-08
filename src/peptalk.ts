@@ -4,6 +4,7 @@
  */
 
 import { EventEmitter } from 'events'
+import * as websocket from 'ws'
 
 /**
  *  Location of a new XML element relative to an existing element.
@@ -109,10 +110,19 @@ export interface UnspecifiedError extends PepError {
  *  timeout interval, the response promise will be rejected.
  */
 export interface PepTalkClient extends EventEmitter {
-	/** Timeout before a PepTalk request will fail. */
-	readonly timeoutPep: number
+	/** Hostname or IP address of the MSE. */
+	readonly hostname: string
+	/** Port number of the HTTP interface of the MSE. Defaults to 8595. */
+	readonly port: number
+	/** Timeout before a PepTalk request will fail, measured in milliseconds. */
+	readonly timeout: number
 	/** Number of messages sent from this client. Also used to generate message identifiers. */
 	readonly counter: number
+	/** Details of all pending requests to the server. */
+	readonly pendingRequests: { [id: number]: {
+		sent?: string
+	}}
+
 	/**
 	 *  Open a connection to a server endpoint that supports PepTalk. A `protocol`
 	 *  command will be sent as part of opening the connection, the response to which
@@ -232,8 +242,6 @@ export interface PepTalkClient extends EventEmitter {
 	 *  @returns Resolves to the URI of the VDOM element via the MSE HTTP API.
 	 */
 	uri (path: string, type: string, base?: string): Promise<PepResponse>
-	/** Details of all pending requests to the server. */
-	pendingRequests: { [id: number]: PepMessage }
 	/**
 	 *  Set the timeout before a PepTalk request will be considered as failed.
 	 *  @param t Timeout measured in milliseconds.
@@ -247,4 +255,121 @@ export interface PepTalkClient extends EventEmitter {
 	on (event: 'error', listener: (err: PepError) => void): this
 	// emit (event: 'message', info: PepResponse): boolean
 	// emit (event: 'error', error: PepError): boolean
+}
+
+export class PepTalk extends EventEmitter implements PepTalkClient {
+	private ws: Promise<websocket>
+	readonly hostname: string
+	readonly port: number
+	timeout: number = 1000
+	counter: number = 1
+	pendingRequests: { [id: number]: {
+		resolve: (m: PepResponse) => void,
+	 	reject: (reason?: any) => void,
+		sent?: string,
+		id: number
+	}}
+
+	constructor (hostname: string, port?: number) {
+		super()
+		this.hostname = hostname
+		this.port = port ? port : 8595
+	}
+
+	connect (noevents?: boolean | undefined): Promise<PepResponse> {
+		this.ws = new Promise((resolve, reject) => {
+			let ws = new websocket(`ws://${this.hostname}:${this.port}/`)
+			ws.once('open', () => {
+				ws.on('message', (m: string) => {
+					let firstSpace = m.indexOf(' ')
+					if (firstSpace <= 0) return
+					let c = +m.slice(0, firstSpace)
+					if (isNaN(c)) {
+						// throw
+					}
+					let pending = this.pendingRequests[c]
+					if (!pending) {
+						// throw
+					}
+					pending.resolve({
+						id: pending.id,
+						sent: pending.sent,
+						status: 'ok',
+						response: m
+					}) as PepResponse
+				})
+				resolve(ws)
+			})
+			ws.once('error', err => {
+				reject(err)
+			})
+		})
+
+		return this.send(noevents ? 'protocol peptalk noevents' : 'protocol peptalk')
+	}
+
+	close (): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	pingPep (): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+
+	private failTimer (c: number): Promise<PepResponse> {
+		return new Promise((_resolve, reject) => {
+			setTimeout(() => {
+				reject(new Error(`Parallel promise to send message ${c} did not resolve in time.`))
+			}, this.timeout)
+		})
+	}
+
+	send (message: string): Promise<PepResponse> {
+		let c = this.counter++
+		return Promise.race([
+			this.failTimer(c),
+			new Promise((resolve, reject) => {
+				this.ws.then(s => { s.send(`${c} ${message}\r\n`) })
+				this.pendingRequests[c] = { resolve, reject }
+			}) as Promise<PepResponse>
+		])
+	}
+	copy (sourcePath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	delete (path: string): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	ensurePath (path: string): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	get (path: string, depth?: number | undefined): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	insert (path: string, xml: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	move (oldPath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	protocol (capability: Capability | Capability[]): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	reintialize (): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	replace (path: string, xml: string): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	set (path: string, textOrKey: string, attributeValue?: string | undefined): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	uri (path: string, type: string, base?: string | undefined): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
+	}
+	eventNames (): (string | symbol)[] {
+		throw new Error('Method not implemented.')
+	}
+	setPepTimeout (t: number): number {
+		throw new Error('Method not implemented.')
+	}
 }
