@@ -34,7 +34,6 @@ export enum Capability {
 	prettycolors = 'prettycolors'
 }
 
-
 type PepErrorStatus = 'inexistent' | 'invalid' | 'not_allowed' | 'syntax' | 'unspecified' | 'timeout'
 
 /**
@@ -77,35 +76,73 @@ class PepError extends Error implements IPepError {
 /**
  *  Error indicating that a given path does not exist.
  */
-export interface InexistentError extends PepError {
+export interface IInexistentError extends PepError {
 	status: 'inexistent'
 	/** Requested path that does not exist. */
 	path: string
+}
+
+class InexistentError extends PepError implements IInexistentError {
+	readonly status: 'inexistent'
+	readonly path: string
+	constructor (id: number, path: string, sent?: string) {
+		super('inexistent', id,
+			`PepTalk inexistent error: Could not locate element at ${path}.`,
+			sent)
+		this.path = path
+	}
 }
 
 /**
  *  A request is invalid, either due to XML validation failure or failure to
  *  validate against the VDOM data model.
  */
-export interface InvalidError extends PepError {
+export interface IInvalidError extends PepError {
 	status: 'invalid'
 	description: string
+}
+
+class InvalidError extends PepError implements IInvalidError {
+	readonly status: 'invalid'
+	readonly description: string
+	constructor (id: number, description: string, sent?: string) {
+		super('invalid', id, `Validation error: ${description}.`, sent)
+		this.description = description
+	}
 }
 
 /**
  *  A request makes sense but the operation is not allowed.
  */
-export interface NotAllowedError extends PepError {
+export interface INotAllowedError extends PepError {
 	status: 'not_allowed'
 	reason: string
+}
+
+class NotAllowedError extends PepError implements INotAllowedError {
+	readonly status: 'not_allowed'
+	readonly reason: string
+	constructor (id: number, reason: string, sent?: string) {
+		super('not_allowed', id, `Request understood put not allowed: ${reason}.`, sent)
+		this.reason = reason
+	}
 }
 
 /**
  *  The server does not know the requested command.
  */
-export interface SyntaxError extends PepError {
+export interface ISyntaxError extends PepError {
 	status: 'syntax'
 	description: string
+}
+
+class SyntaxError extends PepError implements ISyntaxError {
+	readonly status: 'syntax'
+	readonly description: string
+	constructor (id: number, description: string, sent?: string) {
+		super('syntax', id, `Syntax error in request: ${description}.`, sent)
+		this.description = description
+	}
 }
 
 /**
@@ -289,7 +326,7 @@ interface PendingRequestInternal extends PendingRequest {
 	reject (reason?: any): void
 }
 
-export class PepTalk extends EventEmitter implements PepTalkClient {
+class PepTalk extends EventEmitter implements PepTalkClient {
 	private ws: Promise<websocket | null> = Promise.resolve(null)
 	readonly hostname: string
 	readonly port: number
@@ -353,9 +390,27 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 		} else {
 			let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ')
 			endOfErrorName = endOfErrorName > 0 ? endOfErrorName : m.length
-			// TODO deal with each style of error
-			error = new PepError(m.slice(errorIndex + 6, endOfErrorName) as PepErrorStatus,
-				c, m, pending.sent)
+			switch (m.slice(errorIndex + 6, endOfErrorName)) {
+				case 'inexistent':
+					error = new InexistentError(c, m.slice(endOfErrorName + 1), pending.sent)
+					break
+				case 'invalid':
+					error = new InvalidError(c, m.slice(endOfErrorName + 1), pending.sent)
+					break
+				case 'not_allowed':
+					error = new NotAllowedError(c, m.slice(endOfErrorName + 1), pending.sent)
+					break
+				case 'syntax':
+					error = new SyntaxError(c, m.slice(endOfErrorName + 1), pending.sent)
+					break
+				case 'unspecified':
+					error = new UnspecifiedError(c, m.slice(endOfErrorName + 1), pending.sent)
+					break
+				default:
+					error = new PepError(m.slice(errorIndex + 6, endOfErrorName) as PepErrorStatus,
+						c, m, pending.sent)
+					break
+			}
 		}
 		pending.reject(error)
 		delete this.pendingRequests[c]
@@ -505,4 +560,8 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 		if (t > 0) this.timeout = t
 		return this.timeout
 	}
+}
+
+export function startPepTalk (hostname: string, port?: number): PepTalkClient {
+	return new PepTalk(hostname, port)
 }

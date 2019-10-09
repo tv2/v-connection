@@ -1,7 +1,7 @@
-import { PepTalk } from '../peptalk'
+import { startPepTalk } from '../peptalk'
 
 async function run () {
-	let pt = new PepTalk('mse_ws.ngrok.io', 80)
+	let pt = startPepTalk('mse_ws.ngrok.io', 80)
 	try {
 		await pt.get('/', 0)
 	} catch (err) {
