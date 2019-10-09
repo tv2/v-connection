@@ -1,6 +1,6 @@
 const ws = require('ws')
 
-let webby = new ws('ws://192.168.1.3:8595');
+let webby = new ws('ws://mse_ws.ngrok.io/');
 
 webby.on('open', () => {
   console.log('Open');

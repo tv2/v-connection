@@ -34,6 +34,9 @@ export enum Capability {
 	prettycolors = 'prettycolors'
 }
 
+
+type PepErrorStatus = 'inexistent' | 'invalid' | 'not_allowed' | 'syntax' | 'unspecified' | 'timeout'
+
 /**
  *  Representation of a message sent from a PepTalk server (an MSE).
  */
@@ -41,7 +44,7 @@ interface PepMessage {
 	/** Identifier linking request to response, or `*` for an event. */
 	id: number | '*'
 	/** Status for a message. */
-	status: 'ok' | 'unknown' | 'inexistent' | 'invalid' | 'not_allowed' | 'syntax' | 'unspecified'
+	status: 'ok' | PepErrorStatus
 	/** The message sent to the server. */
 	sent?: string
 }
@@ -54,9 +57,21 @@ interface PepResponse extends PepMessage {
 /**
  *  Error message provided when a PepTalk request rejects with an error.
  */
-interface PepError extends Error, PepMessage {
+interface IPepError extends Error, PepMessage {
 	/** Error-specific status messages. */
-	status: 'inexistent' | 'invalid' | 'not_allowed' | 'syntax' | 'unspecified'
+	status: PepErrorStatus
+}
+
+class PepError extends Error implements IPepError {
+	readonly status: PepErrorStatus
+	readonly id: number | '*'
+	readonly sent?: string | undefined
+	constructor (status: PepErrorStatus, id: number | '*', message?: string, sent?: string) {
+		super(`PepTalk ${status} error for request ${id}${message ? ':' + message : '.'}`)
+		this.status = status
+		this.id = id
+		this.sent = sent
+	}
 }
 
 /**
@@ -96,9 +111,22 @@ export interface SyntaxError extends PepError {
 /**
  *  All other kinds of error.
  */
-export interface UnspecifiedError extends PepError {
+export interface IUnspecifiedError extends PepError {
 	status: 'unspecified'
 	description: string
+}
+
+class UnspecifiedError extends PepError implements IUnspecifiedError {
+	readonly description: string
+	readonly status: 'unspecified'
+	constructor (id: number | '*', description: string, sent?: string) {
+		super('unspecified', id, description, sent)
+	}
+}
+
+export interface PendingRequest {
+	id: number
+	sent?: string
 }
 
 /**
@@ -119,9 +147,7 @@ export interface PepTalkClient extends EventEmitter {
 	/** Number of messages sent from this client. Also used to generate message identifiers. */
 	readonly counter: number
 	/** Details of all pending requests to the server. */
-	readonly pendingRequests: { [id: number]: {
-		sent?: string
-	}}
+	readonly pendingRequests: { [id: number]: PendingRequest }
 
 	/**
 	 *  Open a connection to a server endpoint that supports PepTalk. A `protocol`
@@ -255,6 +281,12 @@ export interface PepTalkClient extends EventEmitter {
 	on (event: 'error', listener: (err: PepError) => void): this
 	// emit (event: 'message', info: PepResponse): boolean
 	// emit (event: 'error', error: PepError): boolean
+	emit (event: 'message', res: PepResponse): boolean
+}
+
+interface PendingRequestInternal extends PendingRequest {
+	resolve (res: PepResponse): void
+	reject (reason?: any): void
 }
 
 export class PepTalk extends EventEmitter implements PepTalkClient {
@@ -263,12 +295,7 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 	readonly port: number
 	timeout: number = 1000
 	counter: number = 1
-	pendingRequests: { [id: number]: {
-		resolve: (m: PepResponse) => void,
-	 	reject: (reason?: any) => void,
-		sent?: string,
-		id: number
-	}}
+	pendingRequests: { [id: number]: PendingRequestInternal }
 
 	constructor (hostname: string, port?: number) {
 		super()
@@ -276,28 +303,77 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 		this.port = port ? port : 8595
 	}
 
+	private processMessage (m: string): void {
+		let firstSpace = m.indexOf(' ')
+		if (firstSpace <= 0) return
+		let c = +m.slice(0, firstSpace)
+		if (isNaN(c)) {
+			if (m.startsWith('* ')) {
+				this.emit('message', { id: '*', body: m, status: 'ok' } as PepResponse)
+			} else {
+				this.emit('error', new UnspecifiedError('*', `Unexpected message from server: '${m}'.`))
+			}
+			return // probably an event
+		}
+		let pending = this.pendingRequests[c]
+		if (!pending) {
+			this.emit('error', new UnspecifiedError(c, `Unmatched response for request ${c}.`))
+		}
+		if (m.slice(firstSpace + 1).startsWith('ok')) {
+			let response: PepResponse = {
+				id: pending.id,
+				sent: pending.sent,
+				status: 'ok',
+				body: m.slice(firstSpace + 3)
+			}
+			pending.resolve(response)
+			delete this.pendingRequests[c]
+			this.emit('message', response)
+			return
+		}
+		let errorIndex = m.indexOf('error')
+		let error: PepError
+		if (errorIndex < 0) {
+			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent)
+		} else {
+			let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ')
+			endOfErrorName = endOfErrorName > 0 ? endOfErrorName : m.length
+			// TODO deal with each style of error
+			error = new PepError(m.slice(errorIndex + 6, endOfErrorName) as PepErrorStatus,
+				c, m, pending.sent)
+		}
+		pending.reject(error)
+		delete this.pendingRequests[c]
+		this.emit('error', error)
+	}
+
+	private failTimer (c: number): Promise<PepResponse> {
+		return new Promise((_resolve, reject) => {
+			setTimeout(() => {
+				reject(new Error(`Parallel promise to send message ${c} did not resolve in time.`))
+			}, this.timeout)
+		})
+	}
+
+	private esc = (s: string) => `{${s.length}}${s}`
+
+	private makeLocation (location: LocationType, sibling?: string) {
+		if (location === LocationType.First || location === LocationType.Last) {
+			return `${location}`
+		} else {
+			if (!sibling) {
+				throw new UnspecifiedError(this.counter++, `Location '${location}' requested with no sibling path.`)
+			}
+			return `${location} ${this.esc(sibling)}`
+		}
+
+	}
+
 	connect (noevents?: boolean | undefined): Promise<PepResponse> {
 		this.ws = new Promise((resolve, reject) => {
 			let ws = new websocket(`ws://${this.hostname}:${this.port}/`)
 			ws.once('open', () => {
-				ws.on('message', (m: string) => {
-					let firstSpace = m.indexOf(' ')
-					if (firstSpace <= 0) return
-					let c = +m.slice(0, firstSpace)
-					if (isNaN(c)) {
-						// throw
-					}
-					let pending = this.pendingRequests[c]
-					if (!pending) {
-						// throw
-					}
-					pending.resolve({
-						id: pending.id,
-						sent: pending.sent,
-						status: 'ok',
-						response: m
-					}) as PepResponse
-				})
+				ws.on('message', this.processMessage)
 				resolve(ws)
 			})
 			ws.once('error', err => {
@@ -309,18 +385,11 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 	}
 
 	close (): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
-	}
-	pingPep (): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+		return this.send('close')
 	}
 
-	private failTimer (c: number): Promise<PepResponse> {
-		return new Promise((_resolve, reject) => {
-			setTimeout(() => {
-				reject(new Error(`Parallel promise to send message ${c} did not resolve in time.`))
-			}, this.timeout)
-		})
+	pingPep (): Promise<PepResponse> {
+		throw new Error('Method not implemented.')
 	}
 
 	send (message: string): Promise<PepResponse> {
@@ -329,46 +398,76 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 			this.failTimer(c),
 			new Promise((resolve, reject) => {
 				this.ws.then(s => { s.send(`${c} ${message}\r\n`) })
-				this.pendingRequests[c] = { resolve, reject }
+				this.pendingRequests[c] = { resolve, reject, id: c, sent: message }
 			}) as Promise<PepResponse>
 		])
 	}
+
 	copy (sourcePath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+		try {
+			return this.send(`copy ${this.esc(sourcePath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`)
+		} catch (err) {
+			return Promise.reject(err)
+		}
 	}
+
 	delete (path: string): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+		return this.send(`delete ${this.esc(path)}`)
 	}
+
 	ensurePath (path: string): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+		return this.send(`ensure-path ${this.esc(path)}`)
 	}
+
 	get (path: string, depth?: number | undefined): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+		// TODO consider some XML processing
+		return this.send(`get ${this.esc(path)}${depth ? ' ' + depth : ''}`)
 	}
-	insert (path: string, xml: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+
+	insert (path: string, xml: string, location: LocationType, sibling?: string): Promise<PepResponse> {
+		try {
+			return this.send(`insert ${this.esc(path)} ${this.makeLocation(location, sibling)} ${this.esc(xml)}`)
+		} catch (err) {
+			return Promise.reject(err)
+		}
 	}
+
 	move (oldPath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+		try {
+			return this.send(`move ${this.esc(oldPath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`)
+		} catch (err) {
+			return Promise.reject(err)
+		}
 	}
+
 	protocol (capability: Capability | Capability[]): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+		if (!Array.isArray(capability)) {
+			capability = [ capability ]
+		}
+		let list: string = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`)
+		return this.send(`protocol ${list}`)
 	}
+
 	reintialize (): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+		return this.send(`reinitialize`)
 	}
+
 	replace (path: string, xml: string): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+		return this.send(`replace ${this.esc(path)} ${this.esc(xml)}`)
 	}
-	set (path: string, textOrKey: string, attributeValue?: string | undefined): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+
+	set (path: string, textOrKey: string, attributeValue?: string): Promise<PepResponse> {
+		if (attributeValue) {
+			return this.send(`set attribute ${this.esc(path)} ${this.esc(textOrKey)} ${this.esc(attributeValue)}`)
+		} else {
+			return this.send(`set text ${this.esc(path)} ${this.esc(textOrKey)}`)
+		}
 	}
-	uri (path: string, type: string, base?: string | undefined): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+
+	uri (path: string, type: string, base?: string): Promise<PepResponse> {
+		return this.send(`uri ${this.esc(path)} ${type}${base ? ' ' + base : ''}`)
 	}
-	eventNames (): (string | symbol)[] {
-		throw new Error('Method not implemented.')
-	}
+
 	setPepTimeout (t: number): number {
 		throw new Error('Method not implemented.')
 	}
