@@ -67,7 +67,7 @@ class PepError extends Error implements IPepError {
 	readonly id: number | '*'
 	readonly sent?: string | undefined
 	constructor (status: PepErrorStatus, id: number | '*', message?: string, sent?: string) {
-		super(`PepTalk ${status} error for request ${id}${message ? ':' + message : '.'}`)
+		super(`PepTalk ${status} error for request ${id}${message ? ': ' + message : '.'}`)
 		this.status = status
 		this.id = id
 		this.sent = sent
@@ -167,7 +167,7 @@ export interface PepTalkClient extends EventEmitter {
 	 *  Test the connection to the PepTalk server.
 	 *  @returns Resolves on successful connection test.
 	 */
-	pingPep (): Promise<PepResponse>
+	ping (): Promise<PepResponse>
 	/**
 	 *  Send an unstructured request to a PepTalk server. This method should only
 	 *  be used if none of the other methods of this interface are suitable.
@@ -261,7 +261,7 @@ export interface PepTalkClient extends EventEmitter {
 	 */
 	set (path: string, textOrKey: string, attributeValue?: string): Promise<PepResponse>
 	/**
-	 *  Converts a VDOM path into a MSE HTTP URI path. (Not implemented on test system.)
+	 *  Converts a VDOM path into a MSE HTTP URI path.
 	 *  @param path Path to the element to find by HTTP.
 	 *  @param type _What this node represents._ Examples show `element_collection`.
 	 *  @param base Optional base URL to use in the response.
@@ -273,7 +273,7 @@ export interface PepTalkClient extends EventEmitter {
 	 *  @param t Timeout measured in milliseconds.
 	 *  @returns The actual timeout value.
 	 */
-	setPepTimeout (t: number): number
+	setTimeout (t: number): number
 	// PepTalk events
 	/** Add a listener for all non-error messages and events from the server. */
 	on (event: 'message', listener: (info: PepResponse) => void): this
@@ -290,12 +290,12 @@ interface PendingRequestInternal extends PendingRequest {
 }
 
 export class PepTalk extends EventEmitter implements PepTalkClient {
-	private ws: Promise<websocket>
+	private ws: Promise<websocket | null> = Promise.resolve(null)
 	readonly hostname: string
 	readonly port: number
-	timeout: number = 1000
+	timeout: number = 3000
 	counter: number = 1
-	pendingRequests: { [id: number]: PendingRequestInternal }
+	pendingRequests: { [id: number]: PendingRequestInternal } = {}
 
 	constructor (hostname: string, port?: number) {
 		super()
@@ -324,7 +324,22 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 				id: pending.id,
 				sent: pending.sent,
 				status: 'ok',
-				body: m.slice(firstSpace + 3)
+				body: m.slice(firstSpace + 4).trim()
+			}
+			pending.resolve(response)
+			delete this.pendingRequests[c]
+			this.emit('message', response)
+			if (pending.sent === 'close') {
+				this.ws = Promise.resolve(null)
+			}
+			return
+		}
+		if (m.slice(firstSpace + 1).startsWith('protocol')) {
+			let response: PepResponse = {
+				id: pending.id,
+				sent: pending.sent,
+				status: 'ok',
+				body: m.slice(firstSpace + 1).trim()
 			}
 			pending.resolve(response)
 			delete this.pendingRequests[c]
@@ -371,13 +386,17 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 
 	connect (noevents?: boolean | undefined): Promise<PepResponse> {
 		this.ws = new Promise((resolve, reject) => {
+			console.log('<<<', `ws://${this.hostname}:${this.port}/`)
 			let ws = new websocket(`ws://${this.hostname}:${this.port}/`)
 			ws.once('open', () => {
-				ws.on('message', this.processMessage)
+				ws.on('message', this.processMessage.bind(this))
 				resolve(ws)
 			})
 			ws.once('error', err => {
 				reject(err)
+			})
+			ws.once('close', () => {
+				this.ws = Promise.resolve(null)
 			})
 		})
 
@@ -388,8 +407,14 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 		return this.send('close')
 	}
 
-	pingPep (): Promise<PepResponse> {
-		throw new Error('Method not implemented.')
+	async ping (): Promise<PepResponse> {
+		let pingTest = await this.get('/', 0)
+		if (pingTest.body.indexOf('<entry') >= 0) {
+			pingTest.body = 'PONG!'
+			return pingTest
+		} else {
+			throw new UnspecifiedError(pingTest.id, 'Unexpected response to ping request.')
+		}
 	}
 
 	send (message: string): Promise<PepResponse> {
@@ -397,7 +422,13 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 		return Promise.race([
 			this.failTimer(c),
 			new Promise((resolve, reject) => {
-				this.ws.then(s => { s.send(`${c} ${message}\r\n`) })
+				this.ws.then(s => {
+					if (s === null) {
+						reject(new Error('Not connected.'))
+					} else {
+						s.send(`${c} ${message}\r\n`)
+					}
+				})
 				this.pendingRequests[c] = { resolve, reject, id: c, sent: message }
 			}) as Promise<PepResponse>
 		])
@@ -419,9 +450,9 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 		return this.send(`ensure-path ${this.esc(path)}`)
 	}
 
-	get (path: string, depth?: number | undefined): Promise<PepResponse> {
+	get (path: string, depth?: number): Promise<PepResponse> {
 		// TODO consider some XML processing
-		return this.send(`get ${this.esc(path)}${depth ? ' ' + depth : ''}`)
+		return this.send(`get ${this.esc(path)}${depth !== undefined ? ' ' + depth : ''}`)
 	}
 
 	insert (path: string, xml: string, location: LocationType, sibling?: string): Promise<PepResponse> {
@@ -440,16 +471,18 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 		}
 	}
 
-	protocol (capability: Capability | Capability[]): Promise<PepResponse> {
-		if (!Array.isArray(capability)) {
+	protocol (capability?: Capability | Capability[]): Promise<PepResponse> {
+		if (!capability) {
+			capability = []
+		} else if (!Array.isArray(capability)) {
 			capability = [ capability ]
 		}
-		let list: string = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`)
+		let list: string = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '')
 		return this.send(`protocol ${list}`)
 	}
 
 	reintialize (): Promise<PepResponse> {
-		return this.send(`reinitialize`)
+		return this.send('reinitialize')
 	}
 
 	replace (path: string, xml: string): Promise<PepResponse> {
@@ -468,7 +501,8 @@ export class PepTalk extends EventEmitter implements PepTalkClient {
 		return this.send(`uri ${this.esc(path)} ${type}${base ? ' ' + base : ''}`)
 	}
 
-	setPepTimeout (t: number): number {
-		throw new Error('Method not implemented.')
+	setTimeout (t: number): number {
+		if (t > 0) this.timeout = t
+		return this.timeout
 	}
 }
