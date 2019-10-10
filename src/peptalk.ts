@@ -426,8 +426,10 @@ class PepTalk extends EventEmitter implements PepTalkClient {
 		})
 	}
 
+	/** Escape a string using plaintalk representation. */
 	private esc = (s: string) => `{${s.length}}${s}`
 
+	/** Remove all plaintalk escaping from a string. */
 	private unesc = (s: string) => s.replace(/\{\d+\}/g, '')
 
 	private makeLocation (location: LocationType, sibling?: string) {

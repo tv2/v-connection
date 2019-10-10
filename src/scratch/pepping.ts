@@ -16,7 +16,7 @@ async function run () {
 		console.error(err)
 	}
 	let connected = await pt.connect()
-	// console.log(connected)
+	console.log(connected)
 	try {
 		console.log(await pt.ping())
 	} catch (err) { console.error('!!!', err) }
