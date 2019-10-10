@@ -5,6 +5,7 @@
 
 import { EventEmitter } from 'events'
 import * as websocket from 'ws'
+// import * as Xml2JS from 'xml2js'
 
 /**
  *  Location of a new XML element relative to an existing element.
@@ -202,7 +203,7 @@ export interface PepTalkClient extends EventEmitter {
 	close (): Promise<PepResponse>
 	/**
 	 *  Test the connection to the PepTalk server.
-	 *  @returns Resolves on successful connection test.
+	 *  @returns Resolves on successful connection test with body `PONG!`.
 	 */
 	ping (): Promise<PepResponse>
 	/**
@@ -361,7 +362,7 @@ class PepTalk extends EventEmitter implements PepTalkClient {
 				id: pending.id,
 				sent: pending.sent,
 				status: 'ok',
-				body: m.slice(firstSpace + 4).trim()
+				body: this.unesc(m.slice(firstSpace + 4)).trim()
 			}
 			pending.resolve(response)
 			delete this.pendingRequests[c]
@@ -376,7 +377,7 @@ class PepTalk extends EventEmitter implements PepTalkClient {
 				id: pending.id,
 				sent: pending.sent,
 				status: 'ok',
-				body: m.slice(firstSpace + 1).trim()
+				body: this.unesc(m.slice(firstSpace + 1)).trim()
 			}
 			pending.resolve(response)
 			delete this.pendingRequests[c]
@@ -426,6 +427,8 @@ class PepTalk extends EventEmitter implements PepTalkClient {
 	}
 
 	private esc = (s: string) => `{${s.length}}${s}`
+
+	private unesc = (s: string) => s.replace(/\{\d+\}/g, '')
 
 	private makeLocation (location: LocationType, sibling?: string) {
 		if (location === LocationType.First || location === LocationType.Last) {
