@@ -18,7 +18,10 @@ async function run () {
 	let connected = await pt.connect()
 	console.log(connected)
 	try {
-		console.log(await pt.ping())
+		let start = process.hrtime()
+		let pingResult = await pt.ping()
+		let end = process.hrtime(start)
+		console.log(end, pingResult)
 	} catch (err) { console.error('!!!', err) }
 	await pt.close()
 	await pt.get('/', 0).catch(console.error)
