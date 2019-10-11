@@ -4,6 +4,7 @@ import * as yargs from 'yargs'
 let args = yargs
 	.string('host')
 	.number('port')
+	.boolean('js')
 	.string('_')
 	.alias('_', 'path')
 	.coerce('path', a => a.reduce(
@@ -12,6 +13,7 @@ let args = yargs
 	.default('host', 'mse_ws.ngrok.io')
 	.default('port', 80)
 	.default('depth', undefined)
+	.default('js', false)
 	.argv
 
 console.dir(args)
@@ -21,7 +23,11 @@ async function run () {
 	let connected = await pt.connect()
 	console.log(connected)
 	try {
-		console.log(await pt.get(args.path, args.depth))
+		if (args.js) {
+			console.dir(await pt.getJS(args.path, args.depth), { depth: 10 })
+		} else {
+			console.log(await pt.get(args.path, args.depth))
+		}
 	} catch (err) { console.error('!!!', err) }
 	await pt.close()
 }

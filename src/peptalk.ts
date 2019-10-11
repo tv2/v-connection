@@ -5,7 +5,7 @@
 
 import { EventEmitter } from 'events'
 import * as websocket from 'ws'
-// import * as Xml2JS from 'xml2js'
+import * as Xml2JS from 'xml2js'
 
 /**
  *  Location of a new XML element relative to an existing element.
@@ -57,9 +57,13 @@ interface PepResponse extends PepMessage {
 /**
  *  Error message provided when a PepTalk request rejects with an error.
  */
-interface IPepError extends Error, PepMessage {
+export interface IPepError extends Error, PepMessage {
 	/** Error-specific status messages. */
 	status: PepErrorStatus
+}
+
+export function isIPepError (err: Error): err is IPepError {
+	return err.hasOwnProperty('status')
 }
 
 class PepError extends Error implements IPepError {
@@ -322,18 +326,28 @@ export interface PepTalkClient extends EventEmitter {
 	emit (event: 'message', res: PepResponse): boolean
 }
 
+export interface PepResponseJS extends PepResponse {
+	js: Object
+}
+
+export interface PepTalkJS {
+	getJS (path: string, depth?: number): Promise<PepResponseJS>
+}
+
 interface PendingRequestInternal extends PendingRequest {
 	resolve (res: PepResponse): void
 	reject (reason?: any): void
 }
 
-class PepTalk extends EventEmitter implements PepTalkClient {
+class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	private ws: Promise<websocket | null> = Promise.resolve(null)
 	readonly hostname: string
 	readonly port: number
 	timeout: number = 3000
 	counter: number = 1
 	pendingRequests: { [id: number]: PendingRequestInternal } = {}
+
+	private leftovers: string | null = null
 
 	constructor (hostname: string, port?: number) {
 		super()
@@ -342,20 +356,52 @@ class PepTalk extends EventEmitter implements PepTalkClient {
 	}
 
 	private processMessage (m: string): void {
+		let split = m.trim().split('\r\n')
+		if (split.length === 0) return
+		let re = /\{(\d+)\}/g
+		let last = split[split.length - 1]
+		let reres = re.exec(last)
+		let leftovers: string | null = null
+		while (reres !== null) {
+			if (last.length - (reres.index + reres[0].length + (+reres[1])) < 0) {
+				leftovers = last
+				split = split.slice(0, -1)
+				break
+			}
+			reres = re.exec(last)
+		}
+		if (this.leftovers) {
+			split[0] = this.leftovers + split[0]
+			this.leftovers = null
+		}
+		if (split.length > 1) {
+			for (let sm of split) {
+				// console.log('smsm >>>', sm)
+				if (sm.length > 0) this.processMessage(sm)
+			}
+			return
+		}
+		this.leftovers = leftovers ? leftovers : this.leftovers
+		m = split[0]
+		// console.log('processing >>>', m)
 		let firstSpace = m.indexOf(' ')
 		if (firstSpace <= 0) return
 		let c = +m.slice(0, firstSpace)
-		if (isNaN(c)) {
-			if (m.startsWith('* ')) {
+		if (isNaN(c) || m.slice(firstSpace + 1).startsWith('begin')) {
+			if (m.startsWith('* ') || m.slice(firstSpace + 1).startsWith('begin')) {
 				this.emit('message', { id: '*', body: m, status: 'ok' } as PepResponse)
 			} else {
-				this.emit('error', new UnspecifiedError('*', `Unexpected message from server: '${m}'.`))
+				try {
+					this.emit('error', new UnspecifiedError('*', `Unexpected message from server: '${m}'.`))
+				} catch (err) { /* Allow emit with no listeners. */ }
 			}
 			return // probably an event
 		}
 		let pending = this.pendingRequests[c]
 		if (!pending) {
-			this.emit('error', new UnspecifiedError(c, `Unmatched response for request ${c}.`))
+			try {
+				this.emit('error', new UnspecifiedError(c, `Unmatched response for request ${c}.`))
+			} catch (err) { /* Allow emit with no listeners. */ }
 		}
 		if (m.slice(firstSpace + 1).startsWith('ok')) {
 			let response: PepResponse = {
@@ -386,10 +432,10 @@ class PepTalk extends EventEmitter implements PepTalkClient {
 		}
 		let errorIndex = m.indexOf('error')
 		let error: PepError
-		if (errorIndex < 0) {
+		if (errorIndex < 0 || errorIndex > 10) {
 			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent)
 		} else {
-			let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ')
+			let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ') + errorIndex + 6
 			endOfErrorName = endOfErrorName > 0 ? endOfErrorName : m.length
 			switch (m.slice(errorIndex + 6, endOfErrorName)) {
 				case 'inexistent':
@@ -415,7 +461,7 @@ class PepTalk extends EventEmitter implements PepTalkClient {
 		}
 		pending.reject(error)
 		delete this.pendingRequests[c]
-		this.emit('error', error)
+		try { this.emit('error', error) } catch (err) { /* Allow emit with no listeners. */ }
 	}
 
 	private failTimer (c: number): Promise<PepResponse> {
@@ -446,7 +492,7 @@ class PepTalk extends EventEmitter implements PepTalkClient {
 
 	connect (noevents?: boolean | undefined): Promise<PepResponse> {
 		this.ws = new Promise((resolve, reject) => {
-			console.log('<<<', `ws://${this.hostname}:${this.port}/`)
+			// console.log('<<<', `ws://${this.hostname}:${this.port}/`)
 			let ws = new websocket(`ws://${this.hostname}:${this.port}/`)
 			ws.once('open', () => {
 				ws.on('message', this.processMessage.bind(this))
@@ -565,8 +611,14 @@ class PepTalk extends EventEmitter implements PepTalkClient {
 		if (t > 0) this.timeout = t
 		return this.timeout
 	}
+
+	async getJS (path: string, depth?: number): Promise<PepResponseJS> {
+		let result: PepResponseJS = await this.get(path, depth) as PepResponseJS
+		result.js = await Xml2JS.parseStringPromise(result.body)
+		return result
+	}
 }
 
-export function startPepTalk (hostname: string, port?: number): PepTalkClient {
+export function startPepTalk (hostname: string, port?: number): PepTalkClient & PepTalkJS {
 	return new PepTalk(hostname, port)
 }
