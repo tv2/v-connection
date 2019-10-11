@@ -173,6 +173,13 @@ export interface VRundown {
 	 */
 	continue (elementName: string | number): Promise<CommandResult>
 	/**
+	 *  Send a _continue-reverse_ command for a named graphical element, causing the
+	 *  previous presentation state is to be displayed.
+	 *  @param elementName Name or reference for the gephical element to continue.
+	 *  @returns Resolves on acceptance of the continue command.
+	 */
+	continueReverse (elementName: string | number): Promise<CommandResult>
+	/**
 	 *  Send an _out_ command for the named graphical element, ending its ongoing
 	 *  display.
 	 *  @param elementName Name or reference for the graphical element to take-out.
