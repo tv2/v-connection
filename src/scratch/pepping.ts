@@ -4,8 +4,8 @@ import * as yargs from 'yargs'
 let args = yargs
 	.string('host')
 	.number('port')
-	.default('host', 'mse_ws.ngrok.io')
-	.default('port', 80)
+	.default('host', 'localhost')
+	.default('port', 8595)
 	.argv
 
 async function run () {

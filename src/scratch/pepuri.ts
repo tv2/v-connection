@@ -19,7 +19,7 @@ async function run () {
 	let connected = await pt.connect()
 	console.log(connected)
 	try {
-		console.log(await pt.delete(args.path))
+		console.log(await pt.uri(args.path, 'hierarchy_collection'))
 	} catch (err) { console.dir(err) }
 	await pt.close()
 }

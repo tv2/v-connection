@@ -10,8 +10,8 @@ let args = yargs
 	.coerce('path', a => a.reduce(
 		(x: string, y: string) => `${x}${x.length === 0 || x.endsWith('/') ? '' : '/'}${y}`, ''))
 	.number('depth')
-	.default('host', 'mse_ws.ngrok.io')
-	.default('port', 80)
+	.default('host', 'localhost')
+	.default('port', 8595)
 	.default('depth', undefined)
 	.default('js', false)
 	.argv
