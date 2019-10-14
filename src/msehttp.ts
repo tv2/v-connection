@@ -5,9 +5,14 @@
 
 import { URL } from 'url'
 import * as request from 'request-promise-native'
+import { ServerResponse } from 'http'
 
 /** Result of executing an HTTP command. Command promise is resolved. */
 export interface CommandResult {
+	/** HTTP command or URL */
+	path: string
+	/** HTTP request body */
+	body?: string
 	/** HTTP status code. Normally `200 OK`. */
 	status: number
 	/** Response received. */
@@ -15,10 +20,54 @@ export interface CommandResult {
 }
 
 /** Client error - a `400` code - resulting from an HTTP command. Commnd promise is rejected. */
-export interface HTTPClientError extends Error, CommandResult { }
+export interface IHTTPClientError extends Error, CommandResult { }
+
+class HTTPClientError extends Error implements IHTTPClientError {
+	readonly path: string
+	readonly body?: string
+	readonly status: number
+	readonly response: string
+	constructor (response: ServerResponse, path: string, body?: string) {
+		super(`HTTP client error for '${path}': ${response.statusCode} - ${response.statusMessage}.`)
+		this.path = path
+		this.body = body
+		this.status = response.statusCode
+		this.response = response.statusMessage
+	}
+}
 
 /** Server error - a `500` code - resulting from an HTTP command. Commnd promise is rejected. */
-export interface HTTPServerError extends Error, CommandResult { }
+export interface IHTTPServerError extends Error, CommandResult { }
+
+class HTTPServerError extends Error implements IHTTPServerError {
+	readonly path: string
+	readonly body?: string
+	readonly status: number
+	readonly response: string
+	constructor (response: ServerResponse, path: string, body?: string) {
+		super(`HTTP server error for '${path}': ${response.statusCode} - ${response.statusMessage}.`)
+		this.path = path
+		this.body = body
+		this.status = response.statusCode
+		this.response = response.statusMessage
+	}
+}
+
+export interface IHTTPRequestError extends Error, CommandResult { }
+
+class HTTPRequestError extends Error implements IHTTPRequestError {
+	readonly path: string
+	readonly body?: string
+	readonly status: number
+	readonly response: string
+	constructor (message: string, path: string, body?: string) {
+		super(`HTTP request error for '${path}': ${message}.`)
+		this.path = path
+		this.body = body
+		this.status = 418
+		this.response = message
+	}
+}
 
 /**
  *  Client interface for sending commands to the MSE over HTTP. Commands target
@@ -71,21 +120,44 @@ class MSEHTTP implements HttpMSEClient {
 		this.profile = profile
 		this.baseURL = `http://${host}:${this.port}/profiles/${profile}`
 	}
+
+	private processError (err: any, path: string, body?: string): Error & CommandResult {
+		if (!err.response) {
+			if (err.name === 'RequestError') {
+				return new HTTPRequestError(err.message, path, body)
+			} else {
+				throw err
+			}
+		}
+		let response = err.response as ServerResponse
+		if (response.statusCode >= 400 && response.statusCode < 500) {
+			return new HTTPClientError(response, path, body)
+		}
+		if (response.statusCode >= 500) {
+			return new HTTPServerError(response, path, body)
+		}
+		throw err
+	}
+
 	async command (path: string | URL, body: string): Promise<CommandResult> {
-		if (typeof path === 'string') {
-			let response = await request.post({
-				method: 'POST',
-				uri: `${this.baseURL}/${path}`,
-				body,
-			 	timeout: this.timeout})
-			return { status: 200, response: response.toString() } as CommandResult
-		} else {
-			let response = await request.post({
-				method: 'POST',
-				uri: path,
-				body,
-			 	timeout: this.timeout })
-			return { status: 200, response: response.toString() } as CommandResult
+		try {
+			if (typeof path === 'string') {
+				let response = await request.post({
+					method: 'POST',
+					uri: `${this.baseURL}/${path}`,
+					body,
+				 	timeout: this.timeout})
+				return { status: 200, response: response.toString() } as CommandResult
+			} else {
+				let response = await request.post({
+					method: 'POST',
+					uri: path,
+					body,
+				 	timeout: this.timeout })
+				return { status: 200, response: response.toString() } as CommandResult
+			}
+		} catch (err) {
+			throw this.processError(err, path.toString(), body)
 		}
 	}
 
@@ -110,12 +182,16 @@ class MSEHTTP implements HttpMSEClient {
 	}
 
 	async ping (): Promise<CommandResult> {
-		await request({
-			method: 'GET',
-			uri: this.baseURL,
-			timeout: this.timeout
-		})
-		return { status: 200, response: 'PONG!' }
+		try {
+			await request({
+				method: 'GET',
+				uri: this.baseURL,
+				timeout: this.timeout
+			})
+			return { status: 200, response: 'PONG!' } as CommandResult
+		} catch (err) {
+			throw this.processError(err, 'ping')
+		}
 	}
 
 	setHTTPTimeout (t: number): number {
