@@ -359,6 +359,11 @@ export interface MSE extends EventEmitter {
 	 *  @returns Resolves if both connections were successful.
 	 */
 	ping (): Promise<CommandResult>
+	/**
+	 *  Close all connections and release any resouces.
+	 *  @returns Resolves to true on success.
+	 */
+	close (): Promise<boolean>
 	// Not creating shows - leave that to trio
 	// Add methods here for MSE configuration
 	/** Add a listener for all non-error messages and events from the server. */
