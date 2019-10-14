@@ -366,5 +366,3 @@ export interface MSE extends EventEmitter {
 	/** Add a listener for all error messages from the server. */
 	on (event: 'disconnected', listener: (err?: Error) => void): this
 }
-
-// TODO add an MSE factory
