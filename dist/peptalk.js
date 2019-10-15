@@ -268,6 +268,8 @@ class PepTalk extends events_1.EventEmitter {
                     else {
                         s.send(`${c} ${message}\r\n`);
                     }
+                }).catch(err => {
+                    reject(new UnspecifiedError('*', `Unexpected send error from websocket: ${err.message}`, message));
                 });
                 this.pendingRequests[c] = { resolve, reject, id: c, sent: message };
             })

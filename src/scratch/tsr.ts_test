@@ -69,14 +69,3 @@ async function initialize (hostname: string, port1: number, port2: number) {
     // "CSS" (Trio-pages) - ie "change the style of all gfx elements from now on" eg design_badminton
     // if 3rd party application does something
 }
-
-
-
-
-
-
-
-
-
-
-Message Johan Nyman
