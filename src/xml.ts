@@ -17,7 +17,7 @@ export interface AtomEntry {
 	/** Content data of the atom entry (`CDATA`). */
 	'_'?: string
 	/** Sub-entry or entries of the atom pub object. */
-	entry?: AtomEntry | Array<AtomEntry>
+	entry?: AtomEntry | Array<AtomEntry> | string[]
 	// TODO ref type
 }
 
@@ -26,7 +26,7 @@ export interface AtomEntry {
  *  Javascript object.
  */
 export interface FlatEntry {
-	[z: string]: string | FlatEntry
+	[z: string]: string | FlatEntry | undefined
 }
 
 /**
@@ -48,8 +48,13 @@ export function flattenEntry (x: AtomEntry): FlatEntry {
 	}
 	if (x.entry && Array.isArray(x.entry)) {
 		for (let e of x.entry) {
-			y[e.$.name] = flattenEntry(e)
-			delete y[e.$.name].name
+			if (typeof e === 'object') {
+				y[e.$.name] = flattenEntry(e)
+				delete y[e.$.name].name
+			} else {
+				if (!y.value) { y = { value: [] } }
+				y.value.push(e)
+ 			}
 		}
 	}
 	return y
@@ -74,6 +79,15 @@ export function entry2XML (x: FlatEntry): AtomEntry {
 				e._ = e.$.value
 				delete e.$.value
 				delete e.entry
+			} else if (e.entry && Array.isArray(e.entry) && e.entry[0] &&
+					(e.entry[0] as AtomEntry).$) {
+				let counter = 0
+				let ed = []
+				while (typeof (e.entry[0] as AtomEntry).$[counter.toString()] === 'string') {
+					ed.push((e.entry[0] as AtomEntry).$[counter.toString()])
+					counter ++
+				}
+				if (ed.length > 0) { e.entry = ed }
 			}
 			y.entry.push(e)
 		} else {
@@ -93,3 +107,37 @@ export function buildXML (x: AtomEntry): string {
 	let builder = new Xml2JS.Builder({ headless: true })
 	return builder.buildObject({ entry: x })
 }
+
+// let entryListXML = `<entry name="program">
+//   <entry name="viz">
+//     <entry>FULL1</entry>
+// 		<entry>DSK</entry>
+//   </entry>
+//   <entry name="video">
+//     <entry/>
+//   </entry>
+// </entry>`
+
+let testXML = `<entry mode="enabled" status="uninitialized" type="viz" name="Viz A">
+  <entry name="encoding">UTF-8</entry>
+  <entry name="state"/>
+  <entry name="renderer">
+    <entry name="192.168.1.2">
+      <entry name="active"/>
+    </entry>
+  </entry>
+  <entry name="publishing_point_uri"/>
+  <entry name="publishing_point_atom_id"/>
+  <entry name="info"/>
+</entry>`
+
+async function run () {
+	let fromXML = await Xml2JS.parseStringPromise(testXML)
+	console.dir(fromXML, { depth: 10 })
+	let flat = flattenEntry(fromXML.entry)
+	console.dir(flat, { depth: 10 })
+	let fat = entry2XML(flat)
+	console.dir(fat, { depth: 10 })
+}
+
+run().catch(console.error)

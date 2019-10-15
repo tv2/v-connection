@@ -14,6 +14,16 @@ let testXML = `<entry mode="enabled" status="uninitialized" type="viz" name="Viz
   <entry name="info"/>
 </entry>`
 
+let entryListXML = `<entry name="program">
+  <entry name="viz">
+    <entry>FULL1</entry>
+    <entry>DSK</entry>
+  </entry>
+  <entry name="video">
+    <entry/>
+  </entry>
+</entry>`
+
 describe('Roundtrip XML', () => {
 
 	test('Roundtrip a VizEngine entry', async () => {
@@ -21,5 +31,12 @@ describe('Roundtrip XML', () => {
 		let flat = flattenEntry(fromXML.entry)
 		let fat = entry2XML(flat)
 		expect(buildXML(fat)).toBe(testXML)
+	})
+
+	test('Roundtrip with value list', async () => {
+		let fromXML = await Xml2JS.parseStringPromise(entryListXML)
+		let flat = flattenEntry(fromXML.entry)
+		let fat = entry2XML(flat)
+		expect(buildXML(fat)).toBe(entryListXML)
 	})
 })

@@ -49,7 +49,7 @@ interface PepMessage {
 	sent?: string
 }
 
-interface PepResponse extends PepMessage {
+export interface PepResponse extends PepMessage {
 	/** The body of the response recived from the server. */
 	body: string
 }
