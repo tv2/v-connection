@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Sofie TV Automation Vizrt Media Sequencer Engine connection library",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/olzzon/v-connection.git"
