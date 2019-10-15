@@ -2,22 +2,7 @@ import { MSE, VRundown, VizEngine, VProfile, VShow, VPlaylist } from './v-connec
 import { startPepTalk, PepTalkClient, PepTalkJS } from './peptalk'
 import { /* createHTTPContext, HttpMSEClient, */ CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
-
-function flattenEntry (x: any): any {
-	let y: { [a: string]: any } = {}
-	if (x.$) {
-		for (let a in x.$) {
-			y[a] = x.$[a]
-		}
-	}
-	if (x.entry && Array.isArray(x.entry)) {
-		for (let e of x.entry) {
-			y[e.$.name] = flattenEntry(e)
-			delete y[e.$.name].name
-		}
-	}
-	return y
-}
+import { flattenEntry, AtomEntry } from './xml'
 
 class MSERep extends EventEmitter implements MSE {
 	readonly hostname: string
@@ -41,7 +26,7 @@ class MSERep extends EventEmitter implements MSE {
 		let handlers = await this.pep.getJS('/scheduler')
 		console.dir((handlers.js as any).scheduler.handler
 			.filter((x: any) => x.$.type === 'viz')
-			.map(flattenEntry), { depth: 10 })
+			.map((x: AtomEntry) => flattenEntry(x)), { depth: 10 })
 		return Promise.resolve([])
 	}
 
