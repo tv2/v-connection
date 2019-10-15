@@ -44,10 +44,14 @@ Add this module to your project with one of:
 
 Import into your project with one of:
 
-    import { VConnect } from 'v-connection'
-    const { VConnect } = require('tv-automation-quantel-gateway')
+    const { createMSE, MSE } = require('v-connection')
+    import { createMSE, MSE } from 'v-connection'
 
-Further instructions to follow.
+Use factory `createMSE` to create a connection to a running MSE, e.g.:
+
+    let mse: MSE = createMSE('hostname.domain', restPort, wsPort)
+
+Note that `restPort` and `wsPort` are optional. If omitted, the default port numbers will be used.
 
 ## Disclaimer
 

@@ -109,10 +109,10 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number)
 	return new MSERep(hostname, restPort, wsPort)
 }
 
-async function run () {
-	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
-	console.dir(await mse.getProfile('MOSART'), { depth: 10 })
-	mse.close()
-}
-
-run().catch(console.error)
+// async function run () {
+// 	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
+// 	console.dir(await mse.getProfile('MOSART'), { depth: 10 })
+// 	mse.close()
+// }
+//
+// run().catch(console.error)

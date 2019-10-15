@@ -83,7 +83,7 @@ export function entry2XML (x: FlatEntry): AtomEntry {
 					(e.entry[0] as AtomEntry).$) {
 				let counter = 0
 				let ed = []
-				while (typeof (e.entry[0] as AtomEntry).$[counter.toString()] === 'string') {
+				while ((typeof (e.entry[0] as AtomEntry).$[counter.toString()]) === 'string') {
 					ed.push((e.entry[0] as AtomEntry).$[counter.toString()])
 					counter ++
 				}
@@ -107,37 +107,3 @@ export function buildXML (x: AtomEntry): string {
 	let builder = new Xml2JS.Builder({ headless: true })
 	return builder.buildObject({ entry: x })
 }
-
-// let entryListXML = `<entry name="program">
-//   <entry name="viz">
-//     <entry>FULL1</entry>
-// 		<entry>DSK</entry>
-//   </entry>
-//   <entry name="video">
-//     <entry/>
-//   </entry>
-// </entry>`
-
-let testXML = `<entry mode="enabled" status="uninitialized" type="viz" name="Viz A">
-  <entry name="encoding">UTF-8</entry>
-  <entry name="state"/>
-  <entry name="renderer">
-    <entry name="192.168.1.2">
-      <entry name="active"/>
-    </entry>
-  </entry>
-  <entry name="publishing_point_uri"/>
-  <entry name="publishing_point_atom_id"/>
-  <entry name="info"/>
-</entry>`
-
-async function run () {
-	let fromXML = await Xml2JS.parseStringPromise(testXML)
-	console.dir(fromXML, { depth: 10 })
-	let flat = flattenEntry(fromXML.entry)
-	console.dir(flat, { depth: 10 })
-	let fat = entry2XML(flat)
-	console.dir(fat, { depth: 10 })
-}
-
-run().catch(console.error)
