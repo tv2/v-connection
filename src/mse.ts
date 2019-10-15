@@ -45,7 +45,9 @@ class MSERep extends EventEmitter implements MSE {
 		return Promise.resolve([])
 	}
 
-	listProfiles (): Promise<string[]> { return Promise.resolve([]) }
+	listProfiles (): Promise<string[]> {
+		return Promise.resolve([])
+	}
 
 	getProfile (_profileName: string): Promise<VProfile> { return Promise.resolve({} as VProfile) }
 

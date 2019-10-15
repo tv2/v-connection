@@ -527,16 +527,18 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		let c = this.counter++
 		return Promise.race([
 			this.failTimer(c),
-			new Promise((resolve, reject) => {
+			new Promise((resolve: (res: PepResponse) => void, reject: (reason?: any) => void) => {
 				this.ws.then(s => {
 					if (s === null) {
 						reject(new Error('Not connected.'))
 					} else {
 						s.send(`${c} ${message}\r\n`)
 					}
+				}).catch(err => {
+					reject(new UnspecifiedError('*', `Unexpected send error from websocket: ${err.message}`, message))
 				})
 				this.pendingRequests[c] = { resolve, reject, id: c, sent: message }
-			}) as Promise<PepResponse>
+			})
 		])
 	}
 
