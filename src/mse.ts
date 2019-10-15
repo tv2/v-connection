@@ -1,23 +1,8 @@
 import { MSE, VRundown, VizEngine, VProfile, VShow, VPlaylist } from './v-connection'
-import { startPepTalk, PepTalkClient, PepTalkJS } from './peptalk'
+import { startPepTalk, PepTalkClient, PepTalkJS, PepResponse } from './peptalk'
 import { /* createHTTPContext, HttpMSEClient, */ CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
-
-function flattenEntry (x: any): any {
-	let y: { [a: string]: any } = {}
-	if (x.$) {
-		for (let a in x.$) {
-			y[a] = x.$[a]
-		}
-	}
-	if (x.entry && Array.isArray(x.entry)) {
-		for (let e of x.entry) {
-			y[e.$.name] = flattenEntry(e)
-			delete y[e.$.name].name
-		}
-	}
-	return y
-}
+import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 
 class MSERep extends EventEmitter implements MSE {
 	readonly hostname: string
@@ -25,6 +10,7 @@ class MSERep extends EventEmitter implements MSE {
 	readonly wsPort: number
 
 	private pep: PepTalkClient & PepTalkJS
+	private connection?: Promise<PepResponse> = undefined
 
 	constructor (hostname: string, restPort?: number, wsPort?: number) {
 		super()
@@ -32,22 +18,48 @@ class MSERep extends EventEmitter implements MSE {
 		this.restPort = typeof restPort === 'number' && restPort > 0 ? restPort : 8580
 		this.wsPort = typeof wsPort === 'number' && wsPort > 0 ? wsPort : 8595
 		this.pep = startPepTalk(this.hostname, this.wsPort)
-		this.pep.connect()
+		this.connection = this.pep.connect()
+	}
+
+	private async checkConnection () {
+		try {
+			if (this.connection) {
+				await this.connection
+			} else {
+				this.connection = this.pep.connect()
+				throw new Error('Attempt to connect to PepTalk server failed. Retrying.')
+			}
+		} catch (err) {
+			this.connection = this.pep.connect()
+			throw err
+		}
 	}
 
 	getRundowns (): VRundown[] { return [] }
 
 	async getEngines (): Promise<VizEngine[]> {
+		await this.checkConnection()
 		let handlers = await this.pep.getJS('/scheduler')
-		console.dir((handlers.js as any).scheduler.handler
+		let viz: FlatEntry[] = (handlers.js as any).scheduler.handler
 			.filter((x: any) => x.$.type === 'viz')
-			.map(flattenEntry), { depth: 10 })
-		return Promise.resolve([])
+			.map((x: AtomEntry) => flattenEntry(x))
+		return viz as VizEngine[]
 	}
 
-	listProfiles (): Promise<string[]> { return Promise.resolve([]) }
+	async listProfiles (): Promise<string[]> {
+		await this.checkConnection()
+		let profileList = await this.pep.getJS('/config/profiles', 1)
+		let flatList = flattenEntry(profileList.js as AtomEntry)
+		return Object.keys(flatList).filter((x: string) => x !== 'name')
+	}
 
-	getProfile (_profileName: string): Promise<VProfile> { return Promise.resolve({} as VProfile) }
+	async getProfile (profileName: string): Promise<VProfile> {
+		await this.checkConnection()
+		let profile = await this.pep.getJS(`/config/profiles/${profileName}`)
+		console.dir(profile.js, { depth: 10 })
+		let flatProfile = flattenEntry(profile.js as AtomEntry)
+		return flatProfile as VProfile
+	}
 
 	listShows (): Promise<string[]> { return Promise.resolve([]) }
 
@@ -57,12 +69,15 @@ class MSERep extends EventEmitter implements MSE {
 
 	getPlaylist (_playlistName: string): Promise<VPlaylist> { return Promise.resolve({} as VPlaylist) }
 
+	// Rundown basics task
 	createRundown (_showID: string, _profile: string, _playlistID?: string): Promise<VRundown> {
 		return Promise.resolve({} as VRundown)
 	}
 
+	// Rundown basics task
 	deleteRundown (_showID: string, _profile: string): boolean { return false }
 
+	// Advanced feature
 	createProfile (_profileName: string, _profileDetailsTbc: any): Promise<VProfile> {
 		return Promise.resolve({} as VProfile)
 	}
@@ -82,8 +97,11 @@ class MSERep extends EventEmitter implements MSE {
 	}
 
 	async close (): Promise<boolean> {
-		await this.pep.close()
-		return true
+		if (this.connection) {
+			await this.pep.close()
+			return true
+		}
+		return false
 	}
 }
 
@@ -91,10 +109,10 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number)
 	return new MSERep(hostname, restPort, wsPort)
 }
 
-async function run () {
-	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
-	console.log(await mse.getEngines())
-	mse.close()
-}
-
-run().catch(console.error)
+// async function run () {
+// 	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
+// 	console.dir(await mse.getProfile('MOSART'), { depth: 10 })
+// 	mse.close()
+// }
+//
+// run().catch(console.error)

@@ -13,6 +13,7 @@
 
 import { EventEmitter } from 'events'
 import { CommandResult } from './msehttp'
+import { FlatEntry } from './xml'
 
 /**
  *  Representation of the schema for a single data field in a master template.
@@ -210,20 +211,26 @@ export interface VRundown {
 /**
  *  Represenation of a connection and state of a Viz Engine.
  */
-export interface VizEngine {
-	/** Hostname or IP address of a Viz Engine. */
-	readonly hostname: string
-	/** Alias for the engine's _handler_, the instance of an MSE _actor_ that is managing the Viz Engine. */
-	readonly handler: string
+export interface VizEngine extends FlatEntry {
+	readonly instance?: string
+	readonly mode: string
+	readonly resolved_ip?: string
 	/** Status of the Viz Engine accoridng to the MSE handler. */
-	readonly status: 'active' // add other states
-	// TODO add the details of what is currently displayed according to the MSE
+	readonly status: string
+	readonly type: 'viz'
+	readonly name: string
+	readonly encoding: { value: string }
+	readonly state: any // TODO flesh out depth
+	readonly renderer: { [ hostname: string]: { [ status: string]: any } },
+	readonly publishing_point_uri: any
+	readonly publishing_point_atom_id: any
+	readonly info: any
 }
 
 /**
  *  Representation of a MSE profile.
  */
-export interface VProfile {
+export interface VProfile extends FlatEntry {
 	/** Name of the profile, used as the target of commands. */
 	name: string
 	// TODO add other profile details
