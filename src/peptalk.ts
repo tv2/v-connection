@@ -363,7 +363,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		let reres = re.exec(last)
 		let leftovers: string | null = null
 		while (reres !== null) {
-			if (last.length - (reres.index + reres[0].length + (+reres[1])) < 0) {
+			if (new Buffer(last, 'utf8').length - (reres.index + reres[0].length + (+reres[1])) < 0) {
 				leftovers = last
 				split = split.slice(0, -1)
 				break
@@ -376,14 +376,13 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 		if (split.length > 1) {
 			for (let sm of split) {
-				// console.log('smsm >>>', sm)
+				console.log('smsm >>>', sm)
 				if (sm.length > 0) this.processMessage(sm)
 			}
 			return
 		}
 		this.leftovers = leftovers ? leftovers : this.leftovers
 		m = split[0]
-		// console.log('processing >>>', m)
 		let firstSpace = m.indexOf(' ')
 		if (firstSpace <= 0) return
 		let c = +m.slice(0, firstSpace)
@@ -473,7 +472,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	}
 
 	/** Escape a string using plaintalk representation. */
-	private esc = (s: string) => `{${s.length}}${s}`
+	private esc = (s: string) => `{${new Buffer(s, 'utf8').length}}${s}`
 
 	/** Remove all plaintalk escaping from a string. */
 	private unesc = (s: string) => s.replace(/\{\d+\}/g, '')

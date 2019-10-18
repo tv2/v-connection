@@ -56,16 +56,31 @@ class MSERep extends EventEmitter implements MSE {
 	async getProfile (profileName: string): Promise<VProfile> {
 		await this.checkConnection()
 		let profile = await this.pep.getJS(`/config/profiles/${profileName}`)
-		console.dir(profile.js, { depth: 10 })
 		let flatProfile = flattenEntry(profile.js as AtomEntry)
 		return flatProfile as VProfile
 	}
 
-	listShows (): Promise<string[]> { return Promise.resolve([]) }
+	async listShows (): Promise<string[]> {
+		await this.checkConnection()
+		let showList = await this.pep.getJS('/storage/shows', 1)
+		let flatList = flattenEntry(showList.js as AtomEntry)
+		return Object.keys(flatList).filter((x: string) => x !== 'name')
+	}
 
 	getShow (_showName: string): Promise<VShow> { return Promise.resolve({} as VShow) }
 
-	listPlaylists (): Promise<string[]> { return Promise.resolve([]) }
+	async listPlaylists (): Promise<string[]> {
+		await this.checkConnection()
+		let playlistList = await this.pep.getJS('/storage/playlists', 1)
+		let atomEntry: any = playlistList.js as AtomEntry
+		// Horrible hack ... playlists not following atom pub model
+	 	if (atomEntry.entry) {
+			atomEntry.entry.entry = atomEntry.entry.playlist
+			delete atomEntry.entry.playlist
+		}
+		let flatList = flattenEntry(playlistList.js as AtomEntry)
+		return Object.keys(flatList).filter((x: string) => x !== 'name')
+	}
 
 	getPlaylist (_playlistName: string): Promise<VPlaylist> { return Promise.resolve({} as VPlaylist) }
 
@@ -79,10 +94,13 @@ class MSERep extends EventEmitter implements MSE {
 
 	// Advanced feature
 	createProfile (_profileName: string, _profileDetailsTbc: any): Promise<VProfile> {
-		return Promise.resolve({} as VProfile)
+		return Promise.reject(new Error('Not implemented. Creating profiles is a future feature.'))
 	}
 
-	deleteProfile (_profileName: string): Promise<boolean> { return Promise.resolve(false) }
+	// Advanced feature
+	deleteProfile (_profileName: string): Promise<boolean> {
+		return Promise.reject(new Error('Not implemented. Deleting profiles ia a future feature.'))
+	}
 
 	async ping (): Promise<CommandResult> {
 		try {
@@ -109,10 +127,12 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number)
 	return new MSERep(hostname, restPort, wsPort)
 }
 
-// async function run () {
-// 	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
-// 	console.dir(await mse.getProfile('MOSART'), { depth: 10 })
-// 	mse.close()
-// }
-//
-// run().catch(console.error)
+async function run () {
+	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
+	console.dir(await mse.listPlaylists(), { depth: 10 })
+	console.log('Pre close')
+	await mse.close()
+	console.log('After close.')
+}
+
+run().catch(console.error)
