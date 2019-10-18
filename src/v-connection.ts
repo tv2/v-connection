@@ -246,7 +246,7 @@ export interface VProfile extends FlatEntry {
 /**
  *  Representation of a MSE show.
  */
-export interface VShow {
+export interface VShow extends FlatEntry {
 	/** UUID that identifies a show. */
 	id: string // known as name
 	// TOOD add other show details
@@ -258,9 +258,9 @@ export interface VShow {
 /**
  *  Representation of a MSE playlist.
  */
-export interface VPlaylist {
+export interface VPlaylist extends FlatEntry {
 	name: string
-	description: string
+	description?: string
 	// TODO add other details
 	// modified
 	// profile

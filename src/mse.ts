@@ -4,6 +4,8 @@ import { /* createHTTPContext, HttpMSEClient, */ CommandResult, IHTTPRequestErro
 import { EventEmitter } from 'events'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 
+const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
+
 class MSERep extends EventEmitter implements MSE {
 	readonly hostname: string
 	readonly restPort: number
@@ -67,7 +69,17 @@ class MSERep extends EventEmitter implements MSE {
 		return Object.keys(flatList).filter((x: string) => x !== 'name')
 	}
 
-	getShow (_showName: string): Promise<VShow> { return Promise.resolve({} as VShow) }
+	async getShow (showName: string): Promise<VShow> {
+		if (!showName.startsWith('{')) { showName = '{' + showName }
+		if (!showName.endsWith('}')) { showName = showName + '}' }
+		if (!showName.match(uuidRe)) {
+			return Promise.reject(new Error(`Show name must be a UUID and '${showName}' is not.`))
+		}
+		await this.checkConnection()
+		let show = await this.pep.getJS(`/storage/shows/${showName}`)
+		let flatShow = flattenEntry(show.js as AtomEntry)
+		return flatShow as VShow
+	}
 
 	async listPlaylists (): Promise<string[]> {
 		await this.checkConnection()
@@ -82,7 +94,18 @@ class MSERep extends EventEmitter implements MSE {
 		return Object.keys(flatList).filter((x: string) => x !== 'name')
 	}
 
-	getPlaylist (_playlistName: string): Promise<VPlaylist> { return Promise.resolve({} as VPlaylist) }
+	async getPlaylist (playlistName: string): Promise<VPlaylist> {
+		if (!playlistName.startsWith('{')) { playlistName = '{' + playlistName }
+		if (!playlistName.endsWith('}')) { playlistName = playlistName + '}' }
+		if (!playlistName.match(uuidRe)) {
+			return Promise.reject(new Error(`Playlist name must be a UUID and '${playlistName}' is not.`))
+		}
+		await this.checkConnection()
+		let playlist = await this.pep.getJS(`/storage/playlists/${playlistName}`)
+		console.dir(playlist, { depth: 10 })
+		let flatPlayliat = flattenEntry(playlist.js as AtomEntry)
+		return flatPlayliat as VPlaylist
+	}
 
 	// Rundown basics task
 	createRundown (_showID: string, _profileName: string, _playlistID?: string): Promise<VRundown> {
@@ -129,10 +152,10 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number)
 
 async function run () {
 	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
-	console.dir(await mse.listPlaylists(), { depth: 10 })
-	console.log('Pre close')
+	console.dir(await mse.getPlaylist('5A58448C-3CBE-4146-B3DF-EFC918D16266'), { depth: 10 })
+	// console.log('Pre close')
 	await mse.close()
-	console.log('After close.')
+	// console.log('After close.')
 }
 
 run().catch(console.error)
