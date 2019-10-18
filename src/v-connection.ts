@@ -329,18 +329,18 @@ export interface MSE extends EventEmitter {
 	getPlaylist (playlistName: string): Promise<VPlaylist>
 	/**
 	 *  Create a new rundown to be executed on this MSE.
-	 *  @param showID     Identifier of the show to create.
-	 *  @param profile    Name of the profile to send commands to.
-	 *  @param playlistID Optional UUID identifier for the playlist. If none is
-	 *                    provided, one will be generated.
+	 *  @param showID      Identifier of the show to create.
+	 *  @param profileName Name of the profile to send commands to.
+	 *  @param playlistID  Optional UUID identifier for the playlist. If none is
+	 *                     provided, one will be generated.
 	 *  @return Resolves to a newly created rundown.
 	 */
 	createRundown (showID: string, profile: string, playlistID?: string): Promise<VRundown>
 	/**
 	 *  Delete a rundown from this MSE. Note that rundowns can only be deleted when
 	 *  they are not activated.
-	 *  @param showID Identifier of the show associated with the rundown.
-	 *  @param profile Identifier of the profile associated with the rundown.
+	 *  @param showID      Identifier of the show associated with the rundown.
+	 *  @param profileName Name of the profile associated with the rundown.
 	 *  @returns Was the delete operation successful?
 	 */
 	deleteRundown (showID: string, profile: string): boolean

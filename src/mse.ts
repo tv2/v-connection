@@ -70,12 +70,12 @@ class MSERep extends EventEmitter implements MSE {
 	getPlaylist (_playlistName: string): Promise<VPlaylist> { return Promise.resolve({} as VPlaylist) }
 
 	// Rundown basics task
-	createRundown (_showID: string, _profile: string, _playlistID?: string): Promise<VRundown> {
+	createRundown (_showID: string, _profileName: string, _playlistID?: string): Promise<VRundown> {
 		return Promise.resolve({} as VRundown)
 	}
 
 	// Rundown basics task
-	deleteRundown (_showID: string, _profile: string): boolean { return false }
+	deleteRundown (_showID: string, _profileName: string): boolean { return false }
 
 	// Advanced feature
 	createProfile (_profileName: string, _profileDetailsTbc: any): Promise<VProfile> {
