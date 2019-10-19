@@ -19,6 +19,7 @@ export interface AtomEntry {
 	/** Sub-entry or entries of the atom pub object. */
 	entry?: AtomEntry | Array<AtomEntry> | string[]
 	// TODO ref type
+	[z: string]: any
 }
 
 /**
@@ -36,7 +37,10 @@ export interface FlatEntry {
  *  @return Simplified version of `x`.
  */
 export function flattenEntry (x: AtomEntry): FlatEntry {
-	if (Object.keys(x).length === 1 && x.entry) return flattenEntry(x.entry as AtomEntry)
+	let keys = Object.keys(x)
+	if (keys.length === 1 && x.entry) {
+		return flattenEntry(x.entry as AtomEntry)
+	}
 	let y: { [a: string]: any } = {}
 	if (x.$) {
 		for (let a in x.$) {
@@ -55,6 +59,45 @@ export function flattenEntry (x: AtomEntry): FlatEntry {
 				if (!y.value) { y = { value: [] } }
 				y.value.push(e)
  			}
+		}
+	} else {
+		for (let k of keys.filter(z => z !== 'entry' && z !== '$' && z !== '_')) {
+			if (typeof x[k] === 'object') {
+				if (Array.isArray(x[k])) {
+					x[k].forEach((z: any) => {
+						if (typeof z === 'object') {
+							if (z.$ && z.$.name) {
+								y[z.$.name] = flattenEntry(z as AtomEntry)
+								delete y[z.$.name].name
+							} else {
+								if (!y[k]) { y[k] = [] }
+								y[k].push(flattenEntry(z as AtomEntry))
+							}
+						}
+					})
+				} else {
+					for (let e of x[k]) {
+						if (typeof e === 'object') {
+							if (e.$ && e.$.name) {
+								y[e.$.name] = flattenEntry(e)
+								delete y[e.$.name].name
+							} else {
+								y[k] = flattenEntry(e)
+							}
+						} else {
+							if (!y.value) { y = { value: [] } }
+							y.value.push(e)
+						}
+					}
+
+				}
+			} else if (k === 'ref' && typeof x[k] === 'string') {
+				if (y.ref) {
+					y.ref = Array.isArray(y.ref) ? y.ref.concat(x[k]) : [ y.ref, x[k] ]
+				} else {
+					y.ref = x[k]
+				}
+			}
 		}
 	}
 	return y
