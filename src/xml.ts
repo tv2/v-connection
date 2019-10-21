@@ -55,7 +55,11 @@ export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
 		for (let e of x.entry) {
 			if (typeof e === 'object') {
 				if (e.$.name === 'model_xml') {
-					y[e.$.name] = e._ ? await Xml2JS.parseStringPromise(e._) : ''
+					try {
+						y[e.$.name] = e._ ? await Xml2JS.parseStringPromise(e._) : ''
+					} catch (err) {
+						y[e.$.name] = e._
+					}
 				} else {
 					y[e.$.name] = await flattenEntry(e)
 				}
@@ -97,10 +101,6 @@ export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
 				} else {
 					y[k] = await flattenEntry(e)
 				}
-			// } else {
-			// 	if (!y.value) { y = { key: k, value: [] } }
-			// 	y.value.push(e)
-			// }
 			}
 		}
 	}
