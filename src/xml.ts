@@ -89,20 +89,18 @@ export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
 					}
 				}))
 			} else {
-				for (let e of x[k]) {
-					if (typeof e === 'object') {
-						if (e.$ && e.$.name) {
-							y[e.$.name] = await flattenEntry(e)
-							y[e.$.name].key = k
-							delete y[e.$.name].name
-						} else {
-							y[k] = await flattenEntry(e)
-						}
-					} else {
-						if (!y.value) { y = { key: k, value: [] } }
-						y.value.push(e)
-					}
+				let e = x[k]
+				if (e.$ && e.$.name) {
+					y[e.$.name] = await flattenEntry(e)
+					y[e.$.name].key = k
+					delete y[e.$.name].name
+				} else {
+					y[k] = await flattenEntry(e)
 				}
+			// } else {
+			// 	if (!y.value) { y = { key: k, value: [] } }
+			// 	y.value.push(e)
+			// }
 			}
 		}
 	}
