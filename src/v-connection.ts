@@ -367,6 +367,12 @@ export interface MSE extends EventEmitter {
 	 */
 	ping (): Promise<CommandResult>
 	/**
+	 *  Set the maximum amount of time that an operation can take.
+	 *  @param t Maximum number of milliseconds for any operation. Omit for query.
+	 *  @return Timeeout value set. May be different from request if outside range.
+	 */
+	timeout (t?: number): number
+	/**
 	 *  Close all connections and release any resouces.
 	 *  @returns Resolves to true on success.
 	 */

@@ -2,7 +2,7 @@ import { MSE, VRundown, VizEngine, VProfile, VShow, VPlaylist } from './v-connec
 import { startPepTalk, PepTalkClient, PepTalkJS, PepResponse } from './peptalk'
 import { /* createHTTPContext, HttpMSEClient, */ CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
-import { flattenEntry, AtomEntry, FlatEntry } from './xml'
+import { flattenEntry, AtomEntry } from './xml'
 
 const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
 
@@ -42,30 +42,30 @@ class MSERep extends EventEmitter implements MSE {
 	async getEngines (): Promise<VizEngine[]> {
 		await this.checkConnection()
 		let handlers = await this.pep.getJS('/scheduler')
-		let viz: FlatEntry[] = (handlers.js as any).scheduler.handler
+		let vizEntries: AtomEntry[] = (handlers.js as any).scheduler.handler
 			.filter((x: any) => x.$.type === 'viz')
-			.map((x: AtomEntry) => flattenEntry(x))
+		let viz = await Promise.all(vizEntries.map(x => flattenEntry(x)))
 		return viz as VizEngine[]
 	}
 
 	async listProfiles (): Promise<string[]> {
 		await this.checkConnection()
 		let profileList = await this.pep.getJS('/config/profiles', 1)
-		let flatList = flattenEntry(profileList.js as AtomEntry)
+		let flatList = await flattenEntry(profileList.js as AtomEntry)
 		return Object.keys(flatList).filter((x: string) => x !== 'name')
 	}
 
 	async getProfile (profileName: string): Promise<VProfile> {
 		await this.checkConnection()
 		let profile = await this.pep.getJS(`/config/profiles/${profileName}`)
-		let flatProfile = flattenEntry(profile.js as AtomEntry)
+		let flatProfile = await flattenEntry(profile.js as AtomEntry)
 		return flatProfile as VProfile
 	}
 
 	async listShows (): Promise<string[]> {
 		await this.checkConnection()
 		let showList = await this.pep.getJS('/storage/shows', 1)
-		let flatList = flattenEntry(showList.js as AtomEntry)
+		let flatList = await flattenEntry(showList.js as AtomEntry)
 		return Object.keys(flatList).filter((x: string) => x !== 'name')
 	}
 
@@ -77,7 +77,7 @@ class MSERep extends EventEmitter implements MSE {
 		}
 		await this.checkConnection()
 		let show = await this.pep.getJS(`/storage/shows/${showName}`)
-		let flatShow = flattenEntry(show.js as AtomEntry)
+		let flatShow = await flattenEntry(show.js as AtomEntry)
 		return flatShow as VShow
 	}
 
@@ -90,7 +90,7 @@ class MSERep extends EventEmitter implements MSE {
 			atomEntry.entry.entry = atomEntry.entry.playlist
 			delete atomEntry.entry.playlist
 		}
-		let flatList = flattenEntry(playlistList.js as AtomEntry)
+		let flatList = await flattenEntry(playlistList.js as AtomEntry)
 		return Object.keys(flatList).filter((x: string) => x !== 'name')
 	}
 
@@ -103,7 +103,7 @@ class MSERep extends EventEmitter implements MSE {
 		await this.checkConnection()
 		let playlist = await this.pep.getJS(`/storage/playlists/${playlistName}`)
 		console.dir(playlist, { depth: 10 })
-		let flatPlayliat = flattenEntry(playlist.js as AtomEntry)
+		let flatPlayliat = await flattenEntry(playlist.js as AtomEntry)
 		return flatPlayliat as VPlaylist
 	}
 
@@ -144,6 +144,12 @@ class MSERep extends EventEmitter implements MSE {
 		}
 		return false
 	}
+
+	private timeoutMS: number = 3000
+	timeout (t?: number): number {
+		if (typeof t !== 'number') return this.timeoutMS
+		return this.pep.setTimeout(t)
+	}
 }
 
 export function createMSE (hostname: string, restPort?: number, wsPort?: number): MSE {
@@ -152,7 +158,8 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number)
 
 async function run () {
 	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
-	console.dir(await mse.getShow('66E45216-9476-4BDC-9556-C3DB487ED9DF'), { depth: 10 })
+	mse.timeout(10000)
+	console.dir(await mse.getPlaylist('b48d3a1d-89f4-453f-a1b9-552f6dde3099'), { depth: 20 })
 	// console.log('Pre close')
 	await mse.close()
 	// console.log('After close.')

@@ -28,14 +28,14 @@ describe('Roundtrip XML', () => {
 
 	test('Roundtrip a VizEngine entry', async () => {
 		let fromXML = await Xml2JS.parseStringPromise(testXML)
-		let flat = flattenEntry(fromXML.entry)
+		let flat = await flattenEntry(fromXML.entry)
 		let fat = entry2XML(flat)
 		expect(buildXML(fat)).toBe(testXML)
 	})
 
 	test('Roundtrip with value list', async () => {
 		let fromXML = await Xml2JS.parseStringPromise(entryListXML)
-		let flat = flattenEntry(fromXML.entry)
+		let flat = await flattenEntry(fromXML.entry)
 		let fat = entry2XML(flat)
 		expect(buildXML(fat)).toBe(entryListXML)
 	})
@@ -105,19 +105,21 @@ let tempEntry = `<entry name="mastertemplates">
     </element>
 	</entry>`
 
-describe.only('Transform a non-entry', () => {
+describe('Transform a non-entry', () => {
 
 	test('For a show element', async () => {
 		let fromXML = await Xml2JS.parseStringPromise(nonEntry)
-		console.log(JSON.stringify(fromXML, null, 2))
-		let flat = flattenEntry(fromXML)
-		console.log(JSON.stringify(flat, null, 2))
+		// console.log(JSON.stringify(fromXML, null, 2))
+		let flat = await flattenEntry(fromXML)
+		// console.log(JSON.stringify(flat, null, 2))
+		expect(flat).toBeTruthy()
 	})
 
 	test('For a few tempaltes', async () => {
 		let fromXML = await Xml2JS.parseStringPromise(tempEntry)
-		console.log(JSON.stringify(fromXML, null, 2))
-		let flat = flattenEntry(fromXML)
-		console.log(JSON.stringify(flat, null, 2))
+		// console.log(JSON.stringify(fromXML, null, 2))
+		let flat = await flattenEntry(fromXML)
+		// console.log(JSON.stringify(flat, null, 2))
+		expect(flat).toBeTruthy()
 	})
 })
