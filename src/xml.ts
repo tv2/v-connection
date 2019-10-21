@@ -38,7 +38,7 @@ export interface FlatEntry {
  */
 export function flattenEntry (x: AtomEntry): FlatEntry {
 	let keys = Object.keys(x)
-	if (keys.length === 1 && x.entry) {
+	if (keys.length === 1 && (x.entry || x.ref)) {
 		return flattenEntry(x.entry as AtomEntry)
 	}
 	let y: { [a: string]: any } = {}
@@ -50,6 +50,7 @@ export function flattenEntry (x: AtomEntry): FlatEntry {
 	if (x._) {
 		y.value = x._
 	}
+	// MSE uses entries with nested sub-entries. Not Atom-compliant, but fairly consistent
 	if (x.entry && Array.isArray(x.entry)) {
 		for (let e of x.entry) {
 			if (typeof e === 'object') {
@@ -60,42 +61,46 @@ export function flattenEntry (x: AtomEntry): FlatEntry {
 				y.value.push(e)
  			}
 		}
-	} else {
-		for (let k of keys.filter(z => z !== 'entry' && z !== '$' && z !== '_')) {
-			if (typeof x[k] === 'object') {
-				if (Array.isArray(x[k])) {
-					x[k].forEach((z: any) => {
-						if (typeof z === 'object') {
-							if (z.$ && z.$.name) {
-								y[z.$.name] = flattenEntry(z as AtomEntry)
-								delete y[z.$.name].name
-							} else {
-								if (!y[k]) { y[k] = [] }
-								y[k].push(flattenEntry(z as AtomEntry))
-							}
-						}
-					})
-				} else {
-					for (let e of x[k]) {
-						if (typeof e === 'object') {
-							if (e.$ && e.$.name) {
-								y[e.$.name] = flattenEntry(e)
-								delete y[e.$.name].name
-							} else {
-								y[k] = flattenEntry(e)
-							}
+	}
+	// if (x.model_xml && typeof x.model_xml._ === 'string') {
+	//
+	// }
+	// Apart from when a _special_ XML element name is used. This code picks up those with different _keys_.
+	for (let k of keys.filter(z => z !== 'entry' && z !== '$' && z !== '_')) {
+		if (typeof x[k] === 'object') {
+			if (Array.isArray(x[k])) {
+				x[k].forEach((z: any) => {
+					if (typeof z === 'object') {
+						if (z.$ && z.$.name) {
+							y[z.$.name] = flattenEntry(z as AtomEntry)
+							y[z.$.name].key = k
+							delete y[z.$.name].name
 						} else {
-							if (!y.value) { y = { value: [] } }
-							y.value.push(e)
+							if (!y[k]) {
+								y[k] = []
+								y[`${k}_key`] = k
+							}
+							y[k].push(flattenEntry(z as AtomEntry))
 						}
 					}
-
-				}
-			} else if (k === 'ref' && typeof x[k] === 'string') {
-				if (y.ref) {
-					y.ref = Array.isArray(y.ref) ? y.ref.concat(x[k]) : [ y.ref, x[k] ]
-				} else {
-					y.ref = x[k]
+					if (typeof z === 'string') {
+						y[k] = { value: z, key: k }
+					}
+				})
+			} else {
+				for (let e of x[k]) {
+					if (typeof e === 'object') {
+						if (e.$ && e.$.name) {
+							y[e.$.name] = flattenEntry(e)
+							y[e.$.name].key = k
+							delete y[e.$.name].name
+						} else {
+							y[k] = flattenEntry(e)
+						}
+					} else {
+						if (!y.value) { y = { key: k, value: [] } }
+						y.value.push(e)
+					}
 				}
 			}
 		}

@@ -107,7 +107,7 @@ let tempEntry = `<entry name="mastertemplates">
 
 describe.only('Transform a non-entry', () => {
 
-	test.only('For a show element', async () => {
+	test('For a show element', async () => {
 		let fromXML = await Xml2JS.parseStringPromise(nonEntry)
 		console.log(JSON.stringify(fromXML, null, 2))
 		let flat = flattenEntry(fromXML)
