@@ -152,7 +152,7 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number)
 
 async function run () {
 	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
-	console.dir(await mse.getPlaylist('5A58448C-3CBE-4146-B3DF-EFC918D16266'), { depth: 10 })
+	console.dir(await mse.getShow('66E45216-9476-4BDC-9556-C3DB487ED9DF'), { depth: 10 })
 	// console.log('Pre close')
 	await mse.close()
 	// console.log('After close.')

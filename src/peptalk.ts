@@ -371,7 +371,9 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		while (reres !== null) {
 			let lastBytes = Buffer.byteLength(last, 'utf8')
 			if (lastBytes - (reres.index + reres[0].length + (+reres[1])) < 0) {
-				leftovers = { previous: last, remaining: +reres[1] - lastBytes }
+				leftovers = {
+					previous: last,
+					remaining: +reres[1] - lastBytes + reres[0].length + reres.index }
 				split = split.slice(0, -1)
 				break
 			}
@@ -390,7 +392,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 		if (split.length > 1) {
 			for (let sm of split) {
-				console.log('smsm >>>', sm)
+				// console.log('smsm >>>', sm)
 				if (sm.length > 0) this.processMessage(sm)
 			}
 			return
@@ -398,7 +400,6 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		this.leftovers = leftovers ? leftovers : this.leftovers
 		if (split.length === 0) return
 		m = split[0]
-		console.log('LEN', m.length)
 		let firstSpace = m.indexOf(' ')
 		if (firstSpace <= 0) return
 		let c = +m.slice(0, firstSpace)
