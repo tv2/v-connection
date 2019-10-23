@@ -3,10 +3,11 @@ import { startPepTalk, PepTalkClient, PepTalkJS, PepResponse } from './peptalk'
 import { /* createHTTPContext, HttpMSEClient, */ CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
 import { flattenEntry, AtomEntry } from './xml'
+import { Rundown } from './rundown'
 
 const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
 
-class MSERep extends EventEmitter implements MSE {
+export class MSERep extends EventEmitter implements MSE {
 	readonly hostname: string
 	readonly restPort: number
 	readonly wsPort: number
@@ -23,7 +24,7 @@ class MSERep extends EventEmitter implements MSE {
 		this.connection = this.pep.connect()
 	}
 
-	private async checkConnection () {
+	async checkConnection () {
 		try {
 			if (this.connection) {
 				await this.connection
@@ -35,6 +36,10 @@ class MSERep extends EventEmitter implements MSE {
 			this.connection = this.pep.connect()
 			throw err
 		}
+	}
+
+	getPep (): PepTalkClient & PepTalkJS {
+		return this.pep
 	}
 
 	getRundowns (): VRundown[] { return [] }
@@ -107,8 +112,9 @@ class MSERep extends EventEmitter implements MSE {
 	}
 
 	// Rundown basics task
-	createRundown (_showID: string, _profileName: string, _playlistID?: string): Promise<VRundown> {
-		return Promise.resolve({} as VRundown)
+	async createRundown (showID: string, profileName: string, playlistID?: string): Promise<VRundown> {
+		// TODO Do async stuff to check parameters
+		return new Rundown(this, showID, profileName, playlistID)
 	}
 
 	// Rundown basics task
@@ -155,13 +161,12 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number)
 	return new MSERep(hostname, restPort, wsPort)
 }
 
-// async function run () {
-// 	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
-// 	mse.timeout(10000)
-// 	console.dir(await mse.getShow('66E45216-9476-4BDC-9556-C3DB487ED9DF'), { depth: 20 })
-// 	// console.log('Pre close')
-// 	await mse.close()
-// 	// console.log('After close.')
-// }
-//
-// run().catch(console.error)
+async function run () {
+	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
+	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART')
+	console.log(await rundown.listTemplates())
+	await mse.close()
+	// console.log('After close.')
+}
+
+run().catch(console.error)

@@ -1,13 +1,29 @@
 import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from './v-connection'
 import { CommandResult } from './msehttp'
+import { MSERep } from './mse'
+import * as uuid from 'uuid'
+import { flattenEntry, AtomEntry } from './xml'
 
 export class Rundown implements VRundown {
-	show: string
-	playlist: string
-	profile: string
+	readonly show: string
+	readonly playlist: string
+	readonly profile: string
 
-	listTemplates (): Promise<string[]> {
-		throw new Error('Method not implemented.')
+	private readonly mse: MSERep
+	private get pep () { return this.mse.getPep() }
+
+	constructor (mseRep: MSERep, show: string, profile: string, playlist?: string) {
+		this.mse = mseRep
+		this.show = show
+		this.profile = profile
+		this.playlist = playlist ? playlist : uuid.v4()
+	}
+
+	async listTemplates (): Promise<string[]> {
+		await this.mse.checkConnection()
+		let templateList = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates`, 1)
+		let flatTemplates = await flattenEntry(templateList.js as AtomEntry)
+		return Object.keys(flatTemplates).filter(x => x !== 'name')
 	}
 
 	readTemplate (_templateName: string): Promise<VTemplate> {
