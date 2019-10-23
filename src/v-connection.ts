@@ -72,6 +72,10 @@ export interface VElement {
 	 *  @returns Path in the VDOM tree to this element.
 	 */
 	path (): string
+	/** Optional channel specifier used to define which Viz Engines the graphics play on.
+	 *  Note when `undefined`, the default is the _program_ channel.
+	 */
+	channel?: string
 }
 
 /** Graphical element that is fully described within the VDOM tree. */
@@ -122,10 +126,11 @@ export interface VRundown {
 	 *  instance of the named [[VTemplate|template]].
 	 *  @param templateName Name of the template the element is an instance of.
 	 *  @param elementName  Name of the graphical element to create.
-	 *  @param textFields   List of values for each of the graphical elements. **How are these sorted?**
+	 *  @param textFields   List of values for each of the graphical elements.
+	 *  @param channel      Optional channel to play out this graphic. Default is the _program_.
 	 *  @returns Resolves to a newly created element.
 	 */
-	createElement (templateName: string, elementName: string, textFields: string[]): Promise<InternalElement>
+	createElement (templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>
 	/**
 	 *  Create a new [[ExternalElement|_external_ graphical element]] by unique reference number.
 	 *  @param vcpid Unique reference number for the element in the external source,
@@ -133,9 +138,10 @@ export interface VRundown {
 	 *  @param alias Optional name to use to reference the element. Note that this
 	 *               name is stored only within the library and not persisted in
 	 *               the MSE.
+	 *  @param channel Optional channel to play out this graphic. Default is the _program_.
 	 *  @returns Resolves to a newly created element reference.
 	 */
-	createElement (vcpid: number, alias?: string): Promise<ExternalElement>
+	createElement (vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>
 	/**
 	 *  List all the graphical elements created for this rundown.
 	 *  @returns Resolves to a list of graphical element names for this rundown.
