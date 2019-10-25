@@ -87,7 +87,7 @@ export interface IInexistentError extends PepError {
 	path: string
 }
 
-class InexistentError extends PepError implements IInexistentError {
+export class InexistentError extends PepError implements IInexistentError {
 	readonly status: 'inexistent'
 	readonly path: string
 	constructor (id: number, path: string, sent?: string) {

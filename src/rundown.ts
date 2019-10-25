@@ -1,5 +1,6 @@
 import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from './v-connection'
 import { CommandResult } from './msehttp'
+import { InexistentError } from './peptalk'
 import { MSERep } from './mse'
 import * as uuid from 'uuid'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
@@ -95,13 +96,25 @@ export class Rundown implements VRundown {
 	async getElement (elementName: string | number): Promise<VElement> {
 		await this.mse.checkConnection()
 		if (typeof elementName === 'number') {
-			let element = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements/${elementName}`)
-			let flatElement = await flattenEntry(element.js as AtomEntry)
-			return flatElement as VElement
+			let playlistsList = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2)
+			let flatPlaylistElements: FlatEntry = await flattenEntry(playlistsList.js as AtomEntry)
+			let elementKey = Object.keys(flatPlaylistElements.elements as FlatEntry).find(k => {
+				let ref = ((flatPlaylistElements.elements as FlatEntry)[k] as FlatEntry).value as string
+				return ref.endsWith(`/${elementName}`)
+			})
+			let element = typeof elementKey === 'string' ? (flatPlaylistElements.elements as FlatEntry)[elementKey] as FlatEntry : undefined
+			if (!element) {
+				throw new InexistentError(
+					typeof playlistsList.id === 'number' ? playlistsList.id : 0,
+					`/storage/playlists/{${this.playlist}}/elements#${elementName}`)
+			} else {
+				return element as ExternalElement
+			}
 		} else {
 			let element = await this.pep.getJS(`/storage/shows/{${this.show}}/elements/${elementName}`)
-			let flatElement = await flattenEntry(element.js as AtomEntry)
-			return flatElement as VElement
+			let flatElement: FlatEntry = (await flattenEntry(element.js as AtomEntry))[elementName] as FlatEntry
+			flatElement.name = elementName
+			return flatElement as InternalElement
 		}
 	}
 }
