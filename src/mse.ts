@@ -157,14 +157,24 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 }
 
+/**
+ *  Factory to create an [[MSE]] instance to manage commumication between a Node
+ *  application and a Viz Media Sequencer Engine.
+ *  @param hostname Hostname or IP address for the instance of the MSE to control.
+ *  @param restPort Optional port number for HTTP traffic, is different from the
+ *                  default of 8580.
+ *  @param wsPort   Optional port number for PepTalk traffic over websockets, if
+ *                  different from the default of 8695.
+ *  @return New MSE that will start to initialize a connection based on the parameters.
+ */
 export function createMSE (hostname: string, restPort?: number, wsPort?: number): MSE {
 	return new MSERep(hostname, restPort, wsPort)
 }
 
 async function run () {
 	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
-	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART')
-	console.log(await rundown.listTemplates())
+	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART', '5A58448C-3CBE-4146-B3DF-EFC918D16266')
+	console.dir(await rundown.getElement('SUPERFLY'), { depth: 10 })
 	await mse.close()
 	// console.log('After close.')
 }

@@ -2,7 +2,7 @@ import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from 
 import { CommandResult } from './msehttp'
 import { MSERep } from './mse'
 import * as uuid from 'uuid'
-import { flattenEntry, AtomEntry } from './xml'
+import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 
 export class Rundown implements VRundown {
 	readonly show: string
@@ -26,18 +26,34 @@ export class Rundown implements VRundown {
 		return Object.keys(flatTemplates).filter(x => x !== 'name')
 	}
 
-	readTemplate (_templateName: string): Promise<VTemplate> {
-		throw new Error('Method not implemented.')
+	async getTemplate (templateName: string): Promise<VTemplate> {
+		await this.mse.checkConnection()
+		let template = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates/${templateName}`)
+		let flatTemplate = await flattenEntry(template.js as AtomEntry)
+		return flatTemplate as VTemplate
 	}
 
 	createElement (templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>
 	createElement (vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>
 	createElement (_namdOrID: string | number, _elemantNameOrChannel?: string, _aliasOrTextFields?: string[] | string, _channel?: string): Promise<VElement> {
+		// TODO ensure that a playlist is created with sub-element "elements"
 		throw new Error('Method not implemented.')
 	}
 
-	listElements (): Promise<string[]> {
-		throw new Error('Method not implemented.')
+	async listElements (): Promise<Array<string | number>> {
+		await this.mse.checkConnection()
+		let [ showElementsList, playlistElementsList ] = await Promise.all([
+			this.pep.getJS(`/storage/shows/{${this.show}}/elements`, 1),
+			this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2) ])
+		let flatShowElements = await flattenEntry(showElementsList.js as AtomEntry)
+		let elementNames: Array<string | number> = Object.keys(flatShowElements).filter(x => x !== 'name')
+		let flatPlaylistElements: FlatEntry = await flattenEntry(playlistElementsList.js as AtomEntry)
+		let elementsRefs = Object.keys(flatPlaylistElements.elements as FlatEntry).map(k => {
+			let ref = ((flatPlaylistElements.elements as FlatEntry)[k] as FlatEntry).value as string
+			let lastSlash = ref.lastIndexOf('/')
+			return +ref.slice(lastSlash + 1)
+		})
+		return elementNames.concat(elementsRefs)
 	}
 
 	deactivate (): Promise<CommandResult> {
@@ -76,8 +92,16 @@ export class Rundown implements VRundown {
 		throw new Error('Method not implemented.')
 	}
 
-	getElement (_elementName: string | number): Promise<VElement> {
-		throw new Error('Method not implemented.')
+	async getElement (elementName: string | number): Promise<VElement> {
+		await this.mse.checkConnection()
+		if (typeof elementName === 'number') {
+			let element = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements/${elementName}`)
+			let flatElement = await flattenEntry(element.js as AtomEntry)
+			return flatElement as VElement
+		} else {
+			let element = await this.pep.getJS(`/storage/shows/{${this.show}}/elements/${elementName}`)
+			let flatElement = await flattenEntry(element.js as AtomEntry)
+			return flatElement as VElement
+		}
 	}
-
 }

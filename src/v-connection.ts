@@ -48,25 +48,26 @@ export interface VModelField { // Needs some work to deal with images
 /**
  *  Represenatation of a _master template_ within a [[VShow|show]].
  */
-export interface VTemplate {
+export interface VTemplate extends FlatEntry {
 	/** Master template name. */
 	name: string
 	/** Representation of the `default_alternatives` structure. Not in use. */
 	defaultAlternatives: any
 	/** Reference to _scene selectors_ used by this _master template_. */
-	layers: {
-		ref: string | string[]
-		// TODO more detailed references, such as ALL_OUT templates
-	}
-	/** Schema describing the expected data fields. */
-	modelXML?: VModelField[]
+	// TODO make this FlatEntry compatible
+	// layers: {
+	// 	ref: string | string[]
+	// 	// TODO more detailed references, such as ALL_OUT templates
+	// }
+	// /** Schema describing the expected data fields. */
+	// modelXML?: VModelField[]
 }
 
 /**
  *  An instance of a graphical element that can be displayed and/or used to
  *  influence the graphical behaviour of a running show.
  */
-export interface VElement {
+export interface VElement extends FlatEntry {
 	/**
 	 *  Calculate path to the element. Used by _commands_.
 	 *  @returns Path in the VDOM tree to this element.
@@ -120,7 +121,7 @@ export interface VRundown {
 	 *                      e.g. `bund`.
 	 *  @returns Resolves to the details of the named template.
 	 */
-	readTemplate (templateName: string): Promise<VTemplate>
+	getTemplate (templateName: string): Promise<VTemplate>
 	/**
 	 *  Create a new [[InternalElement|_internal_ graphical element]] that is an
 	 *  instance of the named [[VTemplate|template]].
@@ -144,9 +145,9 @@ export interface VRundown {
 	createElement (vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>
 	/**
 	 *  List all the graphical elements created for this rundown.
-	 *  @returns Resolves to a list of graphical element names for this rundown.
+	 *  @returns Resolves to a list of graphical element names or references for this rundown.
 	 */
-	listElements (): Promise<string[]>
+	listElements (): Promise<Array<string | number>>
 	/**
 	 *  Read the details of a graphical element in this rundown.
 	 *  @param elementName Name or reference for the element to retrieve the details

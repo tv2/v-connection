@@ -39,7 +39,7 @@ export interface FlatEntry {
 export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
 	let keys = Object.keys(x)
 	if (keys.length === 1 && (x.entry || x.ref)) {
-		return flattenEntry(x.entry as AtomEntry)
+		return flattenEntry((x.entry ? x.entry : x.ref) as AtomEntry)
 	}
 	let y: { [a: string]: any } = {}
 	if (x.$) {
