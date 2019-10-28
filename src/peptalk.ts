@@ -87,7 +87,7 @@ export interface IInexistentError extends PepError {
 	path: string
 }
 
-class InexistentError extends PepError implements IInexistentError {
+export class InexistentError extends PepError implements IInexistentError {
 	readonly status: 'inexistent'
 	readonly path: string
 	constructor (id: number, path: string, sent?: string) {
@@ -339,6 +339,11 @@ interface PendingRequestInternal extends PendingRequest {
 	reject (reason?: any): void
 }
 
+interface Leftover {
+	previous: string
+	remaining: number
+}
+
 class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	private ws: Promise<websocket | null> = Promise.resolve(null)
 	readonly hostname: string
@@ -347,7 +352,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	counter: number = 1
 	pendingRequests: { [id: number]: PendingRequestInternal } = {}
 
-	private leftovers: string | null = null
+	private leftovers: Leftover | null = null
 
 	constructor (hostname: string, port?: number) {
 		super()
@@ -361,18 +366,29 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		let re = /\{(\d+)\}/g
 		let last = split[split.length - 1]
 		let reres = re.exec(last)
-		let leftovers: string | null = null
+		let leftovers: Leftover | null = null
+		// console.log('SBF >>>', split)
 		while (reres !== null) {
-			if (last.length - (reres.index + reres[0].length + (+reres[1])) < 0) {
-				leftovers = last
+			let lastBytes = Buffer.byteLength(last, 'utf8')
+			if (lastBytes - (reres.index + reres[0].length + (+reres[1])) < 0) {
+				leftovers = {
+					previous: last,
+					remaining: +reres[1] - lastBytes + reres[0].length + reres.index }
 				split = split.slice(0, -1)
 				break
 			}
 			reres = re.exec(last)
 		}
+		// console.log('SAF >>>', split)
 		if (this.leftovers) {
-			split[0] = this.leftovers + split[0]
-			this.leftovers = null
+			this.leftovers.previous = this.leftovers.previous + split[0]
+			this.leftovers.remaining -= Buffer.byteLength(split[0], 'utf8')
+			if (this.leftovers.remaining <= 0) {
+				split[0] = this.leftovers.previous
+				this.leftovers = null
+			} else {
+				return
+			}
 		}
 		if (split.length > 1) {
 			for (let sm of split) {
@@ -382,8 +398,8 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			return
 		}
 		this.leftovers = leftovers ? leftovers : this.leftovers
+		if (split.length === 0) return
 		m = split[0]
-		// console.log('processing >>>', m)
 		let firstSpace = m.indexOf(' ')
 		if (firstSpace <= 0) return
 		let c = +m.slice(0, firstSpace)
@@ -473,7 +489,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	}
 
 	/** Escape a string using plaintalk representation. */
-	private esc = (s: string) => `{${s.length}}${s}`
+	private esc = (s: string) => `{${Buffer.byteLength(s, 'utf8')}}${s}`
 
 	/** Remove all plaintalk escaping from a string. */
 	private unesc = (s: string) => s.replace(/\{\d+\}/g, '')

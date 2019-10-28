@@ -157,7 +157,8 @@ class MSEHTTP implements HttpMSEClient {
 				return { status: 200, response: response.toString() } as CommandResult
 			}
 		} catch (err) {
-			throw this.processError(err, path.toString(), body)
+			throw this.processError(err,
+				typeof path === 'string' ? `${this.baseURL}/${path}` : path.toString(), body)
 		}
 	}
 

@@ -19,6 +19,7 @@ export interface AtomEntry {
 	/** Sub-entry or entries of the atom pub object. */
 	entry?: AtomEntry | Array<AtomEntry> | string[]
 	// TODO ref type
+	[z: string]: any
 }
 
 /**
@@ -35,8 +36,11 @@ export interface FlatEntry {
  *  @param x Source atom pub entry.
  *  @return Simplified version of `x`.
  */
-export function flattenEntry (x: AtomEntry): FlatEntry {
-	if (Object.keys(x).length === 1 && x.entry) return flattenEntry(x.entry as AtomEntry)
+export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
+	let keys = Object.keys(x)
+	if (keys.length === 1 && (x.entry || x.ref)) {
+		return flattenEntry((x.entry ? x.entry : x.ref) as AtomEntry)
+	}
 	let y: { [a: string]: any } = {}
 	if (x.$) {
 		for (let a in x.$) {
@@ -46,15 +50,58 @@ export function flattenEntry (x: AtomEntry): FlatEntry {
 	if (x._) {
 		y.value = x._
 	}
+	// MSE uses entries with nested sub-entries. Not Atom-compliant, but fairly consistent
 	if (x.entry && Array.isArray(x.entry)) {
 		for (let e of x.entry) {
 			if (typeof e === 'object') {
-				y[e.$.name] = flattenEntry(e)
+				if (e.$.name === 'model_xml') {
+					try {
+						y[e.$.name] = e._ ? await Xml2JS.parseStringPromise(e._) : ''
+					} catch (err) {
+						y[e.$.name] = e._
+					}
+				} else {
+					y[e.$.name] = await flattenEntry(e)
+				}
 				delete y[e.$.name].name
 			} else {
 				if (!y.value) { y = { value: [] } }
 				y.value.push(e)
  			}
+		}
+	}
+	// Apart from when a _special_ XML element name is used. This code picks up those with different _keys_.
+	for (let k of keys.filter(z => z !== 'entry' && z !== '$' && z !== '_')) {
+		if (typeof x[k] === 'object') {
+			if (Array.isArray(x[k])) {
+				await Promise.all(x[k].map(async (z: any) => {
+					if (typeof z === 'object') {
+						if (z.$ && z.$.name) {
+							y[z.$.name] = await flattenEntry(z as AtomEntry)
+							y[z.$.name].key = k
+							delete y[z.$.name].name
+						} else {
+							if (!y[k]) {
+								y[k] = []
+								y[`${k}_key`] = k
+							}
+							y[k].push(await flattenEntry(z as AtomEntry))
+						}
+					}
+					if (typeof z === 'string') {
+						y[k] = { value: z, key: k }
+					}
+				}))
+			} else {
+				let e = x[k]
+				if (e.$ && e.$.name) {
+					y[e.$.name] = await flattenEntry(e)
+					y[e.$.name].key = k
+					delete y[e.$.name].name
+				} else {
+					y[k] = await flattenEntry(e)
+				}
+			}
 		}
 	}
 	return y
