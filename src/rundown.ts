@@ -1,6 +1,6 @@
 import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from './v-connection'
 import { CommandResult, createHTTPContext, HttpMSEClient } from './msehttp'
-import { InexistentError } from './peptalk'
+import { InexistentError, LocationType } from './peptalk'
 import { MSERep } from './mse'
 import * as uuid from 'uuid'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
@@ -36,11 +36,27 @@ export class Rundown implements VRundown {
 		return flatTemplate as VTemplate
 	}
 
-	createElement (templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>
-	createElement (vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>
-	createElement (_namdOrID: string | number, _elemantNameOrChannel?: string, _aliasOrTextFields?: string[] | string, _channel?: string): Promise<VElement> {
+	async createElement (templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>
+	async createElement (vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>
+	async createElement (nameOrID: string | number, elemantNameOrChannel?: string, aliasOrTextFields?: string[] | string, _channel?: string): Promise<VElement> {
 		// TODO ensure that a playlist is created with sub-element "elements"
-		throw new Error('Method not implemented.')
+		if (typeof nameOrID === 'string') {
+			// TODO build the XML
+			this.pep.insert(`/storage/shows/{${this.show}}/elements/${elemantNameOrChannel}`,
+				`<element name="${elemantNameOrChannel}" guid="${uuid.v4()}" updated="${(new Date()).toISOString()}" creator="Sofie">
+  <ref name="master_template">/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}/mastertemplates/Bund</ref>
+  <entry name="default_alternatives"/>
+  <entry name="data">
+	  <entry name="20">${aliasOrTextFields ? aliasOrTextFields[0] : ''}</entry>
+	  <entry name="21">${aliasOrTextFields ? aliasOrTextFields[1] : ''}</entry>
+  </entry>
+</element>`,
+				LocationType.Last)
+			throw new Error('Method not implemented.')
+		} else {
+			this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref>/external/pilotdb/elements/${nameOrID}</ref>`, LocationType.Last)
+			throw new Error('Method not implemented.')
+		}
 	}
 
 	async listElements (): Promise<Array<string | number>> {
