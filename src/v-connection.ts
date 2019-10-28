@@ -13,6 +13,7 @@
 
 import { EventEmitter } from 'events'
 import { CommandResult } from './msehttp'
+import { PepResponse } from './peptalk'
 import { FlatEntry } from './xml'
 
 /**
@@ -68,11 +69,6 @@ export interface VTemplate extends FlatEntry {
  *  influence the graphical behaviour of a running show.
  */
 export interface VElement extends FlatEntry {
-	/**
-	 *  Calculate path to the element. Used by _commands_.
-	 *  @returns Path in the VDOM tree to this element.
-	 */
-	path (): string
 	/** Optional channel specifier used to define which Viz Engines the graphics play on.
 	 *  Note when `undefined`, the default is the _program_ channel.
 	 */
@@ -92,7 +88,7 @@ export interface InternalElement extends VElement {
 /** Graphical element that is defined externally, e.g. in the pilot database. */
 export interface ExternalElement extends VElement {
 	/** Unique identifier for the template in the external system. */
-	vcpid: number
+	vcpid: string // TODO this should really be a number
 }
 
 /**
@@ -160,7 +156,7 @@ export interface VRundown {
 	 *  @param elementName Name of reference for the element to delete.
 	 *  @returns Resolves to indicate the delete was successful, otherwise rejects.
 	 */
- 	deleteElement (elementName: string | number): Promise<CommandResult>
+ 	deleteElement (elementName: string | number): Promise<PepResponse>
 	/**
 	 *  Send a _cue_ command for a named graphical element, preparing it for smooth display.
 	 *  @param elementName Name or reference for the gephical element to cue.

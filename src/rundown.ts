@@ -1,6 +1,6 @@
 import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from './v-connection'
 import { CommandResult, createHTTPContext, HttpMSEClient } from './msehttp'
-import { InexistentError, LocationType } from './peptalk'
+import { InexistentError, LocationType, PepResponse } from './peptalk'
 import { MSERep } from './mse'
 import * as uuid from 'uuid'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
@@ -38,23 +38,48 @@ export class Rundown implements VRundown {
 
 	async createElement (templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>
 	async createElement (vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>
-	async createElement (nameOrID: string | number, elemantNameOrChannel?: string, aliasOrTextFields?: string[] | string, _channel?: string): Promise<VElement> {
+	async createElement (nameOrID: string | number, elementNameOrChannel?: string, aliasOrTextFields?: string[] | string, channel?: string): Promise<VElement> {
 		// TODO ensure that a playlist is created with sub-element "elements"
 		if (typeof nameOrID === 'string') {
-			// TODO build the XML
-			this.pep.insert(`/storage/shows/{${this.show}}/elements/${elemantNameOrChannel}`,
-				`<element name="${elemantNameOrChannel}" guid="${uuid.v4()}" updated="${(new Date()).toISOString()}" creator="Sofie">
-  <ref name="master_template">/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}/mastertemplates/Bund</ref>
+			try {
+				if (elementNameOrChannel) { await this.getElement(elementNameOrChannel) }
+				throw new Error(`An internal graphics element with name '${elementNameOrChannel}' already exists.`)
+			} catch (err) {
+				if (err.message.startsWith('An internal graphics element')) throw err
+			}
+			let template = await this.getTemplate(nameOrID)
+			// console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
+			let fieldNames: string[] = (template[nameOrID] as any).model_xml.model.schema[0].fielddef.map((x: any): string => x.$.name)
+			let entries = ''
+			let data: { [ name: string ]: string} = {}
+			if (Array.isArray(aliasOrTextFields)) {
+				if (aliasOrTextFields.length > fieldNames.length) {
+					throw new Error(`For template '${nameOrID}' with ${fieldNames.length} field(s), ${aliasOrTextFields.length} fields have been provided.`)
+				}
+				fieldNames = fieldNames.sort()
+				for (let x = 0 ; x < fieldNames.length ; x++) {
+					entries += `    <entry name="${fieldNames[x]}">${aliasOrTextFields[x] ? aliasOrTextFields[x] : ''}</entry>\n`
+					data[fieldNames[x]] = aliasOrTextFields[x] ? aliasOrTextFields[x] : ''
+				}
+			}
+			await this.pep.insert(`/storage/shows/{${this.show}}/elements/${elementNameOrChannel}`,
+`<element name="${elementNameOrChannel}" guid="${uuid.v4()}" updated="${(new Date()).toISOString()}" creator="Sofie">
+  <ref name="master_template">/storage/shows/{${this.show}}/mastertemplates/${nameOrID}</ref>
   <entry name="default_alternatives"/>
   <entry name="data">
-	  <entry name="20">${aliasOrTextFields ? aliasOrTextFields[0] : ''}</entry>
-	  <entry name="21">${aliasOrTextFields ? aliasOrTextFields[1] : ''}</entry>
+${entries}
   </entry>
 </element>`,
 				LocationType.Last)
-			throw new Error('Method not implemented.')
+			return {
+				name: elementNameOrChannel,
+				template: nameOrID,
+				data,
+				channel
+			} as InternalElement
 		} else {
-			this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref>/external/pilotdb/elements/${nameOrID}</ref>`, LocationType.Last)
+			// FIXME how to build an element from a VCPID
+			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref>/external/pilotdb/elements/${nameOrID}</ref>`, LocationType.Last)
 			throw new Error('Method not implemented.')
 		}
 	}
@@ -79,8 +104,12 @@ export class Rundown implements VRundown {
 		throw new Error('Method not implemented.')
 	}
 
-	deleteElement (_elementName: string | number): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+	async deleteElement (elementName: string | number): Promise<PepResponse> {
+		if (typeof elementName === 'string') {
+			return this.pep.delete(`/storage/shows/{${this.show}}/elements/${elementName}`)
+		} else {
+			throw new Error('Method not implemented.')
+		}
 	}
 
 	cue (elementName: string | number): Promise<CommandResult> {
@@ -146,6 +175,7 @@ export class Rundown implements VRundown {
 					typeof playlistsList.id === 'number' ? playlistsList.id : 0,
 					`/storage/playlists/{${this.playlist}}/elements#${elementName}`)
 			} else {
+				(element as ExternalElement).vcpid = elementName.toString()
 				return element as ExternalElement
 			}
 		} else {
