@@ -13,6 +13,7 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
 import { CommandResult } from './msehttp';
+import { PepResponse } from './peptalk';
 import { FlatEntry } from './xml';
 /**
  *  Representation of the schema for a single data field in a master template.
@@ -46,28 +47,21 @@ export interface VModelField {
 /**
  *  Represenatation of a _master template_ within a [[VShow|show]].
  */
-export interface VTemplate {
+export interface VTemplate extends FlatEntry {
     /** Master template name. */
     name: string;
     /** Representation of the `default_alternatives` structure. Not in use. */
     defaultAlternatives: any;
-    /** Reference to _scene selectors_ used by this _master template_. */
-    layers: {
-        ref: string | string[];
-    };
-    /** Schema describing the expected data fields. */
-    modelXML?: VModelField[];
 }
 /**
  *  An instance of a graphical element that can be displayed and/or used to
  *  influence the graphical behaviour of a running show.
  */
-export interface VElement {
-    /**
-     *  Calculate path to the element. Used by _commands_.
-     *  @returns Path in the VDOM tree to this element.
+export interface VElement extends FlatEntry {
+    /** Optional channel specifier used to define which Viz Engines the graphics play on.
+     *  Note when `undefined`, the default is the _program_ channel.
      */
-    path(): string;
+    channel?: string;
 }
 /** Graphical element that is fully described within the VDOM tree. */
 export interface InternalElement extends VElement {
@@ -83,7 +77,7 @@ export interface InternalElement extends VElement {
 /** Graphical element that is defined externally, e.g. in the pilot database. */
 export interface ExternalElement extends VElement {
     /** Unique identifier for the template in the external system. */
-    vcpid: number;
+    vcpid: string;
 }
 /**
  *  Representation of all the graphics associated with a Sofie rundown. A rundown object is
@@ -111,16 +105,17 @@ export interface VRundown {
      *                      e.g. `bund`.
      *  @returns Resolves to the details of the named template.
      */
-    readTemplate(templateName: string): Promise<VTemplate>;
+    getTemplate(templateName: string): Promise<VTemplate>;
     /**
      *  Create a new [[InternalElement|_internal_ graphical element]] that is an
      *  instance of the named [[VTemplate|template]].
      *  @param templateName Name of the template the element is an instance of.
      *  @param elementName  Name of the graphical element to create.
-     *  @param textFields   List of values for each of the graphical elements. **How are these sorted?**
+     *  @param textFields   List of values for each of the graphical elements.
+     *  @param channel      Optional channel to play out this graphic. Default is the _program_.
      *  @returns Resolves to a newly created element.
      */
-    createElement(templateName: string, elementName: string, textFields: string[]): Promise<InternalElement>;
+    createElement(templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>;
     /**
      *  Create a new [[ExternalElement|_external_ graphical element]] by unique reference number.
      *  @param vcpid Unique reference number for the element in the external source,
@@ -128,14 +123,15 @@ export interface VRundown {
      *  @param alias Optional name to use to reference the element. Note that this
      *               name is stored only within the library and not persisted in
      *               the MSE.
+     *  @param channel Optional channel to play out this graphic. Default is the _program_.
      *  @returns Resolves to a newly created element reference.
      */
-    createElement(vcpid: number, alias?: string): Promise<ExternalElement>;
+    createElement(vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>;
     /**
      *  List all the graphical elements created for this rundown.
-     *  @returns Resolves to a list of graphical element names for this rundown.
+     *  @returns Resolves to a list of graphical element names or references for this rundown.
      */
-    listElements(): Promise<string[]>;
+    listElements(): Promise<Array<string | number>>;
     /**
      *  Read the details of a graphical element in this rundown.
      *  @param elementName Name or reference for the element to retrieve the details
@@ -148,7 +144,7 @@ export interface VRundown {
      *  @param elementName Name of reference for the element to delete.
      *  @returns Resolves to indicate the delete was successful, otherwise rejects.
      */
-    deleteElement(elementName: string | number): Promise<CommandResult>;
+    deleteElement(elementName: string | number): Promise<PepResponse>;
     /**
      *  Send a _cue_ command for a named graphical element, preparing it for smooth display.
      *  @param elementName Name or reference for the gephical element to cue.
@@ -236,16 +232,16 @@ export interface VProfile extends FlatEntry {
 /**
  *  Representation of a MSE show.
  */
-export interface VShow {
+export interface VShow extends FlatEntry {
     /** UUID that identifies a show. */
     id: string;
 }
 /**
  *  Representation of a MSE playlist.
  */
-export interface VPlaylist {
+export interface VPlaylist extends FlatEntry {
     name: string;
-    description: string;
+    description?: string;
 }
 /**
  *  Representation of a Media Sequencer Engine.
@@ -309,18 +305,18 @@ export interface MSE extends EventEmitter {
     getPlaylist(playlistName: string): Promise<VPlaylist>;
     /**
      *  Create a new rundown to be executed on this MSE.
-     *  @param showID     Identifier of the show to create.
-     *  @param profile    Name of the profile to send commands to.
-     *  @param playlistID Optional UUID identifier for the playlist. If none is
-     *                    provided, one will be generated.
+     *  @param showID      Identifier of the show to create.
+     *  @param profileName Name of the profile to send commands to.
+     *  @param playlistID  Optional UUID identifier for the playlist. If none is
+     *                     provided, one will be generated.
      *  @return Resolves to a newly created rundown.
      */
     createRundown(showID: string, profile: string, playlistID?: string): Promise<VRundown>;
     /**
      *  Delete a rundown from this MSE. Note that rundowns can only be deleted when
      *  they are not activated.
-     *  @param showID Identifier of the show associated with the rundown.
-     *  @param profile Identifier of the profile associated with the rundown.
+     *  @param showID      Identifier of the show associated with the rundown.
+     *  @param profileName Name of the profile associated with the rundown.
      *  @returns Was the delete operation successful?
      */
     deleteRundown(showID: string, profile: string): boolean;
@@ -346,6 +342,12 @@ export interface MSE extends EventEmitter {
      *  @returns Resolves if both connections were successful.
      */
     ping(): Promise<CommandResult>;
+    /**
+     *  Set the maximum amount of time that an operation can take.
+     *  @param t Maximum number of milliseconds for any operation. Omit for query.
+     *  @return Timeeout value set. May be different from request if outside range.
+     */
+    timeout(t?: number): number;
     /**
      *  Close all connections and release any resouces.
      *  @returns Resolves to true on success.

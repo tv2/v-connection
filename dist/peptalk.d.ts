@@ -68,6 +68,11 @@ export interface IInexistentError extends PepError {
     /** Requested path that does not exist. */
     path: string;
 }
+export declare class InexistentError extends PepError implements IInexistentError {
+    readonly status: 'inexistent';
+    readonly path: string;
+    constructor(id: number, path: string, sent?: string);
+}
 /**
  *  A request is invalid, either due to XML validation failure or failure to
  *  validate against the VDOM data model.

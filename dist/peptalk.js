@@ -53,6 +53,7 @@ class InexistentError extends PepError {
         this.path = path;
     }
 }
+exports.InexistentError = InexistentError;
 class InvalidError extends PepError {
     constructor(id, description, sent) {
         super('invalid', id, `Validation error: ${description}.`, sent);
@@ -85,7 +86,7 @@ class PepTalk extends events_1.EventEmitter {
         this.pendingRequests = {};
         this.leftovers = null;
         /** Escape a string using plaintalk representation. */
-        this.esc = (s) => `{${s.length}}${s}`;
+        this.esc = (s) => `{${Buffer.byteLength(s, 'utf8')}}${s}`;
         /** Remove all plaintalk escaping from a string. */
         this.unesc = (s) => s.replace(/\{\d+\}/g, '');
         this.hostname = hostname;
@@ -99,17 +100,30 @@ class PepTalk extends events_1.EventEmitter {
         let last = split[split.length - 1];
         let reres = re.exec(last);
         let leftovers = null;
+        // console.log('SBF >>>', split)
         while (reres !== null) {
-            if (last.length - (reres.index + reres[0].length + (+reres[1])) < 0) {
-                leftovers = last;
+            let lastBytes = Buffer.byteLength(last, 'utf8');
+            if (lastBytes - (reres.index + reres[0].length + (+reres[1])) < 0) {
+                leftovers = {
+                    previous: last,
+                    remaining: +reres[1] - lastBytes + reres[0].length + reres.index
+                };
                 split = split.slice(0, -1);
                 break;
             }
             reres = re.exec(last);
         }
+        // console.log('SAF >>>', split)
         if (this.leftovers) {
-            split[0] = this.leftovers + split[0];
-            this.leftovers = null;
+            this.leftovers.previous = this.leftovers.previous + split[0];
+            this.leftovers.remaining -= Buffer.byteLength(split[0], 'utf8');
+            if (this.leftovers.remaining <= 0) {
+                split[0] = this.leftovers.previous;
+                this.leftovers = null;
+            }
+            else {
+                return;
+            }
         }
         if (split.length > 1) {
             for (let sm of split) {
@@ -120,8 +134,9 @@ class PepTalk extends events_1.EventEmitter {
             return;
         }
         this.leftovers = leftovers ? leftovers : this.leftovers;
+        if (split.length === 0)
+            return;
         m = split[0];
-        // console.log('processing >>>', m)
         let firstSpace = m.indexOf(' ');
         if (firstSpace <= 0)
             return;

@@ -17,6 +17,7 @@ export interface AtomEntry {
     '_'?: string;
     /** Sub-entry or entries of the atom pub object. */
     entry?: AtomEntry | Array<AtomEntry> | string[];
+    [z: string]: any;
 }
 /**
  *  A simplified, flattenned representation of an AtomPub value as an easy-to-handle
@@ -31,7 +32,7 @@ export interface FlatEntry {
  *  @param x Source atom pub entry.
  *  @return Simplified version of `x`.
  */
-export declare function flattenEntry(x: AtomEntry): FlatEntry;
+export declare function flattenEntry(x: AtomEntry): Promise<FlatEntry>;
 /**
  *  Tranform a simplified version of an [[AtomEntry|atom pub entry]] into its
  *  ready-to-be-build form.

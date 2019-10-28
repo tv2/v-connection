@@ -80,7 +80,7 @@ class MSEHTTP {
             }
         }
         catch (err) {
-            throw this.processError(err, path.toString(), body);
+            throw this.processError(err, typeof path === 'string' ? `${this.baseURL}/${path}` : path.toString(), body);
         }
     }
     cue(ref) {
