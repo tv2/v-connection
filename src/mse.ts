@@ -9,17 +9,19 @@ const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-f
 
 export class MSERep extends EventEmitter implements MSE {
 	readonly hostname: string
+	readonly resthost?: string
 	readonly restPort: number
 	readonly wsPort: number
 
 	private pep: PepTalkClient & PepTalkJS
 	private connection?: Promise<PepResponse> = undefined
 
-	constructor (hostname: string, restPort?: number, wsPort?: number) {
+	constructor (hostname: string, restPort?: number, wsPort?: number, resthost?: string) {
 		super()
 		this.hostname = hostname
 		this.restPort = typeof restPort === 'number' && restPort > 0 ? restPort : 8580
 		this.wsPort = typeof wsPort === 'number' && wsPort > 0 ? wsPort : 8595
+		this.resthost = resthost // For ngrok testing only
 		this.pep = startPepTalk(this.hostname, this.wsPort)
 		this.connection = this.pep.connect()
 	}
@@ -165,16 +167,18 @@ export class MSERep extends EventEmitter implements MSE {
  *                  default of 8580.
  *  @param wsPort   Optional port number for PepTalk traffic over websockets, if
  *                  different from the default of 8695.
+ *  @param resthost Optional different host name for rest connection - for testing
+ *                  purposes only.
  *  @return New MSE that will start to initialize a connection based on the parameters.
  */
-export function createMSE (hostname: string, restPort?: number, wsPort?: number): MSE {
-	return new MSERep(hostname, restPort, wsPort)
+export function createMSE (hostname: string, restPort?: number, wsPort?: number, resthost?: string): MSE {
+	return new MSERep(hostname, restPort, wsPort, resthost)
 }
 
 async function run () {
-	let mse = createMSE('mse_ws.ngrok.io', 80, 80)
+	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
 	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART', '5A58448C-3CBE-4146-B3DF-EFC918D16266')
-	console.dir(await rundown.getElement('SUPERFLY'), { depth: 10 })
+	console.dir(await rundown.out(2564724), { depth: 10 })
 	await mse.close()
 	// console.log('After close.')
 }

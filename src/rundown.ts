@@ -1,5 +1,5 @@
 import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from './v-connection'
-import { CommandResult } from './msehttp'
+import { CommandResult, createHTTPContext, HttpMSEClient } from './msehttp'
 import { InexistentError } from './peptalk'
 import { MSERep } from './mse'
 import * as uuid from 'uuid'
@@ -12,12 +12,14 @@ export class Rundown implements VRundown {
 
 	private readonly mse: MSERep
 	private get pep () { return this.mse.getPep() }
+	private msehttp: HttpMSEClient
 
 	constructor (mseRep: MSERep, show: string, profile: string, playlist?: string) {
 		this.mse = mseRep
 		this.show = show
 		this.profile = profile
 		this.playlist = playlist ? playlist : uuid.v4()
+		this.msehttp = createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort)
 	}
 
 	async listTemplates (): Promise<string[]> {
@@ -65,24 +67,44 @@ export class Rundown implements VRundown {
 		throw new Error('Method not implemented.')
 	}
 
-	cue (_elementName: string | number): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+	cue (elementName: string | number): Promise<CommandResult> {
+		if (typeof elementName === 'string') {
+			return this.msehttp.cue(`/storage/shows/{${this.show}}/elements/${elementName}`)
+		} else {
+			return this.msehttp.cue(`/external/pilotdb/elements/${elementName}`)
+		}
 	}
 
-	take (_elementName: string | number): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+	take (elementName: string | number): Promise<CommandResult> {
+		if (typeof elementName === 'string') {
+			return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`)
+		} else {
+			return this.msehttp.take(`/external/pilotdb/elements/${elementName}`)
+		}
 	}
 
-	continue (_elementName: string | number): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+	continue (elementName: string | number): Promise<CommandResult> {
+		if (typeof elementName === 'string') {
+			return this.msehttp.continue(`/storage/shows/{${this.show}}/elements/${elementName}`)
+		} else {
+			return this.msehttp.continue(`/external/pilotdb/elements/${elementName}`)
+		}
 	}
 
-	continueReverse (_elementName: string | number): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+	continueReverse (elementName: string | number): Promise<CommandResult> {
+		if (typeof elementName === 'string') {
+			return this.msehttp.continueReverse(`/storage/shows/{${this.show}}/elements/${elementName}`)
+		} else {
+			return this.msehttp.continueReverse(`/external/pilotdb/elements/${elementName}`)
+		}
 	}
 
-	out (_elementName: string | number): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+	out (elementName: string | number): Promise<CommandResult> {
+		if (typeof elementName === 'string') {
+			return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`)
+		} else {
+			return this.msehttp.out(`/external/pilotdb/elements/${elementName}`)
+		}
 	}
 
 	activate (): Promise<CommandResult> {
