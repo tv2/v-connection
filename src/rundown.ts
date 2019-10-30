@@ -2,23 +2,25 @@ import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from 
 import { CommandResult, createHTTPContext, HttpMSEClient } from './msehttp'
 import { InexistentError, LocationType, PepResponse } from './peptalk'
 import { MSERep } from './mse'
-import * as uuid from 'uuid'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
+import * as uuid from 'uuid'
 
 export class Rundown implements VRundown {
 	readonly show: string
 	readonly playlist: string
 	readonly profile: string
+	readonly description: string
 
 	private readonly mse: MSERep
 	private get pep () { return this.mse.getPep() }
 	private msehttp: HttpMSEClient
 
-	constructor (mseRep: MSERep, show: string, profile: string, playlist?: string) {
+	constructor (mseRep: MSERep, show: string, profile: string, playlist: string, description: string) {
 		this.mse = mseRep
 		this.show = show
 		this.profile = profile
-		this.playlist = playlist ? playlist : uuid.v4()
+		this.playlist = playlist
+		this.description = description
 		this.msehttp = createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort)
 	}
 
@@ -79,7 +81,9 @@ ${entries}
 			} as InternalElement
 		} else {
 			// FIXME how to build an element from a VCPID
-			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref>/external/pilotdb/elements/${nameOrID}</ref>`, LocationType.Last)
+			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
+`<ref available="0.00" loaded="0.00" take_count="0">/external/pilotdb/elements/${nameOrID}</ref>`,
+LocationType.Last)
 			throw new Error('Method not implemented.')
 		}
 	}

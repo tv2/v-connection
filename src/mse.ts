@@ -1,9 +1,10 @@
 import { MSE, VRundown, VizEngine, VProfile, VShow, VPlaylist } from './v-connection'
-import { startPepTalk, PepTalkClient, PepTalkJS, PepResponse } from './peptalk'
+import { startPepTalk, PepTalkClient, PepTalkJS, PepResponse, LocationType } from './peptalk'
 import { /* createHTTPContext, HttpMSEClient, */ CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
-import { flattenEntry, AtomEntry } from './xml'
+import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 import { Rundown } from './rundown'
+import * as uuid from 'uuid'
 
 const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
 
@@ -109,18 +110,79 @@ export class MSERep extends EventEmitter implements MSE {
 		}
 		await this.checkConnection()
 		let playlist = await this.pep.getJS(`/storage/playlists/${playlistName}`)
-		let flatPlayliat = await flattenEntry(playlist.js as AtomEntry)
-		return flatPlayliat as VPlaylist
+		let flatPlaylist = await flattenEntry(playlist.js as AtomEntry)
+		if (Object.keys(flatPlaylist).length === 1) {
+			flatPlaylist = flatPlaylist[Object.keys(flatPlaylist)[0]] as FlatEntry
+		}
+		return flatPlaylist as VPlaylist
 	}
 
 	// Rundown basics task
-	async createRundown (showID: string, profileName: string, playlistID?: string): Promise<VRundown> {
+	async createRundown (showID: string, profileName: string, playlistID?: string, description?: string): Promise<VRundown> {
 		// TODO Do async stuff to check parameters
-		return new Rundown(this, showID, profileName, playlistID)
+		// Check that the showID exists
+		let playlistExists = false
+		showID = showID.toUpperCase()
+		let date = new Date()
+		description = description ? description : `Sofie Rundown ${date.toISOString()}`
+		try {
+			await this.checkConnection()
+			await this.pep.get(`/storage/shows/{${showID}}`, 1)
+		} catch (err) {
+			throw new Error(`The requested show to create a rundown for with ID '${showID}' does not exist in this MSE.`)
+		}
+		try {
+			await this.pep.get(`/config/profiles/${profileName}`, 1)
+		} catch (err) {
+			throw new Error(`The profile with name '${profileName}' for a new rundown does not exist.`)
+		}
+		if (playlistID) {
+			try {
+				let playlist = await this.getPlaylist(playlistID)
+				if (!playlist.profile.endsWith(`/${profileName}`)) {
+					throw new Error(`Referenced playlist exists but references profile '${playlist.profile}' rather than the given '${profileName}'.`)
+				}
+				playlistExists = true
+			} catch (err) {
+				if (err.message.startsWith('Referenced playlist exists but')) { throw err }
+				playlistExists = false
+			}
+		}
+		if (!playlistExists) {
+			playlistID = playlistID && playlistID.match(uuidRe) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
+		}
+		let modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
+		await this.pep.insert(`/storage/playlists/{${playlistID}}`,
+`<playlist description="${description}" modified="${modifiedDate}" profile="/config/profiles/${profileName}" name="{${playlistID}}">
+    <elements/>
+    <entry name="environment">
+        <entry name="alternative_concept"/>
+    </entry>
+    <entry name="cursors">
+        <entry name="globals">
+            <entry name="last_taken"/>
+            <entry name="last_read"/>
+        </entry>
+    </entry>
+    <entry backing="transient" name="active_profile"/>
+    <entry name="meta"/>
+    <entry name="settings"/>
+    <entry name="ncs_cursor"/>
+		<entry name="sofie_show">/storage/shows/{${showID}}</entry>
+</playlist>`, LocationType.Last)
+		return new Rundown(this, showID, profileName, playlistID as string, description)
 	}
 
 	// Rundown basics task
-	deleteRundown (_showID: string, _profileName: string): boolean { return false }
+	async deleteRundown (rundown: VRundown): Promise<boolean> {
+		let playlist = await this.getPlaylist(rundown.playlist)
+		console.dir(playlist, { depth: 10 })
+		if (playlist.active_profile.value) {
+			throw new Error(`Cannot delete an active profile.`)
+		}
+		let delres = await this.pep.delete(`/storage/playlists/{${rundown.playlist}}`)
+		return delres.status === 'ok'
+	}
 
 	// Advanced feature
 	createProfile (_profileName: string, _profileDetailsTbc: any): Promise<VProfile> {
@@ -177,9 +239,10 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number,
 
 // async function run () {
 // 	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
-// 	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART', '5A58448C-3CBE-4146-B3DF-EFC918D16266')
-// 	// console.dir(await rundown.createElement('Bund', 'SUPERFLY3', ['Number One']), { depth: 10 })
-// 	console.dir(await rundown.deleteElement('SUPERFLY3'), { depth: 10 })
+// 	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART')
+// 	console.dir(rundown)
+// 	console.log('Deleted?', await mse.deleteRundown(rundown))
+// 	// console.dir(await rundown.deleteElement('SUPERFLY3'), { depth: 10 })
 // 	await mse.close()
 // 	// console.log('After close.')
 // }
