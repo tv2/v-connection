@@ -210,7 +210,7 @@ export interface VRundown {
 	 *  including those required for post-rundown analysis.
 	 *  @result Resolves on successful rundown purge.
 	 */
-	purge (): Promise<CommandResult>
+	purge (): Promise<PepResponse>
 }
 
 /**

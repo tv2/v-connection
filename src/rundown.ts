@@ -96,11 +96,12 @@ LocationType.Last)
 		let flatShowElements = await flattenEntry(showElementsList.js as AtomEntry)
 		let elementNames: Array<string | number> = Object.keys(flatShowElements).filter(x => x !== 'name')
 		let flatPlaylistElements: FlatEntry = await flattenEntry(playlistElementsList.js as AtomEntry)
-		let elementsRefs = Object.keys(flatPlaylistElements.elements as FlatEntry).map(k => {
-			let ref = ((flatPlaylistElements.elements as FlatEntry)[k] as FlatEntry).value as string
-			let lastSlash = ref.lastIndexOf('/')
-			return +ref.slice(lastSlash + 1)
-		})
+		let elementsRefs = flatPlaylistElements.elements ?
+			Object.keys(flatPlaylistElements.elements as FlatEntry).map(k => {
+				let ref = ((flatPlaylistElements.elements as FlatEntry)[k] as FlatEntry).value as string
+				let lastSlash = ref.lastIndexOf('/')
+				return +ref.slice(lastSlash + 1)
+			}) : []
 		return elementNames.concat(elementsRefs)
 	}
 
@@ -160,8 +161,21 @@ LocationType.Last)
 		throw new Error('Method not implemented.')
 	}
 
-	purge (): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+	async purge (): Promise<PepResponse> {
+		let playlist = await this.mse.getPlaylist(this.playlist)
+		if (playlist.active_profile.value) {
+			throw new Error(`Cannot purge an active profile.`)
+		}
+		let elements = await this.listElements()
+		for (let e of elements) {
+			if (typeof e === 'string') {
+				let result = await this.pep.delete(`/storage/shows/{${this.show}}/elements/${e}`)
+				if (result.status !== 'ok') {
+					return result
+				}
+			}
+		}
+		return { id: '*', status: 'ok' } as PepResponse
 	}
 
 	async getElement (elementName: string | number): Promise<VElement> {
