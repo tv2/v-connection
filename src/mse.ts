@@ -240,9 +240,9 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number,
 // async function run () {
 // 	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
 // 	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART')
-// 	console.dir(rundown)
-// 	console.log('Deleted?', await rundown.purge())
-// 	await rundown.createElement('Bund', 'SUPERWASP', [ 'Fred', 'Ginger' ])
+// 	await rundown.createElement(2564621)
+// 	try { console.log(await rundown.activate()) } catch (err) { /* */ }
+// 	await rundown.take(2564621)
 // 	// console.dir(await rundown.deleteElement('SUPERFLY3'), { depth: 10 })
 // 	await mse.close()
 // 	// console.log('After close.')

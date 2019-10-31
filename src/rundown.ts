@@ -83,8 +83,10 @@ ${entries}
 			// FIXME how to build an element from a VCPID
 			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
 `<ref available="0.00" loaded="0.00" take_count="0">/external/pilotdb/elements/${nameOrID}</ref>`,
-LocationType.Last)
-			throw new Error('Method not implemented.')
+				LocationType.Last)
+			return {
+				vcpid: nameOrID.toString()
+			} as ExternalElement
 		}
 	}
 
@@ -106,7 +108,7 @@ LocationType.Last)
 	}
 
 	deactivate (): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+		return this.msehttp.cleanupPlaylist(this.playlist)
 	}
 
 	async deleteElement (elementName: string | number): Promise<PepResponse> {
@@ -158,7 +160,8 @@ LocationType.Last)
 	}
 
 	activate (): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+		// TODO check if already activated
+		return this.msehttp.initializePlaylist(this.playlist)
 	}
 
 	async purge (): Promise<PepResponse> {
