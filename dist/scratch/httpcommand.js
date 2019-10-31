@@ -14,6 +14,7 @@ let args = yargs
 async function run() {
     try {
         let http = msehttp_1.createHTTPContext(args.profile, args.host, args.port);
+        http.setHTTPTimeout(10000);
         let start = process.hrtime();
         let res = await http.command(args._[0], args._[1]);
         let end = process.hrtime(start);

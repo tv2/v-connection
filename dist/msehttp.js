@@ -24,8 +24,9 @@ class HTTPServerError extends Error {
     }
 }
 class HTTPRequestError extends Error {
-    constructor(message, path, body) {
+    constructor(message, baseURL, path, body) {
         super(`HTTP request error for '${path}': ${message}.`);
+        this.baseURL = baseURL;
         this.path = path;
         this.body = body;
         this.status = 418;
@@ -43,7 +44,7 @@ class MSEHTTP {
     processError(err, path, body) {
         if (!err.response) {
             if (err.name === 'RequestError') {
-                return new HTTPRequestError(err.message, path, body);
+                return new HTTPRequestError(err.message, this.baseURL, path, body);
             }
             else {
                 throw err;
@@ -100,7 +101,7 @@ class MSEHTTP {
     }
     async ping() {
         try {
-            await request({
+            await request.get({
                 method: 'GET',
                 uri: this.baseURL,
                 timeout: this.timeout
@@ -108,7 +109,7 @@ class MSEHTTP {
             return { status: 200, response: 'PONG!' };
         }
         catch (err) {
-            throw this.processError(err, 'ping');
+            throw this.processError(err, '');
         }
     }
     setHTTPTimeout(t) {

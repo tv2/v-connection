@@ -2,14 +2,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const msehttp_1 = require("./msehttp");
 const peptalk_1 = require("./peptalk");
-const uuid = require("uuid");
 const xml_1 = require("./xml");
+const uuid = require("uuid");
 class Rundown {
-    constructor(mseRep, show, profile, playlist) {
+    constructor(mseRep, show, profile, playlist, description) {
         this.mse = mseRep;
         this.show = show;
         this.profile = profile;
-        this.playlist = playlist ? playlist : uuid.v4();
+        this.playlist = playlist;
+        this.description = description;
         this.msehttp = msehttp_1.createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort);
     }
     get pep() { return this.mse.getPep(); }
@@ -69,7 +70,7 @@ ${entries}
         }
         else {
             // FIXME how to build an element from a VCPID
-            await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref>/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
+            await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0">/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
             throw new Error('Method not implemented.');
         }
     }
@@ -82,11 +83,12 @@ ${entries}
         let flatShowElements = await xml_1.flattenEntry(showElementsList.js);
         let elementNames = Object.keys(flatShowElements).filter(x => x !== 'name');
         let flatPlaylistElements = await xml_1.flattenEntry(playlistElementsList.js);
-        let elementsRefs = Object.keys(flatPlaylistElements.elements).map(k => {
-            let ref = flatPlaylistElements.elements[k].value;
-            let lastSlash = ref.lastIndexOf('/');
-            return +ref.slice(lastSlash + 1);
-        });
+        let elementsRefs = flatPlaylistElements.elements ?
+            Object.keys(flatPlaylistElements.elements).map(k => {
+                let ref = flatPlaylistElements.elements[k].value;
+                let lastSlash = ref.lastIndexOf('/');
+                return +ref.slice(lastSlash + 1);
+            }) : [];
         return elementNames.concat(elementsRefs);
     }
     deactivate() {
@@ -143,8 +145,21 @@ ${entries}
     activate() {
         throw new Error('Method not implemented.');
     }
-    purge() {
-        throw new Error('Method not implemented.');
+    async purge() {
+        let playlist = await this.mse.getPlaylist(this.playlist);
+        if (playlist.active_profile.value) {
+            throw new Error(`Cannot purge an active profile.`);
+        }
+        let elements = await this.listElements();
+        for (let e of elements) {
+            if (typeof e === 'string') {
+                let result = await this.pep.delete(`/storage/shows/{${this.show}}/elements/${e}`);
+                if (result.status !== 'ok') {
+                    return result;
+                }
+            }
+        }
+        return { id: '*', status: 'ok' };
     }
     async getElement(elementName) {
         await this.mse.checkConnection();

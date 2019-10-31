@@ -6,10 +6,11 @@ export declare class Rundown implements VRundown {
     readonly show: string;
     readonly playlist: string;
     readonly profile: string;
+    readonly description: string;
     private readonly mse;
     private readonly pep;
     private msehttp;
-    constructor(mseRep: MSERep, show: string, profile: string, playlist?: string);
+    constructor(mseRep: MSERep, show: string, profile: string, playlist: string, description: string);
     listTemplates(): Promise<string[]>;
     getTemplate(templateName: string): Promise<VTemplate>;
     createElement(templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>;
@@ -23,6 +24,6 @@ export declare class Rundown implements VRundown {
     continueReverse(elementName: string | number): Promise<CommandResult>;
     out(elementName: string | number): Promise<CommandResult>;
     activate(): Promise<CommandResult>;
-    purge(): Promise<CommandResult>;
+    purge(): Promise<PepResponse>;
     getElement(elementName: string | number): Promise<VElement>;
 }
