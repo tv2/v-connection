@@ -13,6 +13,7 @@ let args = yargs
 async function run () {
 	try {
 		let http = createHTTPContext(args.profile, args.host, args.port)
+		http.setHTTPTimeout(30000)
 		let ping = await http.ping()
 		console.log(ping)
 	} catch (err) { console.error(err) }

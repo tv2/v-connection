@@ -60,8 +60,10 @@ class HTTPRequestError extends Error implements IHTTPRequestError {
 	readonly body?: string
 	readonly status: number
 	readonly response: string
-	constructor (message: string, path: string, body?: string) {
+	readonly baseURL: string
+	constructor (message: string, baseURL: string, path: string, body?: string) {
 		super(`HTTP request error for '${path}': ${message}.`)
+		this.baseURL = baseURL
 		this.path = path
 		this.body = body
 		this.status = 418
@@ -124,7 +126,7 @@ class MSEHTTP implements HttpMSEClient {
 	private processError (err: any, path: string, body?: string): Error & CommandResult {
 		if (!err.response) {
 			if (err.name === 'RequestError') {
-				return new HTTPRequestError(err.message, path, body)
+				return new HTTPRequestError(err.message, this.baseURL, path, body)
 			} else {
 				throw err
 			}
@@ -184,14 +186,14 @@ class MSEHTTP implements HttpMSEClient {
 
 	async ping (): Promise<CommandResult> {
 		try {
-			await request({
+			await request.get({
 				method: 'GET',
 				uri: this.baseURL,
 				timeout: this.timeout
 			})
 			return { status: 200, response: 'PONG!' } as CommandResult
 		} catch (err) {
-			throw this.processError(err, 'ping')
+			throw this.processError(err, '')
 		}
 	}
 

@@ -2,23 +2,25 @@ import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from 
 import { CommandResult, createHTTPContext, HttpMSEClient } from './msehttp'
 import { InexistentError, LocationType, PepResponse } from './peptalk'
 import { MSERep } from './mse'
-import * as uuid from 'uuid'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
+import * as uuid from 'uuid'
 
 export class Rundown implements VRundown {
 	readonly show: string
 	readonly playlist: string
 	readonly profile: string
+	readonly description: string
 
 	private readonly mse: MSERep
 	private get pep () { return this.mse.getPep() }
 	private msehttp: HttpMSEClient
 
-	constructor (mseRep: MSERep, show: string, profile: string, playlist?: string) {
+	constructor (mseRep: MSERep, show: string, profile: string, playlist: string, description: string) {
 		this.mse = mseRep
 		this.show = show
 		this.profile = profile
-		this.playlist = playlist ? playlist : uuid.v4()
+		this.playlist = playlist
+		this.description = description
 		this.msehttp = createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort)
 	}
 
@@ -79,7 +81,9 @@ ${entries}
 			} as InternalElement
 		} else {
 			// FIXME how to build an element from a VCPID
-			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref>/external/pilotdb/elements/${nameOrID}</ref>`, LocationType.Last)
+			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
+`<ref available="0.00" loaded="0.00" take_count="0">/external/pilotdb/elements/${nameOrID}</ref>`,
+LocationType.Last)
 			throw new Error('Method not implemented.')
 		}
 	}
@@ -92,11 +96,12 @@ ${entries}
 		let flatShowElements = await flattenEntry(showElementsList.js as AtomEntry)
 		let elementNames: Array<string | number> = Object.keys(flatShowElements).filter(x => x !== 'name')
 		let flatPlaylistElements: FlatEntry = await flattenEntry(playlistElementsList.js as AtomEntry)
-		let elementsRefs = Object.keys(flatPlaylistElements.elements as FlatEntry).map(k => {
-			let ref = ((flatPlaylistElements.elements as FlatEntry)[k] as FlatEntry).value as string
-			let lastSlash = ref.lastIndexOf('/')
-			return +ref.slice(lastSlash + 1)
-		})
+		let elementsRefs = flatPlaylistElements.elements ?
+			Object.keys(flatPlaylistElements.elements as FlatEntry).map(k => {
+				let ref = ((flatPlaylistElements.elements as FlatEntry)[k] as FlatEntry).value as string
+				let lastSlash = ref.lastIndexOf('/')
+				return +ref.slice(lastSlash + 1)
+			}) : []
 		return elementNames.concat(elementsRefs)
 	}
 
@@ -156,8 +161,21 @@ ${entries}
 		throw new Error('Method not implemented.')
 	}
 
-	purge (): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+	async purge (): Promise<PepResponse> {
+		let playlist = await this.mse.getPlaylist(this.playlist)
+		if (playlist.active_profile.value) {
+			throw new Error(`Cannot purge an active profile.`)
+		}
+		let elements = await this.listElements()
+		for (let e of elements) {
+			if (typeof e === 'string') {
+				let result = await this.pep.delete(`/storage/shows/{${this.show}}/elements/${e}`)
+				if (result.status !== 'ok') {
+					return result
+				}
+			}
+		}
+		return { id: '*', status: 'ok' } as PepResponse
 	}
 
 	async getElement (elementName: string | number): Promise<VElement> {

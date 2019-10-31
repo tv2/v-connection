@@ -106,6 +106,8 @@ export interface VRundown {
 	readonly playlist: string
 	/** Identifier for the profile that is the targer for commands, the link to the Viz Engines being. */
 	readonly profile: string
+	/** Optional description of the rundown. Used as a name for the playlist in Viz Content Pilot. */
+	readonly description?: string
 	/**
 	 *  List all the master templates associated with this rundown.
 	 *  @returns Resolves to a list of all template names for this rundown.
@@ -208,7 +210,7 @@ export interface VRundown {
 	 *  including those required for post-rundown analysis.
 	 *  @result Resolves on successful rundown purge.
 	 */
-	purge (): Promise<CommandResult>
+	purge (): Promise<PepResponse>
 }
 
 /**
@@ -264,6 +266,8 @@ export interface VShow extends FlatEntry {
 export interface VPlaylist extends FlatEntry {
 	name: string
 	description?: string
+	profile: string
+	active_profile: { value?: string }
 	// TODO add other details
 	// modified
 	// profile
@@ -332,21 +336,22 @@ export interface MSE extends EventEmitter {
 	getPlaylist (playlistName: string): Promise<VPlaylist>
 	/**
 	 *  Create a new rundown to be executed on this MSE.
-	 *  @param showID      Identifier of the show to create.
-	 *  @param profileName Name of the profile to send commands to.
-	 *  @param playlistID  Optional UUID identifier for the playlist. If none is
-	 *                     provided, one will be generated.
+	 *  @param showID       Identifier of the show to create.
+	 *  @param profileName  Name of the profile to send commands to.
+	 *  @param playlistID   Optional UUID identifier for the playlist. If none is
+	 *                      provided, one will be generated.
+	 *  @param description  Optional rundown description. Used as a name in Viz
+	 *                      Content Pilot.
 	 *  @return Resolves to a newly created rundown.
 	 */
-	createRundown (showID: string, profile: string, playlistID?: string): Promise<VRundown>
+	createRundown (showID: string, profile: string, playlistID?: string, description?: string): Promise<VRundown>
 	/**
 	 *  Delete a rundown from this MSE. Note that rundowns can only be deleted when
 	 *  they are not activated.
-	 *  @param showID      Identifier of the show associated with the rundown.
-	 *  @param profileName Name of the profile associated with the rundown.
+	 *  @param rundown Rundown to be deleted.
 	 *  @returns Was the delete operation successful?
 	 */
-	deleteRundown (showID: string, profile: string): boolean
+	deleteRundown (rundown: VRundown): Promise<boolean>
 	/**
 	 *  Create a new profile for this MSE. A profile associated a show with the
 	 *  Vix Engine handlers that it controls, representing the current state of
