@@ -184,7 +184,7 @@ class MSEHTTP implements HttpMSEClient {
 	}
 
 	continueReverse (ref: string): Promise<CommandResult> {
-		return this.command('continue-reverse', ref)
+		return this.command('continue_reverse', ref)
 	}
 
 	initializePlaylist (playlistID: string): Promise<CommandResult> {

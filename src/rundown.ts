@@ -80,12 +80,13 @@ ${entries}
 				channel
 			} as InternalElement
 		} else {
-			// FIXME how to build an element from a VCPID
+			let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : ''
 			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
-`<ref available="0.00" loaded="0.00" take_count="0">/external/pilotdb/elements/${nameOrID}</ref>`,
+`<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`,
 				LocationType.Last)
 			return {
-				vcpid: nameOrID.toString()
+				vcpid: nameOrID.toString(),
+				channel: elementNameOrChannel
 			} as ExternalElement
 		}
 	}
