@@ -108,6 +108,14 @@ ${entries}
 		return elementNames.concat(elementsRefs)
 	}
 
+	async activate (): Promise<CommandResult> {
+		let playlist = await this.mse.getPlaylist(this.playlist)
+		if (playlist.active_profile.value) {
+			throw new Error(`Cannot purge an active profile.`)
+		}
+		return this.msehttp.initializePlaylist(this.playlist)
+	}
+
 	deactivate (): Promise<CommandResult> {
 		return this.msehttp.cleanupPlaylist(this.playlist)
 	}
@@ -160,25 +168,13 @@ ${entries}
 		}
 	}
 
-	activate (): Promise<CommandResult> {
-		// TODO check if already activated
-		return this.msehttp.initializePlaylist(this.playlist)
-	}
-
 	async purge (): Promise<PepResponse> {
 		let playlist = await this.mse.getPlaylist(this.playlist)
 		if (playlist.active_profile.value) {
 			throw new Error(`Cannot purge an active profile.`)
 		}
-		let elements = await this.listElements()
-		for (let e of elements) {
-			if (typeof e === 'string') {
-				let result = await this.pep.delete(`/storage/shows/{${this.show}}/elements/${e}`)
-				if (result.status !== 'ok') {
-					return result
-				}
-			}
-		}
+		await this.pep.replace(`/storage/shows/{${this.show}}/elements`, '<elements/>')
+		await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>')
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 

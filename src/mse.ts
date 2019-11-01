@@ -119,8 +119,6 @@ export class MSERep extends EventEmitter implements MSE {
 
 	// Rundown basics task
 	async createRundown (showID: string, profileName: string, playlistID?: string, description?: string): Promise<VRundown> {
-		// TODO Do async stuff to check parameters
-		// Check that the showID exists
 		let playlistExists = false
 		showID = showID.toUpperCase()
 		let date = new Date()
@@ -138,7 +136,7 @@ export class MSERep extends EventEmitter implements MSE {
 		}
 		if (playlistID) {
 			try {
-				let playlist = await this.getPlaylist(playlistID)
+				let playlist = await this.getPlaylist(playlistID.toUpperCase())
 				if (!playlist.profile.endsWith(`/${profileName}`)) {
 					throw new Error(`Referenced playlist exists but references profile '${playlist.profile}' rather than the given '${profileName}'.`)
 				}
@@ -150,9 +148,8 @@ export class MSERep extends EventEmitter implements MSE {
 		}
 		if (!playlistExists) {
 			playlistID = playlistID && playlistID.match(uuidRe) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
-		}
-		let modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
-		await this.pep.insert(`/storage/playlists/{${playlistID}}`,
+			let modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
+			await this.pep.insert(`/storage/playlists/{${playlistID}}`,
 `<playlist description="${description}" modified="${modifiedDate}" profile="/config/profiles/${profileName}" name="{${playlistID}}">
     <elements/>
     <entry name="environment">
@@ -170,6 +167,7 @@ export class MSERep extends EventEmitter implements MSE {
     <entry name="ncs_cursor"/>
 		<entry name="sofie_show">/storage/shows/{${showID}}</entry>
 </playlist>`, LocationType.Last)
+		}
 		return new Rundown(this, showID, profileName, playlistID as string, description)
 	}
 
@@ -241,23 +239,14 @@ let sleep = (t: number) => new Promise((resolve, _reject) => {
 	setTimeout(resolve, t)
 })
 
-// async function run () {
-// 	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
-// 	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART')
-// 	await rundown.createElement(2564302)
-// 	try { console.log(await rundown.activate()) } catch (err) { /* */ }
-// 	try { await rundown.take(2564302) } catch (err) { /* */ }
-// 	await sleep(2000)
-// 	try { await rundown.continue(2564302) } catch (err) { /* */ }
-// 	await sleep(2000)
-// 	try { await rundown.continueReverse(2564302) } catch (err) { /* */ }
-// 	await sleep(2000)
-// 	try { await rundown.out(2564302) } catch (err) { /* */ }
-// 	await sleep(2000)
-// 	try { await rundown.deactivate() } catch (err) { /* */ }
-// 	// console.dir(await rundown.deleteElement('SUPERFLY3'), { depth: 10 })
-// 	await mse.close()
-// 	// console.log('After close.')
-// }
-//
-// run().catch(console.error)
+async function run () {
+	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
+	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART', 'EDF2E2BD-4E5E-43EA-B609-42A1B843EECD')
+	await sleep(2000)
+	console.log(await rundown.purge())
+	// console.dir(await rundown.deleteElement('SUPERFLY3'), { depth: 10 })
+	await mse.close()
+	// console.log('After close.')
+}
+
+run().catch(console.error)
