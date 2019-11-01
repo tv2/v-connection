@@ -17,9 +17,13 @@ export class Rundown implements VRundown {
 
 	constructor (mseRep: MSERep, show: string, profile: string, playlist: string, description: string) {
 		this.mse = mseRep
-		this.show = show
-		this.profile = profile
+		this.show = show.startsWith('/storage/shows/') ? show.slice(15) : show
+		if (this.show.startsWith('{')) { this.show = this.show.slice(1) }
+		if (this.show.endsWith('}')) { this.show = this.show.slice(0, -1) }
+		this.profile = profile.startsWith('/config/profiles/') ? profile.slice(17) : profile
 		this.playlist = playlist
+		if (this.playlist.startsWith('{')) { this.playlist = this.playlist.slice(1) }
+		if (this.playlist.endsWith('}')) { this.playlist = this.playlist.slice(0, -1) }
 		this.description = description
 		this.msehttp = createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort)
 	}

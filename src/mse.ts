@@ -45,7 +45,34 @@ export class MSERep extends EventEmitter implements MSE {
 		return this.pep
 	}
 
-	getRundowns (): VRundown[] { return [] }
+// private readonly sofieShowRE = /<entry name="sofie_show">\/storage\/shows\/\{([^\}]*)\}<\/entry>/
+
+	async getRundowns (): Promise<VRundown[]> {
+		await this.checkConnection()
+		let playlistList = await this.pep.getJS('/storage/playlists', 3)
+		let atomEntry: any = playlistList.js as AtomEntry
+		// Horrible hack ... playlists not following atom pub model
+	 	if (atomEntry.entry) {
+			atomEntry.entry.entry = atomEntry.entry.playlist
+			delete atomEntry.entry.playlist
+		}
+		let flatList = await flattenEntry(playlistList.js as AtomEntry)
+		return Object.keys(flatList)
+		.filter(k => k !== 'name' && typeof flatList[k] !== 'string' && (flatList[k] as FlatEntry).sofie_show)
+		.map(k => new Rundown(this,
+			((flatList[k] as FlatEntry).sofie_show as FlatEntry).value as string,
+			(flatList[k] as FlatEntry).profile as string, k,
+			(flatList[k] as FlatEntry).description as string))
+	}
+
+	async getRundown (playlistID: string): Promise<VRundown> {
+		let playlist = await this.getPlaylist(playlistID)
+		if (!playlist.sofie_show) {
+			throw new Error('Cannnot retrieve a rundown witnout a sofie show property.')
+		}
+		return new Rundown(this, (playlist.sofie_show as FlatEntry).value as string,
+			playlist.profile, playlistID, playlist.description as string)
+	}
 
 	async getEngines (): Promise<VizEngine[]> {
 		await this.checkConnection()
@@ -235,18 +262,15 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number,
 	return new MSERep(hostname, restPort, wsPort, resthost)
 }
 
-let sleep = (t: number) => new Promise((resolve, _reject) => {
-	setTimeout(resolve, t)
-})
+// let sleep = (t: number) => new Promise((resolve, _reject) => {
+// 	setTimeout(resolve, t)
+// })
 
-async function run () {
-	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
-	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART', 'EDF2E2BD-4E5E-43EA-B609-42A1B843EECD')
-	await sleep(2000)
-	console.log(await rundown.purge())
-	// console.dir(await rundown.deleteElement('SUPERFLY3'), { depth: 10 })
-	await mse.close()
-	// console.log('After close.')
-}
-
-run().catch(console.error)
+// async function run () {
+// 	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
+// 	console.log(await mse.getRundown('EDF2E2BD-4E5E-43EA-B609-42A1B843EECD'))
+// 	await mse.close()
+// 	// console.log('After close.')
+// }
+//
+// run().catch(console.error)

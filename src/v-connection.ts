@@ -292,10 +292,17 @@ export interface MSE extends EventEmitter {
 	/** Websocket port for PepTalk communication with the MSE. */
 	readonly wsPort: number
 	/**
-	 *  Retrieve the details and controls for all rundowns of this MSE.
+	 *  Retrieve the details and controls for all Sofie rundowns of this MSE.
 	 *  @returns List of rundowns for this MSE.
 	 */
-	getRundowns (): VRundown[]
+	getRundowns (): Promise<VRundown[]>
+	/**
+	 *  Retrieve the details and controls for a single Sofie rundown.
+	 *  @param playlistID Identifier of the playlist associated with the requested
+	 *                    rundown.
+	 *  @return Rundown with the given identifier.
+	 */
+	getRundown (playlistID: string): Promise<VRundown>
 	/**
 	 * Retrieve a list of all Viz Engines with handlers at this MSE.
 	 * @returns Resolves to a list of Viz Engine handlers for this MSE.
