@@ -27,6 +27,25 @@ export class Rundown implements VRundown {
 		if (this.playlist.endsWith('}')) { this.playlist = this.playlist.slice(0, -1) }
 		this.description = description
 		this.msehttp = createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort)
+		this.buildChannelMap()
+	}
+
+	private async buildChannelMap (vcpid?: number): Promise<boolean> {
+		if (vcpid) {
+			if (typeof this.channelMap[vcpid] === 'string') { return true }
+		}
+		let elements = vcpid ? [ vcpid ] : await this.listElements()
+		for (let e of elements) {
+			if (typeof e === 'number') {
+				let element = await this.getElement(e)
+				if (element.channel) {
+					this.channelMap[e] = element.channel
+				} else {
+					this.channelMap[e] = null
+				}
+			}
+		}
+		return vcpid ? typeof this.channelMap[vcpid] === 'string' : false
 	}
 
 	async listTemplates (): Promise<string[]> {
@@ -134,10 +153,13 @@ ${entries}
 		}
 	}
 
-	cue (elementName: string | number): Promise<CommandResult> {
+	async cue (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.cue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (this.buildChannelMap(elementName)) {
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+			}
 			return this.msehttp.cue(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
@@ -146,29 +168,31 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			if (typeof this.channelMap[elementName] === 'string') {
-				let startTime = process.hrtime()
+			if (this.buildChannelMap(elementName)) {
 				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
-				console.log('End time', process.hrtime(startTime))
-			} else if (typeof this.channelMap[elementName] === 'undefined') {
-				// TODO to be truly stateless, we should pull this value from the playlist
 			}
 			return this.msehttp.take(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
 
-	continue (elementName: string | number): Promise<CommandResult> {
+	async continue (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.continue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (this.buildChannelMap(elementName)) {
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+			}
 			return this.msehttp.continue(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
 
-	continueReverse (elementName: string | number): Promise<CommandResult> {
+	async continueReverse (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.continueReverse(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (this.buildChannelMap(elementName)) {
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+			}
 			return this.msehttp.continueReverse(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
@@ -177,10 +201,8 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			if (typeof this.channelMap[elementName] === 'string') {
+			if (this.buildChannelMap(elementName)) {
 				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
-			} else if (typeof this.channelMap[elementName] === 'undefined') {
-				// TODO to be truly stateless, we should pull this value from the playlist
 			}
 			return this.msehttp.out(`/external/pilotdb/elements/${elementName}`)
 		}
@@ -211,7 +233,8 @@ ${entries}
 					typeof playlistsList.id === 'number' ? playlistsList.id : 0,
 					`/storage/playlists/{${this.playlist}}/elements#${elementName}`)
 			} else {
-				(element as ExternalElement).vcpid = elementName.toString()
+				element.vcpid = elementName.toString()
+				element.channel = element.viz_program
 				return element as ExternalElement
 			}
 		} else {
