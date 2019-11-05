@@ -154,7 +154,7 @@ export class MSERep extends EventEmitter implements MSE {
 			await this.checkConnection()
 			await this.pep.get(`/storage/shows/{${showID}}`, 1)
 		} catch (err) {
-			throw new Error(`The requested show to create a rundown for with ID '${showID}' does not exist in this MSE.`)
+			throw new Error(`The request to create a rundown for a show with ID '${showID}' failed. It does not exist in the MSE.`)
 		}
 		try {
 			await this.pep.get(`/config/profiles/${profileName}`, 1)
@@ -201,7 +201,7 @@ export class MSERep extends EventEmitter implements MSE {
 	// Rundown basics task
 	async deleteRundown (rundown: VRundown): Promise<boolean> {
 		let playlist = await this.getPlaylist(rundown.playlist)
-		console.dir(playlist, { depth: 10 })
+		// console.dir(playlist, { depth: 10 })
 		if (playlist.active_profile.value) {
 			throw new Error(`Cannot delete an active profile.`)
 		}
