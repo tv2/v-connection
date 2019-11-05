@@ -262,23 +262,23 @@ export function createMSE (hostname: string, restPort?: number, wsPort?: number,
 	return new MSERep(hostname, restPort, wsPort, resthost)
 }
 
-// let sleep = (t: number) => new Promise((resolve, _reject) => {
-// 	setTimeout(resolve, t)
-// })
-//
-// async function run () {
-// 	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
-// 	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'SOFIE')
-// 	await rundown.createElement(2552305, 'FULL1')
-// 	try { await rundown.activate() } catch (err) { /* */ }
-// 	await sleep(5000)
-// 	console.log('Taking now')
-// 	rundown.take(2552305)
-// 	await rundown.createElement(2565133, 'FULL1')
-// 	await sleep(3000)
-// 	rundown.take(2565133)
-// 	await mse.close()
-// 	// console.log('After close.')
-// }
-//
-// run().catch(console.error)
+let sleep = (t: number) => new Promise((resolve, _reject) => {
+	setTimeout(resolve, t)
+})
+
+async function run () {
+	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
+	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'SOFIE')
+	await rundown.createElement(2552305, 'FULL1')
+	try { await rundown.activate() } catch (err) { /* */ }
+	await sleep(5000)
+	console.log('Taking now')
+	rundown.take(2552305)
+	await rundown.createElement(2565133, 'FULL1')
+	await sleep(3000)
+	rundown.take(2565133)
+	await mse.close()
+	// console.log('After close.')
+}
+
+run().catch(console.error)

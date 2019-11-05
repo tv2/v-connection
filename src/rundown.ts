@@ -14,6 +14,7 @@ export class Rundown implements VRundown {
 	private readonly mse: MSERep
 	private get pep () { return this.mse.getPep() }
 	private msehttp: HttpMSEClient
+	private channelMap: { [vcpid: number]: string | null } = {}
 
 	constructor (mseRep: MSERep, show: string, profile: string, playlist: string, description: string) {
 		this.mse = mseRep
@@ -85,6 +86,7 @@ ${entries}
 			} as InternalElement
 		} else {
 			let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : ''
+			this.channelMap[nameOrID] = elementNameOrChannel ? elementNameOrChannel : null
 			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
 `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`,
 				LocationType.Last)
@@ -140,10 +142,17 @@ ${entries}
 		}
 	}
 
-	take (elementName: string | number): Promise<CommandResult> {
+	async take (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (typeof this.channelMap[elementName] === 'string') {
+				let startTime = process.hrtime()
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+				console.log('End time', process.hrtime(startTime))
+			} else if (typeof this.channelMap[elementName] === 'undefined') {
+				// TODO to be truly stateless, we should pull this value from the playlist
+			}
 			return this.msehttp.take(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
@@ -164,10 +173,15 @@ ${entries}
 		}
 	}
 
-	out (elementName: string | number): Promise<CommandResult> {
+	async out (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (typeof this.channelMap[elementName] === 'string') {
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+			} else if (typeof this.channelMap[elementName] === 'undefined') {
+				// TODO to be truly stateless, we should pull this value from the playlist
+			}
 			return this.msehttp.out(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
