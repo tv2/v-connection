@@ -281,8 +281,9 @@ export interface VPlaylist extends FlatEntry {
  *  information from an MSE when it is required. Users of this interface should be
  *  aware that every call may take some time to complete.
  *
- *  [[VRundown|Rundowns]] are a v-connection concept held in local memory. It will
- *  be safe to recreate a rundown for a show in the event of a failure.
+ *  [[VRundown|Rundowns]] are a v-connection concept held as special playlists
+ *  in the MSE with a sub-element called `sofie_show`. It is safe to have more than
+ *  one instance of a rundown or set up distributed access to a rundown.
  */
 export interface MSE extends EventEmitter {
 	/** Hostname or IP address for the MSE. */

@@ -9,6 +9,7 @@ let args = yargs
 	.argv
 
 async function run () {
+	console.log('Note: This tool attempts to ping before connect, while connected and then after the connection has gone.')
 	let pt = startPepTalk(args.host, args.port)
 	try {
 		await pt.get('/', 0)

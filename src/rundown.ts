@@ -115,7 +115,7 @@ ${entries}
 	async activate (): Promise<CommandResult> {
 		let playlist = await this.mse.getPlaylist(this.playlist)
 		if (playlist.active_profile.value) {
-			throw new Error(`Cannot purge an active profile.`)
+			console.log(`Warning: Re-activating a already active playlist '${this.playlist}'.`)
 		}
 		return this.msehttp.initializePlaylist(this.playlist)
 	}
