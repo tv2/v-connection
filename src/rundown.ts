@@ -149,6 +149,10 @@ ${entries}
 		return this.msehttp.cleanupPlaylist(this.playlist)
 	}
 
+	cleanup (): Promise<CommandResult> {
+		return this.msehttp.cleanupShow(this.show)
+	}
+
 	async deleteElement (elementName: string | number): Promise<PepResponse> {
 		if (typeof elementName === 'string') {
 			return this.pep.delete(`/storage/shows/{${this.show}}/elements/${elementName}`)

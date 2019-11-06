@@ -98,6 +98,7 @@ export interface HttpMSEClient {
 	continueReverse (ref: string): Promise<CommandResult>
 	initializePlaylist (playlistID: string): Promise<CommandResult>
 	cleanupPlaylist (playlistID: string): Promise<CommandResult>
+	cleanupShow (showID: string): Promise<CommandResult>
 	initialize (ref: string): Promise<CommandResult>
 
 	/**
@@ -193,6 +194,10 @@ class MSEHTTP implements HttpMSEClient {
 
 	cleanupPlaylist (playlistID: string): Promise<CommandResult> {
 		return this.command('cleanup', `/storage/playlists/{${playlistID}}`)
+	}
+
+	cleanupShow (showID: string): Promise<CommandResult> {
+		return this.command('cleanup', `/storage/shows/{${showID}}`)
 	}
 
 	initialize (ref: string): Promise<CommandResult> { // initialize a single element

@@ -206,6 +206,13 @@ export interface VRundown {
 	 */
 	deactivate (): Promise<CommandResult>
 	/**
+	 *  Cleanup the show and all associated renderers. This may be necessary if the
+	 *  state of the VizEngine is in a bad or in some way out of step with the automation
+	 *  system.
+	 *  @returns Resolves on a successful request to cleanup.
+	 */
+	cleanup (): Promise<CommandResult>
+	/**
 	 *  Clear up all graphical elements and state associated with a rundown,
 	 *  including those required for post-rundown analysis.
 	 *  @result Resolves on successful rundown purge.
