@@ -59,6 +59,9 @@ export class Rundown implements VRundown {
 		await this.mse.checkConnection()
 		let template = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates/${templateName}`)
 		let flatTemplate = await flattenEntry(template.js as AtomEntry)
+		if (Object.keys(flatTemplate).length === 1) {
+			flatTemplate = flatTemplate[Object.keys(flatTemplate)[0]] as FlatEntry
+		}
 		return flatTemplate as VTemplate
 	}
 
@@ -75,7 +78,8 @@ export class Rundown implements VRundown {
 			}
 			let template = await this.getTemplate(nameOrID)
 			// console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
-			let fieldNames: string[] = (template[nameOrID] as any).model_xml.model.schema[0].fielddef.map((x: any): string => x.$.name)
+			let fielddef = (template as any).model_xml.model.schema[0].fielddef
+			let fieldNames: string[] = fielddef ? fielddef.map((x: any): string => x.$.name) : []
 			let entries = ''
 			let data: { [ name: string ]: string} = {}
 			if (Array.isArray(aliasOrTextFields)) {
