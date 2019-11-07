@@ -451,7 +451,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		let errorIndex = m.indexOf('error')
 		let error: PepError
 		if (errorIndex < 0 || errorIndex > 10) {
-			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent)
+			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent ? pending.sent : 'sent is undefined')
 		} else {
 			let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ') + errorIndex + 6
 			endOfErrorName = endOfErrorName > 0 ? endOfErrorName : m.length
