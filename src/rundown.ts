@@ -14,14 +14,38 @@ export class Rundown implements VRundown {
 	private readonly mse: MSERep
 	private get pep () { return this.mse.getPep() }
 	private msehttp: HttpMSEClient
+	private channelMap: { [vcpid: number]: string | null } = {}
 
 	constructor (mseRep: MSERep, show: string, profile: string, playlist: string, description: string) {
 		this.mse = mseRep
-		this.show = show
-		this.profile = profile
+		this.show = show.startsWith('/storage/shows/') ? show.slice(15) : show
+		if (this.show.startsWith('{')) { this.show = this.show.slice(1) }
+		if (this.show.endsWith('}')) { this.show = this.show.slice(0, -1) }
+		this.profile = profile.startsWith('/config/profiles/') ? profile.slice(17) : profile
 		this.playlist = playlist
+		if (this.playlist.startsWith('{')) { this.playlist = this.playlist.slice(1) }
+		if (this.playlist.endsWith('}')) { this.playlist = this.playlist.slice(0, -1) }
 		this.description = description
 		this.msehttp = createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort)
+		this.buildChannelMap()
+	}
+
+	private async buildChannelMap (vcpid?: number): Promise<boolean> {
+		if (vcpid) {
+			if (typeof this.channelMap[vcpid] === 'string') { return true }
+		}
+		let elements = vcpid ? [ vcpid ] : await this.listElements()
+		for (let e of elements) {
+			if (typeof e === 'number') {
+				let element = await this.getElement(e)
+				if (element.channel) {
+					this.channelMap[e] = element.channel
+				} else {
+					this.channelMap[e] = null
+				}
+			}
+		}
+		return vcpid ? typeof this.channelMap[vcpid] === 'string' : false
 	}
 
 	async listTemplates (): Promise<string[]> {
@@ -35,6 +59,9 @@ export class Rundown implements VRundown {
 		await this.mse.checkConnection()
 		let template = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates/${templateName}`)
 		let flatTemplate = await flattenEntry(template.js as AtomEntry)
+		if (Object.keys(flatTemplate).length === 1) {
+			flatTemplate = flatTemplate[Object.keys(flatTemplate)[0]] as FlatEntry
+		}
 		return flatTemplate as VTemplate
 	}
 
@@ -51,7 +78,8 @@ export class Rundown implements VRundown {
 			}
 			let template = await this.getTemplate(nameOrID)
 			// console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
-			let fieldNames: string[] = (template[nameOrID] as any).model_xml.model.schema[0].fielddef.map((x: any): string => x.$.name)
+			let fielddef = (template as any).model_xml.model.schema[0].fielddef
+			let fieldNames: string[] = fielddef ? fielddef.map((x: any): string => x.$.name) : []
 			let entries = ''
 			let data: { [ name: string ]: string} = {}
 			if (Array.isArray(aliasOrTextFields)) {
@@ -80,11 +108,15 @@ ${entries}
 				channel
 			} as InternalElement
 		} else {
-			// FIXME how to build an element from a VCPID
+			let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : ''
+			this.channelMap[nameOrID] = elementNameOrChannel ? elementNameOrChannel : null
 			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
-`<ref available="0.00" loaded="0.00" take_count="0">/external/pilotdb/elements/${nameOrID}</ref>`,
-LocationType.Last)
-			throw new Error('Method not implemented.')
+`<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`,
+				LocationType.Last)
+			return {
+				vcpid: nameOrID.toString(),
+				channel: elementNameOrChannel
+			} as ExternalElement
 		}
 	}
 
@@ -105,8 +137,20 @@ LocationType.Last)
 		return elementNames.concat(elementsRefs)
 	}
 
+	async activate (): Promise<CommandResult> {
+		let playlist = await this.mse.getPlaylist(this.playlist)
+		if (playlist.active_profile.value) {
+			console.log(`Warning: Re-activating a already active playlist '${this.playlist}'.`)
+		}
+		return this.msehttp.initializePlaylist(this.playlist)
+	}
+
 	deactivate (): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
+		return this.msehttp.cleanupPlaylist(this.playlist)
+	}
+
+	cleanup (): Promise<CommandResult> {
+		return this.msehttp.cleanupShow(this.show)
 	}
 
 	async deleteElement (elementName: string | number): Promise<PepResponse> {
@@ -117,48 +161,59 @@ LocationType.Last)
 		}
 	}
 
-	cue (elementName: string | number): Promise<CommandResult> {
+	async cue (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.cue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (this.buildChannelMap(elementName)) {
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+			}
 			return this.msehttp.cue(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
 
-	take (elementName: string | number): Promise<CommandResult> {
+	async take (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (this.buildChannelMap(elementName)) {
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+			}
 			return this.msehttp.take(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
 
-	continue (elementName: string | number): Promise<CommandResult> {
+	async continue (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.continue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (this.buildChannelMap(elementName)) {
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+			}
 			return this.msehttp.continue(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
 
-	continueReverse (elementName: string | number): Promise<CommandResult> {
+	async continueReverse (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.continueReverse(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (this.buildChannelMap(elementName)) {
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+			}
 			return this.msehttp.continueReverse(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
 
-	out (elementName: string | number): Promise<CommandResult> {
+	async out (elementName: string | number): Promise<CommandResult> {
 		if (typeof elementName === 'string') {
 			return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			if (this.buildChannelMap(elementName)) {
+				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
+			}
 			return this.msehttp.out(`/external/pilotdb/elements/${elementName}`)
 		}
-	}
-
-	activate (): Promise<CommandResult> {
-		throw new Error('Method not implemented.')
 	}
 
 	async purge (): Promise<PepResponse> {
@@ -166,15 +221,8 @@ LocationType.Last)
 		if (playlist.active_profile.value) {
 			throw new Error(`Cannot purge an active profile.`)
 		}
-		let elements = await this.listElements()
-		for (let e of elements) {
-			if (typeof e === 'string') {
-				let result = await this.pep.delete(`/storage/shows/{${this.show}}/elements/${e}`)
-				if (result.status !== 'ok') {
-					return result
-				}
-			}
-		}
+		await this.pep.replace(`/storage/shows/{${this.show}}/elements`, '<elements/>')
+		await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>')
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 
@@ -193,7 +241,8 @@ LocationType.Last)
 					typeof playlistsList.id === 'number' ? playlistsList.id : 0,
 					`/storage/playlists/{${this.playlist}}/elements#${elementName}`)
 			} else {
-				(element as ExternalElement).vcpid = elementName.toString()
+				element.vcpid = elementName.toString()
+				element.channel = element.viz_program
 				return element as ExternalElement
 			}
 		} else {

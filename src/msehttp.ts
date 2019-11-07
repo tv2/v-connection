@@ -96,6 +96,10 @@ export interface HttpMSEClient {
 	out (ref: string): Promise<CommandResult>
 	continue (ref: string): Promise<CommandResult>
 	continueReverse (ref: string): Promise<CommandResult>
+	initializePlaylist (playlistID: string): Promise<CommandResult>
+	cleanupPlaylist (playlistID: string): Promise<CommandResult>
+	cleanupShow (showID: string): Promise<CommandResult>
+	initialize (ref: string): Promise<CommandResult>
 
 	/**
 	 *  Test the connection to the MSE's HTTP API.
@@ -181,7 +185,23 @@ class MSEHTTP implements HttpMSEClient {
 	}
 
 	continueReverse (ref: string): Promise<CommandResult> {
-		return this.command('continue-reverse', ref)
+		return this.command('continue_reverse', ref)
+	}
+
+	initializePlaylist (playlistID: string): Promise<CommandResult> {
+		return this.command('initialize', `/storage/playlists/{${playlistID}}`)
+	}
+
+	cleanupPlaylist (playlistID: string): Promise<CommandResult> {
+		return this.command('cleanup', `/storage/playlists/{${playlistID}}`)
+	}
+
+	cleanupShow (showID: string): Promise<CommandResult> {
+		return this.command('cleanup', `/storage/shows/{${showID}}`)
+	}
+
+	initialize (ref: string): Promise<CommandResult> { // initialize a single element
+		return this.command('initialize', ref)
 	}
 
 	async ping (): Promise<CommandResult> {
