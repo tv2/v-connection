@@ -116,7 +116,7 @@ class PepTalk extends events_1.EventEmitter {
         // console.log('SAF >>>', split)
         if (this.leftovers) {
             this.leftovers.previous = this.leftovers.previous + split[0];
-            this.leftovers.remaining -= Buffer.byteLength(split[0], 'utf8');
+            this.leftovers.remaining -= split[0] ? Buffer.byteLength(split[0], 'utf8') : 0;
             if (this.leftovers.remaining <= 0) {
                 split[0] = this.leftovers.previous;
                 this.leftovers = null;

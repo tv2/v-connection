@@ -36,6 +36,8 @@ export declare function flattenEntry(x: AtomEntry): Promise<FlatEntry>;
 /**
  *  Tranform a simplified version of an [[AtomEntry|atom pub entry]] into its
  *  ready-to-be-build form.
+ *  Note that the implementation of this is not complete. For expediancy, XML
+ *  strings are build manually when required within the code.
  *  @params x Source simplified object.
  *  @return Ready for XML building version of `x`.
  */

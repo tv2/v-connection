@@ -6,14 +6,48 @@ const xml_1 = require("./xml");
 const uuid = require("uuid");
 class Rundown {
     constructor(mseRep, show, profile, playlist, description) {
+        this.channelMap = {};
         this.mse = mseRep;
-        this.show = show;
-        this.profile = profile;
+        this.show = show.startsWith('/storage/shows/') ? show.slice(15) : show;
+        if (this.show.startsWith('{')) {
+            this.show = this.show.slice(1);
+        }
+        if (this.show.endsWith('}')) {
+            this.show = this.show.slice(0, -1);
+        }
+        this.profile = profile.startsWith('/config/profiles/') ? profile.slice(17) : profile;
         this.playlist = playlist;
+        if (this.playlist.startsWith('{')) {
+            this.playlist = this.playlist.slice(1);
+        }
+        if (this.playlist.endsWith('}')) {
+            this.playlist = this.playlist.slice(0, -1);
+        }
         this.description = description;
         this.msehttp = msehttp_1.createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort);
+        this.buildChannelMap();
     }
     get pep() { return this.mse.getPep(); }
+    async buildChannelMap(vcpid) {
+        if (vcpid) {
+            if (typeof this.channelMap[vcpid] === 'string') {
+                return true;
+            }
+        }
+        let elements = vcpid ? [vcpid] : await this.listElements();
+        for (let e of elements) {
+            if (typeof e === 'number') {
+                let element = await this.getElement(e);
+                if (element.channel) {
+                    this.channelMap[e] = element.channel;
+                }
+                else {
+                    this.channelMap[e] = null;
+                }
+            }
+        }
+        return vcpid ? typeof this.channelMap[vcpid] === 'string' : false;
+    }
     async listTemplates() {
         await this.mse.checkConnection();
         let templateList = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates`, 1);
@@ -24,6 +58,9 @@ class Rundown {
         await this.mse.checkConnection();
         let template = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates/${templateName}`);
         let flatTemplate = await xml_1.flattenEntry(template.js);
+        if (Object.keys(flatTemplate).length === 1) {
+            flatTemplate = flatTemplate[Object.keys(flatTemplate)[0]];
+        }
         return flatTemplate;
     }
     async createElement(nameOrID, elementNameOrChannel, aliasOrTextFields, channel) {
@@ -41,7 +78,8 @@ class Rundown {
             }
             let template = await this.getTemplate(nameOrID);
             // console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
-            let fieldNames = template[nameOrID].model_xml.model.schema[0].fielddef.map((x) => x.$.name);
+            let fielddef = template.model_xml.model.schema[0].fielddef;
+            let fieldNames = fielddef ? fielddef.map((x) => x.$.name) : [];
             let entries = '';
             let data = {};
             if (Array.isArray(aliasOrTextFields)) {
@@ -69,9 +107,13 @@ ${entries}
             };
         }
         else {
-            // FIXME how to build an element from a VCPID
-            await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0">/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
-            throw new Error('Method not implemented.');
+            let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : '';
+            this.channelMap[nameOrID] = elementNameOrChannel ? elementNameOrChannel : null;
+            await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
+            return {
+                vcpid: nameOrID.toString(),
+                channel: elementNameOrChannel
+            };
         }
     }
     async listElements() {
@@ -91,8 +133,18 @@ ${entries}
             }) : [];
         return elementNames.concat(elementsRefs);
     }
+    async activate() {
+        let playlist = await this.mse.getPlaylist(this.playlist);
+        if (playlist.active_profile.value) {
+            console.log(`Warning: Re-activating a already active playlist '${this.playlist}'.`);
+        }
+        return this.msehttp.initializePlaylist(this.playlist);
+    }
     deactivate() {
-        throw new Error('Method not implemented.');
+        return this.msehttp.cleanupPlaylist(this.playlist);
+    }
+    cleanup() {
+        return this.msehttp.cleanupShow(this.show);
     }
     async deleteElement(elementName) {
         if (typeof elementName === 'string') {
@@ -102,63 +154,68 @@ ${entries}
             throw new Error('Method not implemented.');
         }
     }
-    cue(elementName) {
+    async cue(elementName) {
         if (typeof elementName === 'string') {
             return this.msehttp.cue(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
+            if (this.buildChannelMap(elementName)) {
+                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            }
             return this.msehttp.cue(`/external/pilotdb/elements/${elementName}`);
         }
     }
-    take(elementName) {
+    async take(elementName) {
         if (typeof elementName === 'string') {
             return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
+            if (this.buildChannelMap(elementName)) {
+                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            }
             return this.msehttp.take(`/external/pilotdb/elements/${elementName}`);
         }
     }
-    continue(elementName) {
+    async continue(elementName) {
         if (typeof elementName === 'string') {
             return this.msehttp.continue(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
+            if (this.buildChannelMap(elementName)) {
+                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            }
             return this.msehttp.continue(`/external/pilotdb/elements/${elementName}`);
         }
     }
-    continueReverse(elementName) {
+    async continueReverse(elementName) {
         if (typeof elementName === 'string') {
             return this.msehttp.continueReverse(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
+            if (this.buildChannelMap(elementName)) {
+                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            }
             return this.msehttp.continueReverse(`/external/pilotdb/elements/${elementName}`);
         }
     }
-    out(elementName) {
+    async out(elementName) {
         if (typeof elementName === 'string') {
             return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
+            if (this.buildChannelMap(elementName)) {
+                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            }
             return this.msehttp.out(`/external/pilotdb/elements/${elementName}`);
         }
-    }
-    activate() {
-        throw new Error('Method not implemented.');
     }
     async purge() {
         let playlist = await this.mse.getPlaylist(this.playlist);
         if (playlist.active_profile.value) {
             throw new Error(`Cannot purge an active profile.`);
         }
-        let elements = await this.listElements();
-        for (let e of elements) {
-            if (typeof e === 'string') {
-                let result = await this.pep.delete(`/storage/shows/{${this.show}}/elements/${e}`);
-                if (result.status !== 'ok') {
-                    return result;
-                }
-            }
-        }
+        await this.pep.replace(`/storage/shows/{${this.show}}/elements`, '<elements/>');
+        await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>');
         return { id: '*', status: 'ok' };
     }
     async getElement(elementName) {
@@ -176,6 +233,7 @@ ${entries}
             }
             else {
                 element.vcpid = elementName.toString();
+                element.channel = element.viz_program;
                 return element;
             }
         }

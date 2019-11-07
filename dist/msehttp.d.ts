@@ -47,6 +47,10 @@ export interface HttpMSEClient {
     out(ref: string): Promise<CommandResult>;
     continue(ref: string): Promise<CommandResult>;
     continueReverse(ref: string): Promise<CommandResult>;
+    initializePlaylist(playlistID: string): Promise<CommandResult>;
+    cleanupPlaylist(playlistID: string): Promise<CommandResult>;
+    cleanupShow(showID: string): Promise<CommandResult>;
+    initialize(ref: string): Promise<CommandResult>;
     /**
      *  Test the connection to the MSE's HTTP API.
      *  @returns Resolves on successful communication.

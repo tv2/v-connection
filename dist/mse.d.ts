@@ -13,7 +13,8 @@ export declare class MSERep extends EventEmitter implements MSE {
     constructor(hostname: string, restPort?: number, wsPort?: number, resthost?: string);
     checkConnection(): Promise<void>;
     getPep(): PepTalkClient & PepTalkJS;
-    getRundowns(): VRundown[];
+    getRundowns(): Promise<VRundown[]>;
+    getRundown(playlistID: string): Promise<VRundown>;
     getEngines(): Promise<VizEngine[]>;
     listProfiles(): Promise<string[]>;
     getProfile(profileName: string): Promise<VProfile>;

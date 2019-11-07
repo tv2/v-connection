@@ -97,7 +97,19 @@ class MSEHTTP {
         return this.command('continue', ref);
     }
     continueReverse(ref) {
-        return this.command('continue-reverse', ref);
+        return this.command('continue_reverse', ref);
+    }
+    initializePlaylist(playlistID) {
+        return this.command('initialize', `/storage/playlists/{${playlistID}}`);
+    }
+    cleanupPlaylist(playlistID) {
+        return this.command('cleanup', `/storage/playlists/{${playlistID}}`);
+    }
+    cleanupShow(showID) {
+        return this.command('cleanup', `/storage/shows/{${showID}}`);
+    }
+    initialize(ref) {
+        return this.command('initialize', ref);
     }
     async ping() {
         try {

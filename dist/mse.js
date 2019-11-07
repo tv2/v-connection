@@ -36,7 +36,28 @@ class MSERep extends events_1.EventEmitter {
     getPep() {
         return this.pep;
     }
-    getRundowns() { return []; }
+    // private readonly sofieShowRE = /<entry name="sofie_show">\/storage\/shows\/\{([^\}]*)\}<\/entry>/
+    async getRundowns() {
+        await this.checkConnection();
+        let playlistList = await this.pep.getJS('/storage/playlists', 3);
+        let atomEntry = playlistList.js;
+        // Horrible hack ... playlists not following atom pub model
+        if (atomEntry.entry) {
+            atomEntry.entry.entry = atomEntry.entry.playlist;
+            delete atomEntry.entry.playlist;
+        }
+        let flatList = await xml_1.flattenEntry(playlistList.js);
+        return Object.keys(flatList)
+            .filter(k => k !== 'name' && typeof flatList[k] !== 'string' && flatList[k].sofie_show)
+            .map(k => new rundown_1.Rundown(this, flatList[k].sofie_show.value, flatList[k].profile, k, flatList[k].description));
+    }
+    async getRundown(playlistID) {
+        let playlist = await this.getPlaylist(playlistID);
+        if (!playlist.sofie_show) {
+            throw new Error('Cannnot retrieve a rundown witnout a sofie show property.');
+        }
+        return new rundown_1.Rundown(this, playlist.sofie_show.value, playlist.profile, playlistID, playlist.description);
+    }
     async getEngines() {
         await this.checkConnection();
         let handlers = await this.pep.getJS('/scheduler');
@@ -110,8 +131,6 @@ class MSERep extends events_1.EventEmitter {
     }
     // Rundown basics task
     async createRundown(showID, profileName, playlistID, description) {
-        // TODO Do async stuff to check parameters
-        // Check that the showID exists
         let playlistExists = false;
         showID = showID.toUpperCase();
         let date = new Date();
@@ -121,7 +140,7 @@ class MSERep extends events_1.EventEmitter {
             await this.pep.get(`/storage/shows/{${showID}}`, 1);
         }
         catch (err) {
-            throw new Error(`The requested show to create a rundown for with ID '${showID}' does not exist in this MSE.`);
+            throw new Error(`The request to create a rundown for a show with ID '${showID}' failed. It does not exist in the MSE.`);
         }
         try {
             await this.pep.get(`/config/profiles/${profileName}`, 1);
@@ -131,7 +150,7 @@ class MSERep extends events_1.EventEmitter {
         }
         if (playlistID) {
             try {
-                let playlist = await this.getPlaylist(playlistID);
+                let playlist = await this.getPlaylist(playlistID.toUpperCase());
                 if (!playlist.profile.endsWith(`/${profileName}`)) {
                     throw new Error(`Referenced playlist exists but references profile '${playlist.profile}' rather than the given '${profileName}'.`);
                 }
@@ -146,9 +165,8 @@ class MSERep extends events_1.EventEmitter {
         }
         if (!playlistExists) {
             playlistID = playlistID && playlistID.match(uuidRe) ? playlistID.toUpperCase() : uuid.v4().toUpperCase();
-        }
-        let modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
-        await this.pep.insert(`/storage/playlists/{${playlistID}}`, `<playlist description="${description}" modified="${modifiedDate}" profile="/config/profiles/${profileName}" name="{${playlistID}}">
+            let modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+            await this.pep.insert(`/storage/playlists/{${playlistID}}`, `<playlist description="${description}" modified="${modifiedDate}" profile="/config/profiles/${profileName}" name="{${playlistID}}">
     <elements/>
     <entry name="environment">
         <entry name="alternative_concept"/>
@@ -165,12 +183,13 @@ class MSERep extends events_1.EventEmitter {
     <entry name="ncs_cursor"/>
 		<entry name="sofie_show">/storage/shows/{${showID}}</entry>
 </playlist>`, peptalk_1.LocationType.Last);
+        }
         return new rundown_1.Rundown(this, showID, profileName, playlistID, description);
     }
     // Rundown basics task
     async deleteRundown(rundown) {
         let playlist = await this.getPlaylist(rundown.playlist);
-        console.dir(playlist, { depth: 10 });
+        // console.dir(playlist, { depth: 10 })
         if (playlist.active_profile.value) {
             throw new Error(`Cannot delete an active profile.`);
         }
@@ -227,13 +246,21 @@ function createMSE(hostname, restPort, wsPort, resthost) {
     return new MSERep(hostname, restPort, wsPort, resthost);
 }
 exports.createMSE = createMSE;
+// let sleep = (t: number) => new Promise((resolve, _reject) => {
+// 	setTimeout(resolve, t)
+// })
+//
 // async function run () {
 // 	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
-// 	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'MOSART')
-// 	console.dir(rundown)
-// 	console.log('Deleted?', await rundown.purge())
-// 	await rundown.createElement('Bund', 'SUPERWASP', [ 'Fred', 'Ginger' ])
-// 	// console.dir(await rundown.deleteElement('SUPERFLY3'), { depth: 10 })
+// 	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'SOFIE')
+// 	await rundown.createElement(2552305, 'FULL1')
+// 	try { await rundown.activate() } catch (err) { /* */ }
+// 	await sleep(5000)
+// 	console.log('Taking now')
+// 	rundown.take(2552305)
+// 	await rundown.createElement(2565133, 'FULL1')
+// 	await sleep(3000)
+// 	rundown.take(2565133)
 // 	await mse.close()
 // 	// console.log('After close.')
 // }

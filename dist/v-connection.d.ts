@@ -194,6 +194,13 @@ export interface VRundown {
      */
     deactivate(): Promise<CommandResult>;
     /**
+     *  Cleanup the show and all associated renderers. This may be necessary if the
+     *  state of the VizEngine is in a bad or in some way out of step with the automation
+     *  system.
+     *  @returns Resolves on a successful request to cleanup.
+     */
+    cleanup(): Promise<CommandResult>;
+    /**
      *  Clear up all graphical elements and state associated with a rundown,
      *  including those required for post-rundown analysis.
      *  @result Resolves on successful rundown purge.
@@ -256,8 +263,9 @@ export interface VPlaylist extends FlatEntry {
  *  information from an MSE when it is required. Users of this interface should be
  *  aware that every call may take some time to complete.
  *
- *  [[VRundown|Rundowns]] are a v-connection concept held in local memory. It will
- *  be safe to recreate a rundown for a show in the event of a failure.
+ *  [[VRundown|Rundowns]] are a v-connection concept held as special playlists
+ *  in the MSE with a sub-element called `sofie_show`. It is safe to have more than
+ *  one instance of a rundown or set up distributed access to a rundown.
  */
 export interface MSE extends EventEmitter {
     /** Hostname or IP address for the MSE. */
@@ -267,10 +275,17 @@ export interface MSE extends EventEmitter {
     /** Websocket port for PepTalk communication with the MSE. */
     readonly wsPort: number;
     /**
-     *  Retrieve the details and controls for all rundowns of this MSE.
+     *  Retrieve the details and controls for all Sofie rundowns of this MSE.
      *  @returns List of rundowns for this MSE.
      */
-    getRundowns(): VRundown[];
+    getRundowns(): Promise<VRundown[]>;
+    /**
+     *  Retrieve the details and controls for a single Sofie rundown.
+     *  @param playlistID Identifier of the playlist associated with the requested
+     *                    rundown.
+     *  @return Rundown with the given identifier.
+     */
+    getRundown(playlistID: string): Promise<VRundown>;
     /**
      * Retrieve a list of all Viz Engines with handlers at this MSE.
      * @returns Resolves to a list of Viz Engine handlers for this MSE.

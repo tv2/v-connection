@@ -10,20 +10,23 @@ export declare class Rundown implements VRundown {
     private readonly mse;
     private readonly pep;
     private msehttp;
+    private channelMap;
     constructor(mseRep: MSERep, show: string, profile: string, playlist: string, description: string);
+    private buildChannelMap;
     listTemplates(): Promise<string[]>;
     getTemplate(templateName: string): Promise<VTemplate>;
     createElement(templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>;
     createElement(vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>;
     listElements(): Promise<Array<string | number>>;
+    activate(): Promise<CommandResult>;
     deactivate(): Promise<CommandResult>;
+    cleanup(): Promise<CommandResult>;
     deleteElement(elementName: string | number): Promise<PepResponse>;
     cue(elementName: string | number): Promise<CommandResult>;
     take(elementName: string | number): Promise<CommandResult>;
     continue(elementName: string | number): Promise<CommandResult>;
     continueReverse(elementName: string | number): Promise<CommandResult>;
     out(elementName: string | number): Promise<CommandResult>;
-    activate(): Promise<CommandResult>;
     purge(): Promise<PepResponse>;
     getElement(elementName: string | number): Promise<VElement>;
 }
