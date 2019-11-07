@@ -37,9 +37,21 @@ async function run () {
 	await rundown.activate()
 	console.dir(element, { depth: 20 })
 	await wait(100)
-	await rundown.take(elementRef)
+	// await rundown.cue(elementRef)
 	await wait(args.timing)
-	console.log(`Taking element ${elementRef} out.`)
+	// console.log(`Taking element ${elementRef} out.`)
+	// await rundown.out(elementRef)
+	for (let x = 0 ; x < 5 ; x++) {
+		console.log(x)
+		await wait(1000)
+	}
+	console.log('take')
+	await rundown.take(elementRef)
+	for (let x = 0 ; x < 5 ; x++) {
+		console.log(x)
+		await wait(1000)
+	}
+	console.log('out')
 	await rundown.out(elementRef)
 	if (args['delete']) {
 		// await rundown.deleteElement(elementRef)
