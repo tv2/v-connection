@@ -75,7 +75,7 @@ class HTTPRequestError extends Error implements IHTTPRequestError {
  *  Client interface for sending commands to the MSE over HTTP. Commands target
  *  a specific profile.
  *
- *  Note that all messages are timed and if no response is received withint the
+ *  Note that all messages are timed and if no response is received within the
  *  timeout interval, the response promise will be rejected.
  */
 export interface HttpMSEClient {
@@ -152,14 +152,22 @@ class MSEHTTP implements HttpMSEClient {
 					method: 'POST',
 					uri: `${this.baseURL}/${path}`,
 					body,
-				 	timeout: this.timeout})
+				 	timeout: this.timeout,
+					headers: {
+						'Content-Type': 'text/plain'
+					}
+				})
 				return { status: 200, response: response.toString() } as CommandResult
 			} else {
 				let response = await request.post({
 					method: 'POST',
 					uri: path,
 					body,
-				 	timeout: this.timeout })
+				 	timeout: this.timeout,
+					headers: {
+						'Content-Type': 'text/plain'
+					}
+ 				})
 				return { status: 200, response: response.toString() } as CommandResult
 			}
 		} catch (err) {
@@ -200,8 +208,9 @@ class MSEHTTP implements HttpMSEClient {
 		return this.command('cleanup', `/storage/shows/{${showID}}`)
 	}
 
-	initialize (ref: string): Promise<CommandResult> { // initialize a single element
-		return this.command('initialize', ref)
+	initialize (_ref: string): Promise<CommandResult> { // initialize a single element - not supported by MSE
+		throw new Error('Feature not supported by the MSE used for testing.')
+		// return this.command('initialize', ref)
 	}
 
 	async ping (): Promise<CommandResult> {
