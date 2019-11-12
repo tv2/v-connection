@@ -91,9 +91,38 @@ export interface HttpMSEClient {
 	 */
 	command (path: string | URL, body: string): Promise<CommandResult>
 
+	/**
+	 *  Cue an element ready to be taken. Cueing an element:
+	 *  1. If not already loaded, loads all graphical resources onto the Viz
+	 *     engine. May take several seconds.
+	 *  2. Starts the first frame of the graphic on the fill output, removing any
+	 *     other current element.
+	 *  3. Sets the key output to transparent.
+	 *  @param ref Path of element to cue, e.g. `/external/elements/pilotdb/1234567`
+	 *  @returns Resolves if a cue has been scheduled. Note this is not when the element
+	 *           has been cued.
+	 */
 	cue (ref: string): Promise<CommandResult>
+	/**
+	 *  Take an element to air. If not already loaded, loads all the graphical resources
+	 *  onto the VizEngine (may take several seconds) and starts the element's
+	 *  animation.
+	 *  @param ref Path of element to cue, e.g. `/storage/shows/showID/elements/ident`
+	 *  @returns Resolves if a take has been scheduled. Note that this is not when
+	 *           the element starts animating.
+	 */
 	take (ref: string): Promise<CommandResult>
+	/**
+	 *  Take an element off air.
+	 *  @param ref Path of an element to take out.
+	 *  @returns Resolves if an out has been scheduled. Note that this is not either when
+	 *           the element has been taken out or has started its final animation.
+	 */
 	out (ref: string): Promise<CommandResult>
+	/**
+	 *  For a graphical elements with multiple continue states, start the animation
+	 *  to the next state.
+	 */
 	continue (ref: string): Promise<CommandResult>
 	continueReverse (ref: string): Promise<CommandResult>
 	initializePlaylist (playlistID: string): Promise<CommandResult>

@@ -252,4 +252,9 @@ ${entries}
 			return flatElement as InternalElement
 		}
 	}
+
+	async isActive (): Promise<boolean> {
+		let playlist = await this.mse.getPlaylist(this.playlist)
+		return typeof playlist.active_profile.value !== undefined
+	}
 }
