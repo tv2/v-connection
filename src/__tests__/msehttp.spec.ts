@@ -12,7 +12,7 @@ const wait = (t: number) => new Promise<void>((resolve) => {
 	setTimeout(resolve, t)
 })
 
-describe('MSE HTTP library', () => {
+describe('MSE HTTP library when happy', () => {
 
 	let app: Koa
 	let server: http.Server
@@ -55,6 +55,16 @@ describe('MSE HTTP library', () => {
 			if (ctx.path.startsWith('/profiles/SOFIE/notfound')) {
 				ctx.status = 404
 				ctx.body = 'The requested element was not found.'
+				return
+			}
+			if (ctx.path.startsWith('/profiles/SOFIE/badrequest')) {
+				ctx.status = 400
+				ctx.body = 'Bad request for element.'
+				return
+			}
+			if (ctx.path.startsWith('/profiles/SOFIE/servererror')) {
+				ctx.status = 500
+				ctx.body = 'Internal server error for element.'
 				return
 			}
 			if (ctx.path.startsWith('/profiles/SOFIE/')) {
@@ -187,16 +197,44 @@ describe('MSE HTTP library', () => {
 		expect(msehttp.timeout).toBe(3000)
 	})
 
-	test.only('Not found', async () => {
+	test('Not found', async () => {
 		try {
 			await msehttp.command('notfound', '/invisibility/cloak')
 		} catch (err) {
-			console.dir(err, { depth: 10 })
+			expect(err.path).toBe(`http://localhost:${testPort}/profiles/SOFIE/notfound`)
+			expect(err.status).toBe(404)
+			expect(err.body).toBe('/invisibility/cloak')
+			expect(err.response).toBe('Not Found')
+			expect(err.message).toMatch(/Not Found/)
 		}
 	})
 
 	test('Bad request', async () => {
+		try {
+			await msehttp.command('badrequest', '/invisibility/cloak')
+		} catch (err) {
+			expect(err.path).toBe(`http://localhost:${testPort}/profiles/SOFIE/badrequest`)
+			expect(err.status).toBe(400)
+			expect(err.body).toBe('/invisibility/cloak')
+			expect(err.response).toBe('Bad Request')
+			expect(err.message).toMatch(/Bad Request/)
+		}
+	})
 
+	test('Server error', async () => {
+		try {
+			await msehttp.command('servererror', '/invisibility/cloak')
+		} catch (err) {
+			expect(err.path).toBe(`http://localhost:${testPort}/profiles/SOFIE/servererror`)
+			expect(err.status).toBe(500)
+			expect(err.body).toBe('/invisibility/cloak')
+			expect(err.response).toBe('Internal Server Error')
+			expect(err.message).toMatch(/Internal Server Error/)
+		}
+	})
+
+	test('Unsuppoted element initialize', async () => {
+		await expect(msehttp.initialize('/this/should/break')).rejects.toThrow(/Feature not supported/)
 	})
 
 	afterAll(async () => {
@@ -206,5 +244,26 @@ describe('MSE HTTP library', () => {
 				resolve()
 			})
 		})
+		msehttp = null
+	})
+})
+
+describe('MSE HTTP library when sad', () => {
+	let msehttp: HttpMSEClient
+
+	beforeAll(async () => {
+		msehttp = createHTTPContext('SOFIE', 'localhost', testPort)
+	})
+
+	test('Ping when down', async () => {
+		await expect(msehttp.ping()).rejects.toThrow(/ECONNREFUSED/)
+	})
+
+	test('Cue', async () => {
+		await expect(msehttp.cue('/an/element/to/cue')).rejects.toThrow(/ECONNREFUSED/)
+	})
+
+	afterAll(() => {
+		msehttp = null
 	})
 })
