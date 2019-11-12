@@ -188,7 +188,11 @@ describe('MSE HTTP library', () => {
 	})
 
 	test.only('Not found', async () => {
-		await expect(msehttp.command('notfound', '/invisibility/cloak')).rejects.toThrow('wibble')
+		try {
+			await msehttp.command('notfound', '/invisibility/cloak')
+		} catch (err) {
+			console.dir(err, { depth: 10 })
+		}
 	})
 
 	test('Bad request', async () => {
