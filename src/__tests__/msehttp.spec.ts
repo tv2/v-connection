@@ -52,6 +52,11 @@ describe('MSE HTTP library', () => {
 				ctx.body = 'This is far too late'
 				return
 			}
+			if (ctx.path.startsWith('/profiles/SOFIE/notfound')) {
+				ctx.status = 404
+				ctx.body = 'The requested element was not found.'
+				return
+			}
 			if (ctx.path.startsWith('/profiles/SOFIE/')) {
 				let command = ctx.path.slice(16)
 				if (ctx.headers['content-type'] !== 'text/plain') {
@@ -180,6 +185,14 @@ describe('MSE HTTP library', () => {
 		await expect(msehttp.command('timeout', '/running/out/of/time')).rejects.toThrow('ESOCKETTIMEDOUT')
 		msehttp.setHTTPTimeout(3000)
 		expect(msehttp.timeout).toBe(3000)
+	})
+
+	test.only('Not found', async () => {
+		await expect(msehttp.command('notfound', '/invisibility/cloak')).rejects.toThrow('wibble')
+	})
+
+	test('Bad request', async () => {
+
 	})
 
 	afterAll(async () => {

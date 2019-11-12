@@ -7,6 +7,9 @@ import { URL } from 'url'
 import * as request from 'request-promise-native'
 import { ServerResponse } from 'http'
 
+
+export const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
+
 /** Result of executing an HTTP command. Command promise is resolved. */
 export interface CommandResult {
 	/** HTTP command or URL */
@@ -120,12 +123,34 @@ export interface HttpMSEClient {
 	 */
 	out (ref: string): Promise<CommandResult>
 	/**
-	 *  For a graphical elements with multiple continue states, start the animation
+	 *  For a graphical element with multiple continue states, start the animation
 	 *  to the next state.
+	 *  Warning: do not do this out-of-sequence as it can have side effects.
+	 *  @param ref Path of an element to continue the state of.
+	 *  @returns Resolves if a continue has been scheduled.
 	 */
 	continue (ref: string): Promise<CommandResult>
+	/**
+	 *  For a graphical element with multiple continue states, rewind the animation
+	 *  to the previous state.
+	 *  @param ref Path of an element to reverse continue.
+	 *  @returns Resolves if a continue reverse has been scheduled.
+	 */
 	continueReverse (ref: string): Promise<CommandResult>
+	/**
+	 *  Initialize the playlist with the given identifier, normally a UUID value.
+	 *  The identifier should not be surrounded by curly braces.
+	 *  Activating a playlist causes any associated exterrnal elements to be built
+	 *  and maintained within the MSE.
+	 *  @param playlistID Identifier of the playlist to initialize and activate.
+	 *  @returns Resolves if the playlist initialization and activation has been
+	 *           sheduled. Note that this is not when the playlist becomes active.
+	 */
 	initializePlaylist (playlistID: string): Promise<CommandResult>
+	/**
+	 *  Cleanup the playlist with the given identifier, normally using a UUID value.
+	 *
+	 */
 	cleanupPlaylist (playlistID: string): Promise<CommandResult>
 	cleanupShow (showID: string): Promise<CommandResult>
 	initialize (ref: string): Promise<CommandResult>
