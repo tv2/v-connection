@@ -7,7 +7,6 @@ import { URL } from 'url'
 import * as request from 'request-promise-native'
 import { ServerResponse } from 'http'
 
-
 export const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
 
 /** Result of executing an HTTP command. Command promise is resolved. */
@@ -138,21 +137,39 @@ export interface HttpMSEClient {
 	 */
 	continueReverse (ref: string): Promise<CommandResult>
 	/**
-	 *  Initialize the playlist with the given identifier, normally a UUID value.
-	 *  The identifier should not be surrounded by curly braces.
+	 *  Initialize the playlist with the given identifier.
 	 *  Activating a playlist causes any associated exterrnal elements to be built
 	 *  and maintained within the MSE.
-	 *  @param playlistID Identifier of the playlist to initialize and activate.
+	 *  @param playlistID Identifier of the playlist to initialize and activate. Normally,
+	 *                    this is a UUID value not enclosed in curly braces.
 	 *  @returns Resolves if the playlist initialization and activation has been
-	 *           sheduled. Note that this is not when the playlist becomes active.
+	 *           scheduled. Note that this is not when the playlist becomes active.
 	 */
 	initializePlaylist (playlistID: string): Promise<CommandResult>
 	/**
-	 *  Cleanup the playlist with the given identifier, normally using a UUID value.
-	 *
+	 *  Cleanup the playlist with the given identifier.
+	 *  Deactivating a playlist will stop the active maintenance of its referenced
+	 *  elements by the MSE.
+	 *  @param playlistID Identifier of the playlist to cleanup and deactivate. Normally,
+	 *                    this is a UUID value not enclosed in curly braces.
+	 *  @returns Resolves if the playlist cleanup and deactivation has been
+	 *           scheduled. Note that this is not when the playlist is no longer active.
 	 */
 	cleanupPlaylist (playlistID: string): Promise<CommandResult>
+	/**
+	 *  Clean up the elements associated with a show and its profile. This will
+	 *  also reset the associated renderers (VizEngines).
+	 *  @param showID Identifier for a show.  Normally,
+	 *                this is a UUID value not enclosed in curly braces.
+	 *  @returns Resolves if the show cleanup and deactivation has been
+	 *           scheduled. Note that this is not when the show is no longer active.
+	 */
 	cleanupShow (showID: string): Promise<CommandResult>
+	/**
+	 *  Initialize a single element. Not supported in the MSE used for development.
+	 *  @param ref Path of an element to initialize.
+	 *  @returns Rejects as not implemented.
+	 */
 	initialize (ref: string): Promise<CommandResult>
 
 	/**

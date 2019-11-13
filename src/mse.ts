@@ -1,6 +1,6 @@
 import { MSE, VRundown, VizEngine, VProfile, VShow, VPlaylist } from './v-connection'
 import { startPepTalk, PepTalkClient, PepTalkJS, PepResponse, LocationType } from './peptalk'
-import { /* createHTTPContext, HttpMSEClient, */ CommandResult, IHTTPRequestError } from './msehttp'
+import { CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 import { Rundown } from './rundown'
