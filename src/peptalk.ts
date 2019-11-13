@@ -326,11 +326,23 @@ export interface PepTalkClient extends EventEmitter {
 	emit (event: 'message', res: PepResponse): boolean
 }
 
+/** [[PepResponse]] with additional Javascript representation. */
 export interface PepResponseJS extends PepResponse {
+	/** Javascript representation of the response [[body]]. */
 	js: Object
 }
 
+/**
+ *  Additional methods for accessing VDOM tree elements are Javascript objects.
+ */
 export interface PepTalkJS {
+	/**
+	 *  Retrieve the value of an entry in the VDOM tree at the given path,
+	 *  converting the returned XML value into a flattenned Javascript object.
+	 *  @param path Path to the element in the VDOM tree.
+	 *  @param depth Optional maximum depth of nested elements to retrieve.
+	 *  @returns Resolves to an Javascript representation of the requested value.
+	 */
 	getJS (path: string, depth?: number): Promise<PepResponseJS>
 }
 
@@ -602,7 +614,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		} else if (!Array.isArray(capability)) {
 			capability = [ capability ]
 		}
-		let list: string = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '')
+		let list: string = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '').trim()
 		return this.send(`protocol ${list}`)
 	}
 
@@ -623,7 +635,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	}
 
 	uri (path: string, type: string, base?: string): Promise<PepResponse> {
-		return this.send(`uri ${this.esc(path)} ${type}${base ? ' ' + base : ''}`)
+		return this.send(`uri ${this.esc(path)} ${this.esc(type)}${base ? ' ' + this.esc(base) : ''}`)
 	}
 
 	setTimeout (t: number): number {
