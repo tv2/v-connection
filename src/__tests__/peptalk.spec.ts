@@ -39,7 +39,7 @@ describe('PepTalk happy', () => {
 				}
 				if (message.indexOf('get') >= 0) {
 					let bits = message.match(/\d+\sget\s\{\d+\}\/(\w+)\/with\/lines\/(\d)\s?(\d+)?.*/)
-					let depth = typeof bits[3] !== 'undefined' ? bits[3] : '0'
+					let depth = bits[3] ? bits[3] : '0'
 					let name = bits[1]
 					if (bits[2] === '2') {
 						let value = `<entry depth="${depth}" name="${name}">something</entry>`
