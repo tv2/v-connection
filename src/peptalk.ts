@@ -577,7 +577,6 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	}
 
 	get (path: string, depth?: number): Promise<PepResponse> {
-		// TODO consider some XML processing
 		return this.send(`get ${this.esc(path)}${depth !== undefined ? ' ' + depth : ''}`)
 	}
 
