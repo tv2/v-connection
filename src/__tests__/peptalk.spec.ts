@@ -360,7 +360,7 @@ describe('PepTalk connection lifecycle', () => {
 	})
 })
 
-describe('PepTalk unhappy', () => {
+/* describe('PepTalk unhappy', () => {
 	let server: websocket.Server
 	let pep: PepTalkClient & PepTalkJS
 
@@ -403,4 +403,4 @@ describe('PepTalk unhappy', () => {
 			})
 		})
 	})
-})
+}) */
