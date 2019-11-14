@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { MSE, VRundown, VizEngine, VProfile, VShow, VPlaylist } from './v-connection';
 import { PepTalkClient, PepTalkJS } from './peptalk';
-import { /* createHTTPContext, HttpMSEClient, */ CommandResult } from './msehttp';
+import { CommandResult } from './msehttp';
 import { EventEmitter } from 'events';
 export declare class MSERep extends EventEmitter implements MSE {
     readonly hostname: string;

@@ -25,7 +25,7 @@ class Rundown {
         }
         this.description = description;
         this.msehttp = msehttp_1.createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort);
-        this.buildChannelMap();
+        this.buildChannelMap().catch(err => console.error(`Warning: Failed to build channel map: ${err.message}`));
     }
     get pep() { return this.mse.getPep(); }
     async buildChannelMap(vcpid) {
@@ -46,7 +46,7 @@ class Rundown {
                 }
             }
         }
-        return vcpid ? typeof this.channelMap[vcpid] === 'string' : false;
+        return typeof vcpid === 'number' ? typeof this.channelMap[vcpid] === 'string' : false;
     }
     async listTemplates() {
         await this.mse.checkConnection();
@@ -243,6 +243,10 @@ ${entries}
             flatElement.name = elementName;
             return flatElement;
         }
+    }
+    async isActive() {
+        let playlist = await this.mse.getPlaylist(this.playlist);
+        return typeof playlist.active_profile.value !== 'undefined';
     }
 }
 exports.Rundown = Rundown;

@@ -258,10 +258,22 @@ export interface PepTalkClient extends EventEmitter {
     on(event: 'error', listener: (err: PepError) => void): this;
     emit(event: 'message', res: PepResponse): boolean;
 }
+/** [[PepResponse]] with additional Javascript representation. */
 export interface PepResponseJS extends PepResponse {
+    /** Javascript representation of the response [[body]]. */
     js: Object;
 }
+/**
+ *  Additional methods for accessing VDOM tree elements are Javascript objects.
+ */
 export interface PepTalkJS {
+    /**
+     *  Retrieve the value of an entry in the VDOM tree at the given path,
+     *  converting the returned XML value into a flattenned Javascript object.
+     *  @param path Path to the element in the VDOM tree.
+     *  @param depth Optional maximum depth of nested elements to retrieve.
+     *  @returns Resolves to an Javascript representation of the requested value.
+     */
     getJS(path: string, depth?: number): Promise<PepResponseJS>;
 }
 export declare function startPepTalk(hostname: string, port?: number): PepTalkClient & PepTalkJS;

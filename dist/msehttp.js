@@ -5,6 +5,7 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 const request = require("request-promise-native");
+exports.uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/;
 class HTTPClientError extends Error {
     constructor(response, path, body) {
         super(`HTTP client error for '${path}': ${response.statusCode} - ${response.statusMessage}.`);
@@ -66,7 +67,10 @@ class MSEHTTP {
                     method: 'POST',
                     uri: `${this.baseURL}/${path}`,
                     body,
-                    timeout: this.timeout
+                    timeout: this.timeout,
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
                 });
                 return { status: 200, response: response.toString() };
             }
@@ -75,7 +79,10 @@ class MSEHTTP {
                     method: 'POST',
                     uri: path,
                     body,
-                    timeout: this.timeout
+                    timeout: this.timeout,
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
                 });
                 return { status: 200, response: response.toString() };
             }
@@ -108,8 +115,9 @@ class MSEHTTP {
     cleanupShow(showID) {
         return this.command('cleanup', `/storage/shows/{${showID}}`);
     }
-    initialize(ref) {
-        return this.command('initialize', ref);
+    async initialize(_ref) {
+        throw new Error('Feature not supported by the MSE used for testing.');
+        // return this.command('initialize', ref)
     }
     async ping() {
         try {

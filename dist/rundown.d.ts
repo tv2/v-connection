@@ -8,7 +8,7 @@ export declare class Rundown implements VRundown {
     readonly profile: string;
     readonly description: string;
     private readonly mse;
-    private readonly pep;
+    private get pep();
     private msehttp;
     private channelMap;
     constructor(mseRep: MSERep, show: string, profile: string, playlist: string, description: string);
@@ -29,4 +29,5 @@ export declare class Rundown implements VRundown {
     out(elementName: string | number): Promise<CommandResult>;
     purge(): Promise<PepResponse>;
     getElement(elementName: string | number): Promise<VElement>;
+    isActive(): Promise<boolean>;
 }

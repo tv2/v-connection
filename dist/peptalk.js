@@ -116,7 +116,9 @@ class PepTalk extends events_1.EventEmitter {
         // console.log('SAF >>>', split)
         if (this.leftovers) {
             this.leftovers.previous = this.leftovers.previous + split[0];
-            this.leftovers.remaining -= split[0] ? Buffer.byteLength(split[0], 'utf8') : 0;
+            if (Array.isArray(split) && split.length > 0) {
+                this.leftovers.remaining -= Buffer.byteLength(split[0], 'utf8');
+            }
             if (this.leftovers.remaining <= 0) {
                 split[0] = this.leftovers.previous;
                 this.leftovers = null;
@@ -190,7 +192,7 @@ class PepTalk extends events_1.EventEmitter {
         let errorIndex = m.indexOf('error');
         let error;
         if (errorIndex < 0 || errorIndex > 10) {
-            error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent);
+            error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent ? pending.sent : 'sent is undefined');
         }
         else {
             let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ') + errorIndex + 6;
@@ -305,7 +307,6 @@ class PepTalk extends events_1.EventEmitter {
         return this.send(`ensure-path ${this.esc(path)}`);
     }
     get(path, depth) {
-        // TODO consider some XML processing
         return this.send(`get ${this.esc(path)}${depth !== undefined ? ' ' + depth : ''}`);
     }
     insert(path, xml, location, sibling) {
@@ -331,7 +332,7 @@ class PepTalk extends events_1.EventEmitter {
         else if (!Array.isArray(capability)) {
             capability = [capability];
         }
-        let list = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '');
+        let list = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '').trim();
         return this.send(`protocol ${list}`);
     }
     reintialize() {
@@ -349,7 +350,7 @@ class PepTalk extends events_1.EventEmitter {
         }
     }
     uri(path, type, base) {
-        return this.send(`uri ${this.esc(path)} ${type}${base ? ' ' + base : ''}`);
+        return this.send(`uri ${this.esc(path)} ${this.esc(type)}${base ? ' ' + this.esc(base) : ''}`);
     }
     setTimeout(t) {
         if (t > 0)
