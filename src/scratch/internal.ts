@@ -41,7 +41,7 @@ async function run () {
 	console.log(`Taking element ${elementName} out.`)
 	await rundown.out(elementName)
 	if (args['delete']) {
-		rundown.deleteElement(elementName)
+		await rundown.deleteElement(elementName)
 		await mse.deleteRundown(rundown)
 	}
 	await mse.close()

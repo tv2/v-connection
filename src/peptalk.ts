@@ -326,11 +326,23 @@ export interface PepTalkClient extends EventEmitter {
 	emit (event: 'message', res: PepResponse): boolean
 }
 
+/** [[PepResponse]] with additional Javascript representation. */
 export interface PepResponseJS extends PepResponse {
+	/** Javascript representation of the response [[body]]. */
 	js: Object
 }
 
+/**
+ *  Additional methods for accessing VDOM tree elements are Javascript objects.
+ */
 export interface PepTalkJS {
+	/**
+	 *  Retrieve the value of an entry in the VDOM tree at the given path,
+	 *  converting the returned XML value into a flattenned Javascript object.
+	 *  @param path Path to the element in the VDOM tree.
+	 *  @param depth Optional maximum depth of nested elements to retrieve.
+	 *  @returns Resolves to an Javascript representation of the requested value.
+	 */
 	getJS (path: string, depth?: number): Promise<PepResponseJS>
 }
 
@@ -382,7 +394,9 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		// console.log('SAF >>>', split)
 		if (this.leftovers) {
 			this.leftovers.previous = this.leftovers.previous + split[0]
-			this.leftovers.remaining -= split[0] ? Buffer.byteLength(split[0], 'utf8') : 0
+			if (Array.isArray(split) && split.length > 0) {
+				this.leftovers.remaining -= Buffer.byteLength(split[0], 'utf8')
+			}
 			if (this.leftovers.remaining <= 0) {
 				split[0] = this.leftovers.previous
 				this.leftovers = null
@@ -449,7 +463,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		let errorIndex = m.indexOf('error')
 		let error: PepError
 		if (errorIndex < 0 || errorIndex > 10) {
-			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent)
+			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent ? pending.sent : 'sent is undefined')
 		} else {
 			let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ') + errorIndex + 6
 			endOfErrorName = endOfErrorName > 0 ? endOfErrorName : m.length
@@ -575,7 +589,6 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	}
 
 	get (path: string, depth?: number): Promise<PepResponse> {
-		// TODO consider some XML processing
 		return this.send(`get ${this.esc(path)}${depth !== undefined ? ' ' + depth : ''}`)
 	}
 
@@ -601,7 +614,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		} else if (!Array.isArray(capability)) {
 			capability = [ capability ]
 		}
-		let list: string = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '')
+		let list: string = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '').trim()
 		return this.send(`protocol ${list}`)
 	}
 
@@ -622,7 +635,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	}
 
 	uri (path: string, type: string, base?: string): Promise<PepResponse> {
-		return this.send(`uri ${this.esc(path)} ${type}${base ? ' ' + base : ''}`)
+		return this.send(`uri ${this.esc(path)} ${this.esc(type)}${base ? ' ' + this.esc(base) : ''}`)
 	}
 
 	setTimeout (t: number): number {

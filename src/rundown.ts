@@ -27,7 +27,7 @@ export class Rundown implements VRundown {
 		if (this.playlist.endsWith('}')) { this.playlist = this.playlist.slice(0, -1) }
 		this.description = description
 		this.msehttp = createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort)
-		this.buildChannelMap()
+		this.buildChannelMap().catch(err => console.error(`Warning: Failed to build channel map: ${err.message}`))
 	}
 
 	private async buildChannelMap (vcpid?: number): Promise<boolean> {
@@ -45,7 +45,7 @@ export class Rundown implements VRundown {
 				}
 			}
 		}
-		return vcpid ? typeof this.channelMap[vcpid] === 'string' : false
+		return typeof vcpid === 'number' ? typeof this.channelMap[vcpid] === 'string' : false
 	}
 
 	async listTemplates (): Promise<string[]> {
@@ -251,5 +251,10 @@ ${entries}
 			flatElement.name = elementName
 			return flatElement as InternalElement
 		}
+	}
+
+	async isActive (): Promise<boolean> {
+		let playlist = await this.mse.getPlaylist(this.playlist)
+		return typeof playlist.active_profile.value !== 'undefined'
 	}
 }

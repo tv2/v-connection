@@ -218,6 +218,11 @@ export interface VRundown {
 	 *  @result Resolves on successful rundown purge.
 	 */
 	purge (): Promise<PepResponse>
+	/**
+	 *  Is the associated MSE playlist currently active?
+	 *  @returns Resolves with the activation status of the associated MSE playlist.
+	 */
+	isActive (): Promise<Boolean>
 }
 
 /**
