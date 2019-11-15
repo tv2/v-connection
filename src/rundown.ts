@@ -5,6 +5,11 @@ import { MSERep } from './mse'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 import * as uuid from 'uuid'
 
+interface ExternalElementInfo {
+	channelName: string | null
+	refName: string
+}
+
 export class Rundown implements VRundown {
 	readonly show: string
 	readonly playlist: string
@@ -14,7 +19,7 @@ export class Rundown implements VRundown {
 	private readonly mse: MSERep
 	private get pep () { return this.mse.getPep() }
 	private msehttp: HttpMSEClient
-	private channelMap: { [vcpid: number]: string | null } = {}
+	private channelMap: { [vcpid: number]: ExternalElementInfo } = {}
 
 	constructor (mseRep: MSERep, show: string, profile: string, playlist: string, description: string) {
 		this.mse = mseRep
@@ -39,13 +44,23 @@ export class Rundown implements VRundown {
 			if (typeof e === 'number') {
 				let element = await this.getElement(e)
 				if (element.channel) {
-					this.channelMap[e] = element.channel
+					this.channelMap[e] = {
+						channelName: element.channel,
+						refName: typeof element.name === 'string' ? element.name : 'ref'
+					}
 				} else {
-					this.channelMap[e] = null
+					this.channelMap[e] = {
+						channelName: null,
+						refName: typeof element.name === 'string' ? element.name : 'ref'
+					}
 				}
 			}
 		}
 		return typeof vcpid === 'number' ? typeof this.channelMap[vcpid] === 'string' : false
+	}
+
+	private ref (id: number): string {
+		return this.channelMap[id].refName ? this.channelMap[id].refName.replace('#', '%23') : 'ref'
 	}
 
 	async listTemplates (): Promise<string[]> {
@@ -109,10 +124,13 @@ ${entries}
 			} as InternalElement
 		} else {
 			let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : ''
-			this.channelMap[nameOrID] = elementNameOrChannel ? elementNameOrChannel : null
-			await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
+			let { body: path } = await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
 `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`,
 				LocationType.Last)
+			this.channelMap[nameOrID] = {
+				channelName: elementNameOrChannel ? elementNameOrChannel : null,
+				refName: path ? path.slice(path.lastIndexOf('/') + 1) : 'ref'
+			}
 			return {
 				vcpid: nameOrID.toString(),
 				channel: elementNameOrChannel
@@ -157,7 +175,11 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.pep.delete(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			throw new Error('Method not implemented.')
+			if (this.buildChannelMap(elementName)) {
+				return this.pep.delete(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			} else {
+				throw new Error('Not supposed to get here')
+			}
 		}
 	}
 
@@ -165,9 +187,6 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.cue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			if (this.buildChannelMap(elementName)) {
-				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
-			}
 			return this.msehttp.cue(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
@@ -176,9 +195,6 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			if (this.buildChannelMap(elementName)) {
-				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
-			}
 			return this.msehttp.take(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
@@ -187,9 +203,6 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.continue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			if (this.buildChannelMap(elementName)) {
-				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
-			}
 			return this.msehttp.continue(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
@@ -198,9 +211,6 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.continueReverse(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			if (this.buildChannelMap(elementName)) {
-				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
-			}
 			return this.msehttp.continueReverse(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
@@ -209,9 +219,6 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			if (this.buildChannelMap(elementName)) {
-				await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName] as string)
-			}
 			return this.msehttp.out(`/external/pilotdb/elements/${elementName}`)
 		}
 	}
