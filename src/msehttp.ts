@@ -223,7 +223,7 @@ class MSEHTTP implements HttpMSEClient {
 	async command (path: string | URL, body: string): Promise<CommandResult> {
 		try {
 			if (typeof path === 'string') {
-				let response = await request.post({
+				let response = await request({
 					method: 'POST',
 					uri: `${this.baseURL}/${path}`,
 					body,
@@ -234,9 +234,9 @@ class MSEHTTP implements HttpMSEClient {
 				})
 				return { status: 200, response: response.toString() } as CommandResult
 			} else {
-				let response = await request.post({
+				let response = await request({
 					method: 'POST',
-					uri: path,
+					url: path.toString(),
 					body,
 				 	timeout: this.timeout,
 					headers: {
