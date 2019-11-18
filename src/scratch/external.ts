@@ -12,7 +12,7 @@ let args = yargs
 	.number('httpport')
 	.string('channel')
 	.default('host', 'localhost')
-	.default('port', 8594)
+	.default('port', 8595)
 	.default('profile', 'SOFIE')
 	.default('showID', '66E45216-9476-4BDC-9556-C3DB487ED9DF')
 	.default('delete', true)

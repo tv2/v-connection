@@ -12,7 +12,7 @@ let args = yargs
 	.number('httpport')
 	.string('channel')
 	.default('host', 'localhost')
-	.default('port', 8594)
+	.default('port', 8595)
 	.default('profile', 'SOFIE')
 	.default('showID', '66E45216-9476-4BDC-9556-C3DB487ED9DF')
 	.default('delete', true)
@@ -38,7 +38,7 @@ async function run () {
 	await Promise.all(elementRefs.slice(0, 2).map(er =>
 	 	rundown.createElement(er, args.channel)))
 	// await wait(1000)
-	await rundown.activate(true)
+	await rundown.activate()
 
 	await wait(100)
 
@@ -47,9 +47,9 @@ async function run () {
 		console.log('Starting to process element', elementRefs[i])
 		if (i >= 2) {
 			console.log(await rundown.createElement(elementRefs[i], args.channel))
-			// console.log(await rundown.initialize(elementRefs[i]))
-			await rundown.activate()
 		}
+		console.log(await rundown.initialize(elementRefs[i]))
+		// await rundown.activate()
 		for (let x = 0 ; x < 5 ; x++) {
 			console.log(x)
 			await wait(1000)
