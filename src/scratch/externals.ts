@@ -43,26 +43,26 @@ async function run () {
 	await wait(100)
 
 	//while (true) {
-		for (let i = 0 ; i < elementRefs.length ; i++) {
-			console.log('Starting to process element', elementRefs[i])
-			if (i >= 2) {
-				console.log(await rundown.createElement(elementRefs[i], args.channel))
-				console.log(await rundown.initialize(elementRefs[i]))
-			}
-			for (let x = 0 ; x < 5 ; x++) {
-				console.log(x)
-				await wait(1000)
-			}
-			console.log('take', elementRefs[i])
-			console.log(await rundown.getElement(elementRefs[i]))
-			await rundown.take(elementRefs[i])
-			for (let x = 0 ; x < 5 ; x++) {
-				console.log(x)
-				await wait(1000)
-			}
-			console.log('out', elementRefs[i])
-			await rundown.out(elementRefs[i])
+	for (let i = 0 ; i < elementRefs.length ; i++) {
+		console.log('Starting to process element', elementRefs[i])
+		if (i >= 2) {
+			console.log(await rundown.createElement(elementRefs[i], args.channel))
+			console.log(await rundown.initialize(elementRefs[i]))
 		}
+		for (let x = 0 ; x < 5 ; x++) {
+			console.log(x)
+			await wait(1000)
+		}
+		console.log('take', elementRefs[i])
+		console.log(await rundown.getElement(elementRefs[i]))
+		await rundown.take(elementRefs[i])
+		for (let x = 0 ; x < 5 ; x++) {
+			console.log(x)
+			await wait(1000)
+		}
+		console.log('out', elementRefs[i])
+		await rundown.out(elementRefs[i])
+	}
 	// }
 	if (args['delete']) {
 		// await rundown.deleteElement(elementRef)
