@@ -42,7 +42,7 @@ async function run () {
 
 	await wait(100)
 
-	while (true) {
+	//while (true) {
 		for (let i = 0 ; i < elementRefs.length ; i++) {
 			console.log('Starting to process element', elementRefs[i])
 			if (i >= 2) {
@@ -63,7 +63,7 @@ async function run () {
 			console.log('out', elementRefs[i])
 			await rundown.out(elementRefs[i])
 		}
-	}
+	// }
 	if (args['delete']) {
 		// await rundown.deleteElement(elementRef)
 		await rundown.deactivate()
