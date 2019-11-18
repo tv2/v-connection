@@ -167,9 +167,12 @@ export interface HttpMSEClient {
 	 */
 	cleanupShow (showID: string): Promise<CommandResult>
 	/**
-	 *  Initialize a single element. Not supported in the MSE used for development.
+	 *  Initialize a single element. Only works for external element references
+	 *  in playlists, causing any resources required by the element to be loaded
+	 *  onto the appropriate VizEngine.
 	 *  @param ref Path of an element to initialize.
-	 *  @returns Rejects as not implemented.
+	 *  @returns Resolves when the request to make the element has been made and
+	 *           the element can be initialized.
 	 */
 	initialize (ref: string): Promise<CommandResult>
 
@@ -280,9 +283,8 @@ class MSEHTTP implements HttpMSEClient {
 		return this.command('cleanup', `/storage/shows/{${showID}}`)
 	}
 
-	async initialize (_ref: string): Promise<CommandResult> { // initialize a single element - not supported by MSE
-		throw new Error('Feature not supported by the MSE used for testing.')
-		// return this.command('initialize', ref)
+	async initialize (ref: string): Promise<CommandResult> { // initialize a single element
+		return this.command('initialize', ref)
 	}
 
 	async ping (): Promise<CommandResult> {

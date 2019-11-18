@@ -157,8 +157,8 @@ ${entries}
 
 	async activate (): Promise<CommandResult> {
 		let playlist = await this.mse.getPlaylist(this.playlist)
-		if (playlist.active_profile.value) {
-			console.log(`Warning: Re-activating a already active playlist '${this.playlist}'.`)
+		if (!playlist.active_profile.value) {
+			await this.msehttp.initializePlaylist(this.playlist)
 		}
 		return this.msehttp.initializePlaylist(this.playlist)
 	}
@@ -259,6 +259,17 @@ ${entries}
 		}
 	}
 
+	async initialize (elementName: number): Promise<CommandResult> {
+		if (await this.buildChannelMap(elementName)) {
+			return this.msehttp.initialize(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+		} else {
+			throw new HTTPRequestError(
+				`Cannot initialize external element as ID '${elementName}' is not known in this rundown.`,
+				this.msehttp.baseURL,
+				`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+		}
+	}
+
 	async purge (): Promise<PepResponse> {
 		let playlist = await this.mse.getPlaylist(this.playlist)
 		if (playlist.active_profile.value) {
@@ -286,7 +297,7 @@ ${entries}
 			} else {
 				element.vcpid = elementName.toString()
 				element.channel = element.viz_program
-				// TODO add elemenet status
+				element.name = this.ref(elementName)
 				return element as ExternalElement
 			}
 		} else {
