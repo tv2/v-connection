@@ -53,6 +53,26 @@ Use factory `createMSE` to create a connection to a running MSE, e.g.:
 
 Note that `restPort` and `wsPort` are optional. If omitted, the default port numbers will be used.
 
+## Usage
+
+This version of the library assumes the following setup are has been done within an MSE in advance:
+
+* _handlers_ describing connections to VizEngines have been created.
+* _handlers_ for external elements, e.g. pilot database, have been created (typically named `namespace_...`).
+* a _profile_ has been created to specify the relationship between channel names and engines and to represent the state of a running show.
+* one or more _shows_ that contain scenes and master templates that can be used be this library to build internal element instances.
+
+Given that setup, the steps to use the library are:
+
+1. Create an MSE instance (see above) to manage all communications with the MSE server.
+2. Discover the details of available _shows_, _Viz Engines_ and _profiles_.
+3. Use the MSE to create a _rundown_, a v-connection concept that represents the linking of its own MSE playlist, a show and a profile.
+4. Add all the graphical elements to be used in the rundown.
+5. Activate the rundown and initialize heavy graphical elements to pre-load them.
+6. Query elements to check they are loaded and send commands to take graphics in and out, or continue through their animation states.
+7. During an active rundown, create new elements and initialize each one as required. Take care not to affect engine output. Repeat steps 6 & 7 as required.
+8. Deactivate a rundown and then purge all associated elements and clean up the VizEngine renderers.
+
 ## Disclaimer
 
 This library is in no way associated with, or endorsed by, [Vizrt](https://www.vizrt.com/).
