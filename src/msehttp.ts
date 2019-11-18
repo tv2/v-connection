@@ -24,7 +24,7 @@ export interface CommandResult {
 /** Client error - a `400` code - resulting from an HTTP command. Commnd promise is rejected. */
 export interface IHTTPClientError extends Error, CommandResult { }
 
-class HTTPClientError extends Error implements IHTTPClientError {
+export class HTTPClientError extends Error implements IHTTPClientError {
 	readonly path: string
 	readonly body?: string
 	readonly status: number
@@ -41,7 +41,7 @@ class HTTPClientError extends Error implements IHTTPClientError {
 /** Server error - a `500` code - resulting from an HTTP command. Commnd promise is rejected. */
 export interface IHTTPServerError extends Error, CommandResult { }
 
-class HTTPServerError extends Error implements IHTTPServerError {
+export class HTTPServerError extends Error implements IHTTPServerError {
 	readonly path: string
 	readonly body?: string
 	readonly status: number
@@ -57,7 +57,7 @@ class HTTPServerError extends Error implements IHTTPServerError {
 
 export interface IHTTPRequestError extends Error, CommandResult { }
 
-class HTTPRequestError extends Error implements IHTTPRequestError {
+export class HTTPRequestError extends Error implements IHTTPRequestError {
 	readonly path: string
 	readonly body?: string
 	readonly status: number
@@ -85,6 +85,7 @@ export interface HttpMSEClient {
 	readonly port: number
 	readonly timeout: number
 	readonly profile: string
+	readonly baseURL: string
 	/**
 	 *  Send a command to the MSE over the HTTP interface. The MIME type is `text/plain`.
 	 *  @param path The path to send the message to.
@@ -190,7 +191,7 @@ class MSEHTTP implements HttpMSEClient {
 	readonly port: number
 	timeout: number = 3000
 	readonly profile: string
-	private baseURL: string
+	readonly baseURL: string
 	constructor (profile: string, host: string, port?: number) {
 		this.port = port ? port : 8580
 		this.host = host

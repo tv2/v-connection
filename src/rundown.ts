@@ -1,5 +1,5 @@
 import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from './v-connection'
-import { CommandResult, createHTTPContext, HttpMSEClient } from './msehttp'
+import { CommandResult, createHTTPContext, HttpMSEClient, HTTPRequestError } from './msehttp'
 import { InexistentError, LocationType, PepResponse } from './peptalk'
 import { MSERep } from './mse'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
@@ -36,8 +36,8 @@ export class Rundown implements VRundown {
 	}
 
 	private async buildChannelMap (vcpid?: number): Promise<boolean> {
-		if (vcpid) {
-			if (typeof this.channelMap[vcpid] === 'string') { return true }
+		if (typeof vcpid === 'number') {
+			if (this.channelMap.hasOwnProperty(vcpid)) { return true }
 		}
 		let elements = vcpid ? [ vcpid ] : await this.listElements()
 		for (let e of elements) {
@@ -56,7 +56,7 @@ export class Rundown implements VRundown {
 				}
 			}
 		}
-		return typeof vcpid === 'number' ? typeof this.channelMap[vcpid] === 'string' : false
+		return typeof vcpid === 'number' ? this.channelMap.hasOwnProperty(vcpid) : false
 	}
 
 	private ref (id: number): string {
@@ -175,10 +175,10 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.pep.delete(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			if (this.buildChannelMap(elementName)) {
+			if (await this.buildChannelMap(elementName)) {
 				return this.pep.delete(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
 			} else {
-				throw new Error('Not supposed to get here')
+				throw new InexistentError(-1, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
 			}
 		}
 	}
@@ -187,7 +187,14 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.cue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			return this.msehttp.cue(`/external/pilotdb/elements/${elementName}`)
+			if (await this.buildChannelMap(elementName)) {
+				return this.msehttp.cue(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			} else {
+				throw new HTTPRequestError(
+					`Cannot cue external element as ID '${elementName}' is not known in this rundown.`,
+					this.msehttp.baseURL,
+					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			}
 		}
 	}
 
@@ -195,7 +202,14 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			return this.msehttp.take(`/external/pilotdb/elements/${elementName}`)
+			if (await this.buildChannelMap(elementName)) {
+				return this.msehttp.take(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			} else {
+				throw new HTTPRequestError(
+					`Cannot take external element as ID '${elementName}' is not known in this rundown.`,
+					this.msehttp.baseURL,
+					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			}
 		}
 	}
 
@@ -203,7 +217,14 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.continue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			return this.msehttp.continue(`/external/pilotdb/elements/${elementName}`)
+			if (await this.buildChannelMap(elementName)) {
+				return this.msehttp.continue(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			} else {
+				throw new HTTPRequestError(
+					`Cannot continue external element as ID '${elementName}' is not known in this rundown.`,
+					this.msehttp.baseURL,
+					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			}
 		}
 	}
 
@@ -211,7 +232,15 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.continueReverse(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			return this.msehttp.continueReverse(`/external/pilotdb/elements/${elementName}`)
+			if (await this.buildChannelMap(elementName)) {
+				return this.msehttp.continueReverse(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			} else {
+				throw new HTTPRequestError(
+					`Cannot continue reverse external element as ID '${elementName}' is not known in this rundown.`,
+					this.msehttp.baseURL,
+					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			}
+
 		}
 	}
 
@@ -219,7 +248,14 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			return this.msehttp.out(`/external/pilotdb/elements/${elementName}`)
+			if (await this.buildChannelMap(elementName)) {
+				return this.msehttp.out(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			} else {
+				throw new HTTPRequestError(
+					`Cannot take out external element as ID '${elementName}' is not known in this rundown.`,
+					this.msehttp.baseURL,
+					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`)
+			}
 		}
 	}
 
@@ -250,6 +286,7 @@ ${entries}
 			} else {
 				element.vcpid = elementName.toString()
 				element.channel = element.viz_program
+				// TODO add elemenet status
 				return element as ExternalElement
 			}
 		} else {
