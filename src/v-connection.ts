@@ -226,9 +226,11 @@ export interface VRundown {
 	/**
 	 *  Activate a rundown, causing all initialisations to be run prior to the
 	 *  execution of a rundown.
+	 *  @param load Trigger the activation twice, which causes all external
+	 *              graphical elements to start loading.
 	 *  @returns Resolves on successful rundown activation.
 	 */
-	activate (): Promise<CommandResult>
+	activate (load?: boolean): Promise<CommandResult>
 	/**
 	 *  Deactivate a rundown, cleaning up any transient elements associated with
 	 *  the rundown from the VDOM tree. Those XML elements required for post-rundown

@@ -11,14 +11,14 @@ let args = yargs
 	.string('httphost')
 	.number('httpport')
 	.string('channel')
-	.default('host', 'mse_ws.ngrok.io')
-	.default('port', 80)
+	.default('host', 'localhost')
+	.default('port', 8594)
 	.default('profile', 'SOFIE')
 	.default('showID', '66E45216-9476-4BDC-9556-C3DB487ED9DF')
 	.default('delete', true)
 	.default('timing', 10000)
-	.default('httphost', 'mse_http.ngrok.io')
-	.default('httpport', 80)
+	.default('httphost', '')
+	.default('httpport', 8580)
 	.default('channel', 'FULL1')
 	.argv
 
@@ -38,16 +38,17 @@ async function run () {
 	await Promise.all(elementRefs.slice(0, 2).map(er =>
 	 	rundown.createElement(er, args.channel)))
 	// await wait(1000)
-	await rundown.activate()
+	await rundown.activate(true)
 
 	await wait(100)
 
-	//while (true) {
+	// while (true) {
 	for (let i = 0 ; i < elementRefs.length ; i++) {
 		console.log('Starting to process element', elementRefs[i])
 		if (i >= 2) {
 			console.log(await rundown.createElement(elementRefs[i], args.channel))
-			console.log(await rundown.initialize(elementRefs[i]))
+			// console.log(await rundown.initialize(elementRefs[i]))
+			await rundown.activate()
 		}
 		for (let x = 0 ; x < 5 ; x++) {
 			console.log(x)

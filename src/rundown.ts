@@ -155,9 +155,10 @@ ${entries}
 		return elementNames.concat(elementsRefs)
 	}
 
-	async activate (): Promise<CommandResult> {
-		let playlist = await this.mse.getPlaylist(this.playlist)
-		if (!playlist.active_profile.value) {
+	async activate (load?: boolean): Promise<CommandResult> {
+		// let playlist = await this.mse.getPlaylist(this.playlist)
+		// if (!playlist.active_profile.value) {
+		if (load) {
 			await this.msehttp.initializePlaylist(this.playlist)
 		}
 		return this.msehttp.initializePlaylist(this.playlist)
