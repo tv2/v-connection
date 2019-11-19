@@ -24,7 +24,7 @@ export interface CommandResult {
 /** Client error - a `400` code - resulting from an HTTP command. Commnd promise is rejected. */
 export interface IHTTPClientError extends Error, CommandResult { }
 
-class HTTPClientError extends Error implements IHTTPClientError {
+export class HTTPClientError extends Error implements IHTTPClientError {
 	readonly path: string
 	readonly body?: string
 	readonly status: number
@@ -41,7 +41,7 @@ class HTTPClientError extends Error implements IHTTPClientError {
 /** Server error - a `500` code - resulting from an HTTP command. Commnd promise is rejected. */
 export interface IHTTPServerError extends Error, CommandResult { }
 
-class HTTPServerError extends Error implements IHTTPServerError {
+export class HTTPServerError extends Error implements IHTTPServerError {
 	readonly path: string
 	readonly body?: string
 	readonly status: number
@@ -57,7 +57,7 @@ class HTTPServerError extends Error implements IHTTPServerError {
 
 export interface IHTTPRequestError extends Error, CommandResult { }
 
-class HTTPRequestError extends Error implements IHTTPRequestError {
+export class HTTPRequestError extends Error implements IHTTPRequestError {
 	readonly path: string
 	readonly body?: string
 	readonly status: number
@@ -85,6 +85,7 @@ export interface HttpMSEClient {
 	readonly port: number
 	readonly timeout: number
 	readonly profile: string
+	readonly baseURL: string
 	/**
 	 *  Send a command to the MSE over the HTTP interface. The MIME type is `text/plain`.
 	 *  @param path The path to send the message to.
@@ -166,9 +167,12 @@ export interface HttpMSEClient {
 	 */
 	cleanupShow (showID: string): Promise<CommandResult>
 	/**
-	 *  Initialize a single element. Not supported in the MSE used for development.
+	 *  Initialize a single element. Only works for external element references
+	 *  in playlists, causing any resources required by the element to be loaded
+	 *  onto the appropriate VizEngine.
 	 *  @param ref Path of an element to initialize.
-	 *  @returns Rejects as not implemented.
+	 *  @returns Resolves when the request to make the element has been made and
+	 *           the element can be initialized.
 	 */
 	initialize (ref: string): Promise<CommandResult>
 
@@ -190,7 +194,7 @@ class MSEHTTP implements HttpMSEClient {
 	readonly port: number
 	timeout: number = 3000
 	readonly profile: string
-	private baseURL: string
+	readonly baseURL: string
 	constructor (profile: string, host: string, port?: number) {
 		this.port = port ? port : 8580
 		this.host = host
@@ -219,7 +223,7 @@ class MSEHTTP implements HttpMSEClient {
 	async command (path: string | URL, body: string): Promise<CommandResult> {
 		try {
 			if (typeof path === 'string') {
-				let response = await request.post({
+				let response = await request({
 					method: 'POST',
 					uri: `${this.baseURL}/${path}`,
 					body,
@@ -230,9 +234,9 @@ class MSEHTTP implements HttpMSEClient {
 				})
 				return { status: 200, response: response.toString() } as CommandResult
 			} else {
-				let response = await request.post({
+				let response = await request({
 					method: 'POST',
-					uri: path,
+					url: path.toString(),
 					body,
 				 	timeout: this.timeout,
 					headers: {
@@ -279,9 +283,8 @@ class MSEHTTP implements HttpMSEClient {
 		return this.command('cleanup', `/storage/shows/{${showID}}`)
 	}
 
-	async initialize (_ref: string): Promise<CommandResult> { // initialize a single element - not supported by MSE
-		throw new Error('Feature not supported by the MSE used for testing.')
-		// return this.command('initialize', ref)
+	async initialize (ref: string): Promise<CommandResult> { // initialize a single element
+		return this.command('initialize', ref)
 	}
 
 	async ping (): Promise<CommandResult> {

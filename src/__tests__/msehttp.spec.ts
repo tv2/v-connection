@@ -234,7 +234,10 @@ describe('MSE HTTP library when happy', () => {
 	})
 
 	test('Unsuppoted element initialize', async () => {
-		await expect(msehttp.initialize('/this/should/break')).rejects.toThrow(/Feature not supported/)
+		await expect(msehttp.initialize('/this/now/works')).resolves.toMatchObject({
+			response: 'Scheduled initialization and activation of /this/now/works.',
+			status: 200
+		})
 	})
 
 	afterAll(async () => {

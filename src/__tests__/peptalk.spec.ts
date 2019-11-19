@@ -1,4 +1,5 @@
-import { startPepTalk, PepTalkClient, PepTalkJS, LocationType, Capability } from '../peptalk'
+import { startPepTalk, PepTalkClient, PepTalkJS, LocationType, Capability,
+	UnspecifiedError, InexistentError, InvalidError, SyntaxError, NotAllowedError } from '../peptalk'
 import * as websocket from 'ws'
 
 const testPort = 8418
@@ -39,7 +40,7 @@ describe('PepTalk happy', () => {
 				}
 				if (message.indexOf('get') >= 0) {
 					let bits = message.match(/\d+\sget\s\{\d+\}\/(\w+)\/with\/lines\/(\d)\s?(\d+)?.*/)
-					let depth = bits[3] ? bits[3] : '0'
+					let depth = typeof (bits[3] as string | undefined) === 'string' ? bits[3] : '0'
 					let name = bits[1]
 					if (bits[2] === '2') {
 						let value = `<entry depth="${depth}" name="${name}">something</entry>`
@@ -97,7 +98,7 @@ describe('PepTalk happy', () => {
 				if (message.indexOf('uri ') >= 0) {
 					return ws.send(`${index} ok http://localhost:8594/element_collection/storage/my/home/in/pep`)
 				}
-				return ws.send(`${index} error unexpected`)
+				return ws.send(`${index} error unspecified`)
 			})
 		})
 
@@ -106,8 +107,7 @@ describe('PepTalk happy', () => {
 	})
 
 	test('Ping', async () => {
-		let result = await pep.ping()
-		expect(result).toMatchObject({
+		await expect(pep.ping()).resolves.toMatchObject({
 			// id: 2,
 			sent: 'get {1}/ 0',
 			status: 'ok',
@@ -213,13 +213,34 @@ describe('PepTalk happy', () => {
 			})
 	})
 
-	test('Capability', async () => {
+	test('Two capabilities', async () => {
 		await expect(pep.protocol(
 				[Capability.noevents, Capability.uri])).resolves.toMatchObject(
 			{
 				body: 'protocol noevents uri peptalk treetalk',
 				// id: 13,
 				sent: 'protocol noevents uri',
+				status: 'ok'
+			})
+	})
+
+	test('One Capability', async () => {
+		await expect(pep.protocol(
+				Capability.noevents)).resolves.toMatchObject(
+			{
+				body: 'protocol noevents uri peptalk treetalk',
+				// id: 13,
+				sent: 'protocol noevents',
+				status: 'ok'
+			})
+	})
+
+	test('No Capability', async () => {
+		await expect(pep.protocol()).resolves.toMatchObject(
+			{
+				body: 'protocol noevents uri peptalk treetalk',
+				// id: 13,
+				sent: 'protocol',
 				status: 'ok'
 			})
 	})
@@ -265,7 +286,7 @@ describe('PepTalk happy', () => {
 	})
 
 	test('Uri', async () => {
-		await (expect(pep.uri('/my/home/in/pep', 'element_collection'))).resolves.toMatchObject({
+		await expect(pep.uri('/my/home/in/pep', 'element_collection')).resolves.toMatchObject({
 			body: 'http://localhost:8594/element_collection/storage/my/home/in/pep',
 			// id: 18,
 			sent: 'uri {15}/my/home/in/pep {18}element_collection',
@@ -273,8 +294,264 @@ describe('PepTalk happy', () => {
 		})
 	})
 
+	test('GetJS', async () => {
+		await expect(pep.getJS('/name/with/lines/1', 42)).resolves.toMatchObject({
+			body: '<entry depth="42" name="name"/>',
+			// id: 5,
+			sent: 'get {18}/name/with/lines/1 42',
+			status: 'ok',
+			js: { entry: {
+				$: {
+					depth: '42',
+					name: 'name'
+				}
+			}}
+		})
+	})
+
 	afterAll(async () => {
-		await pep.close()
+		await pep.close().catch(err => console.error('Warning: PepTalk connection already closed:', err.message))
+		return new Promise((resolve, reject) => {
+			server.close((err) => {
+				if (err) return reject(err)
+				resolve()
+			})
+		})
+	})
+})
+
+describe('PepTalk connection lifecycle', () => {
+	let server: websocket.Server
+	let pep: PepTalkClient & PepTalkJS
+
+	beforeAll(async () => {
+		server = new websocket.Server({ port: testPort })
+		server.on('connection', ws => {
+			ws.on('message', (message: string) => {
+				// console.log('Received', message)
+				let index = extractIndex(message)
+				if (message.indexOf('protocol peptalk\r\n') >= 0) {
+					return ws.send(`${index} protocol peptalk uri`)
+				}
+				if (message.indexOf('close') >= 0) {
+					ws.send(`${index} ok bye`)
+					return ws.close()
+				}
+				if (message.indexOf('get {1}/ 0') >= 0) {
+					return ws.send(`${index} ok <entry name="pongy"/>\r\n`)
+				}
+
+				return ws.send(`${index} error unspecified`)
+			})
+		})
+
+		pep = startPepTalk('localhost', testPort)
+		// await pep.connect()
+	})
+
+	test('Ping not connected', async () => {
+		await expect(pep.ping()).rejects.toThrow('Not connected')
+	})
+
+	test('Connect and disconnect', async () => {
+		await expect(pep.connect()).resolves.toMatchObject({
+			body: 'protocol peptalk uri',
+			sent: 'protocol peptalk',
+			status: 'ok'
+		})
+		await expect(pep.close()).resolves.toMatchObject({
+			body: 'bye',
+			sent: 'close',
+			status: 'ok'
+		})
+		await expect(pep.ping()).rejects.toThrow('Not connected')
+	})
+
+	test('Connect twice', async () => {
+		await expect(pep.connect()).resolves.toMatchObject({
+			body: 'protocol peptalk uri',
+			sent: 'protocol peptalk',
+			status: 'ok'
+		})
+		await expect(pep.connect()).resolves.toMatchObject({
+			body: 'protocol peptalk uri',
+			sent: 'protocol peptalk',
+			status: 'ok'
+		})
+		await expect(pep.close()).resolves.toMatchObject({
+			body: 'bye',
+			sent: 'close',
+			status: 'ok'
+		})
+	})
+
+	afterAll(async () => {
+		try {
+			await pep.close()
+		} catch (err) {
+			console.log('Info: Request to close a closed connection threw as expected with:', err.message)
+		}
+		return new Promise((resolve, reject) => {
+			server.close((err) => {
+				if (err) return reject(err)
+				resolve()
+			})
+		})
+	})
+})
+
+describe('PepTalk server death', () => {
+	let server: websocket.Server
+	let pep: PepTalkClient & PepTalkJS
+
+	beforeAll(async () => {
+		server = new websocket.Server({ port: testPort })
+		server.on('connection', ws => {
+			ws.on('message', (message: string) => {
+				// console.log('Received', message)
+				let index = extractIndex(message)
+				if (message.indexOf('protocol peptalk\r\n') >= 0) {
+					return ws.send(`${index} protocol peptalk uri`)
+				}
+				if (message.indexOf('close') >= 0) {
+					ws.send(`${index} ok bye`)
+					return ws.close()
+				}
+				if (message.indexOf('get {1}/ 0') >= 0) {
+					return ws.send(`${index} ok <entry name="pongy"/>\r\n`)
+				}
+
+				return ws.send(`${index} error unexpected`)
+			})
+		})
+
+		pep = startPepTalk('localhost', testPort)
+		await pep.connect()
+	})
+
+	test('Ping check connected', async () => {
+		await expect(pep.ping()).resolves.toMatchObject({
+			// id: 2,
+			sent: 'get {1}/ 0',
+			status: 'ok',
+			body: 'PONG!'
+		})
+	})
+
+	test('Set timeout', () => {
+		expect(pep).toMatchObject({
+			hostname: 'localhost',
+			port: testPort,
+			timeout: 3000
+		})
+		expect(pep.setTimeout(1000)).toBe(1000)
+		expect(pep.timeout).toBe(1000)
+		expect(pep.setTimeout(-1000)).toBe(1000)
+		expect(pep.setTimeout(0)).toBe(1000)
+		expect(pep.setTimeout(3000)).toBe(3000)
+	})
+
+	test('Close server and ping', async () => {
+		expect(pep.setTimeout(300)).toBe(300)
+		await new Promise((resolve, reject) => {
+			server.close((err) => {
+				if (err) return reject(err)
+				resolve()
+			})
+		})
+		await expect(pep.ping()).rejects.toThrow('Parallel promise to send message')
+		expect(pep.setTimeout(3000)).toBe(3000)
+	})
+
+	afterAll(async () => {
+		try {
+			await pep.close()
+		} catch (err) {
+			console.log('Info: Request to close a closed connection threw as expected with:', err.message)
+		}
+		return new Promise((resolve, reject) => {
+			server.close((err) => {
+				if (err) return reject(err)
+				resolve()
+			})
+		})
+	})
+})
+
+describe('PepTalk with sadness', () => {
+	let server: websocket.Server
+	let pep: PepTalkClient & PepTalkJS
+
+	beforeAll(async () => {
+		server = new websocket.Server({ port: testPort })
+		server.on('connection', ws => {
+			ws.on('message', (message: string) => {
+				// console.log('Received', message)
+				let index = extractIndex(message)
+				if (message.indexOf('protocol peptalk\r\n') >= 0) {
+					return ws.send(`${index} protocol peptalk uri`)
+				}
+				if (message.indexOf('close') >= 0) {
+					ws.send(`${index} ok bye`)
+					return ws.close()
+				}
+				if (message.indexOf('get {1}/ 0') >= 0) {
+					return ws.send(`${index} ok <entry name="pongy"/>\r\n`)
+				}
+				if (message.indexOf('get') >= 0) {
+					let errorName = message.slice(message.lastIndexOf('/') + 1,
+				 		message.lastIndexOf(' '))
+					let path = message.slice(message.indexOf('/'), message.lastIndexOf(' '))
+					return ws.send(`${index} error ${errorName} ${path}\r\n`)
+				}
+
+				return ws.send(`${index} error unspecified\r\n`)
+			})
+		})
+
+		pep = startPepTalk('localhost', testPort)
+		await pep.connect()
+	})
+
+	test('Ping check connected', async () => {
+		await expect(pep.ping()).resolves.toMatchObject({
+			// id: 2,
+			sent: 'get {1}/ 0',
+			status: 'ok',
+			body: 'PONG!'
+		})
+	})
+
+	test('Fall through to unspecified', async () => {
+		await expect(pep.send('wibble')).rejects.toThrow(UnspecifiedError)
+	})
+
+	test('Get inexistent', async () => {
+		await expect(pep.get('/error/inexistent', 3)).rejects.toThrow(InexistentError)
+	})
+
+	test('Get invalid', async () => {
+		await expect(pep.get('/error/invalid', 3)).rejects.toThrow(InvalidError)
+	})
+
+	test('Get not allowed', async () => {
+		await expect(pep.get('/error/not_allowed', 3)).rejects.toThrow(NotAllowedError)
+	})
+
+	test('Get syntax', async () => {
+		await expect(pep.get('/error/syntax', 3)).rejects.toThrow(SyntaxError)
+	})
+
+	test('Get unspecified', async () => {
+		await expect(pep.get('/error/unspecified', 3)).rejects.toThrow(UnspecifiedError)
+	})
+
+	afterAll(async () => {
+		try {
+			await pep.close()
+		} catch (err) {
+			console.log('Info: Request to close a closed connection threw as expected with:', err.message)
+		}
 		return new Promise((resolve, reject) => {
 			server.close((err) => {
 				if (err) return reject(err)

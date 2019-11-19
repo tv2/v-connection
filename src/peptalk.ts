@@ -88,7 +88,7 @@ export interface IInexistentError extends PepError {
 }
 
 export class InexistentError extends PepError implements IInexistentError {
-	readonly status: 'inexistent'
+	readonly status: 'inexistent' = 'inexistent'
 	readonly path: string
 	constructor (id: number, path: string, sent?: string) {
 		super('inexistent', id,
@@ -107,8 +107,8 @@ export interface IInvalidError extends PepError {
 	description: string
 }
 
-class InvalidError extends PepError implements IInvalidError {
-	readonly status: 'invalid'
+export class InvalidError extends PepError implements IInvalidError {
+	readonly status: 'invalid' = 'invalid'
 	readonly description: string
 	constructor (id: number, description: string, sent?: string) {
 		super('invalid', id, `Validation error: ${description}.`, sent)
@@ -124,8 +124,8 @@ export interface INotAllowedError extends PepError {
 	reason: string
 }
 
-class NotAllowedError extends PepError implements INotAllowedError {
-	readonly status: 'not_allowed'
+export class NotAllowedError extends PepError implements INotAllowedError {
+	readonly status: 'not_allowed' = 'not_allowed'
 	readonly reason: string
 	constructor (id: number, reason: string, sent?: string) {
 		super('not_allowed', id, `Request understood put not allowed: ${reason}.`, sent)
@@ -141,8 +141,8 @@ export interface ISyntaxError extends PepError {
 	description: string
 }
 
-class SyntaxError extends PepError implements ISyntaxError {
-	readonly status: 'syntax'
+export class SyntaxError extends PepError implements ISyntaxError {
+	readonly status: 'syntax' = 'syntax'
 	readonly description: string
 	constructor (id: number, description: string, sent?: string) {
 		super('syntax', id, `Syntax error in request: ${description}.`, sent)
@@ -158,9 +158,9 @@ export interface IUnspecifiedError extends PepError {
 	description: string
 }
 
-class UnspecifiedError extends PepError implements IUnspecifiedError {
+export class UnspecifiedError extends PepError implements IUnspecifiedError {
 	readonly description: string
-	readonly status: 'unspecified'
+	readonly status: 'unspecified' = 'unspecified'
 	constructor (id: number | '*', description: string, sent?: string) {
 		super('unspecified', id, description, sent)
 	}
@@ -273,11 +273,11 @@ export interface PepTalkClient extends EventEmitter {
 	move (oldPath: string, newPath: string, location: LocationType, sibling?: string): Promise<PepResponse>
 	/**
 	 *  Request protocol capability and query what is available.
-	 *  @param capability Capability or capabilities required.
+	 *  @param capability Capability or capabilities required. None to get list.
 	 *  @returns Resolves to a list of supported capabilities. Rejects if the
 	 *           protocol is not available.
 	 */
-	protocol (capability: Capability | Capability[]): Promise<PepResponse>
+	protocol (capability?: Capability | Capability[]): Promise<PepResponse>
 	/**
 	 *  Re-initializes the associated Media Sequencer, setting everything to its
 	 *  initial state and initialising all logic.
@@ -466,7 +466,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent ? pending.sent : 'sent is undefined')
 		} else {
 			let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ') + errorIndex + 6
-			endOfErrorName = endOfErrorName > 0 ? endOfErrorName : m.length
+			endOfErrorName = endOfErrorName > errorIndex + 6 ? endOfErrorName : m.length
 			switch (m.slice(errorIndex + 6, endOfErrorName)) {
 				case 'inexistent':
 					error = new InexistentError(c, m.slice(endOfErrorName + 1), pending.sent)
@@ -520,7 +520,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 
 	}
 
-	connect (noevents?: boolean | undefined): Promise<PepResponse> {
+	async connect (noevents?: boolean | undefined): Promise<PepResponse> {
 		this.ws = new Promise((resolve, reject) => {
 			// console.log('<<<', `ws://${this.hostname}:${this.port}/`)
 			let ws = new websocket(`ws://${this.hostname}:${this.port}/`)
@@ -539,7 +539,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		return this.send(noevents ? 'protocol peptalk noevents' : 'protocol peptalk')
 	}
 
-	close (): Promise<PepResponse> {
+	async close (): Promise<PepResponse> {
 		return this.send('close')
 	}
 
@@ -553,7 +553,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 	}
 
-	send (message: string): Promise<PepResponse> {
+	async send (message: string): Promise<PepResponse> {
 		let c = this.counter++
 		return Promise.race([
 			this.failTimer(c),
@@ -572,61 +572,49 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		])
 	}
 
-	copy (sourcePath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
-		try {
-			return this.send(`copy ${this.esc(sourcePath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`)
-		} catch (err) {
-			return Promise.reject(err)
-		}
+	async copy (sourcePath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
+		return this.send(`copy ${this.esc(sourcePath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`)
 	}
 
-	delete (path: string): Promise<PepResponse> {
+	async delete (path: string): Promise<PepResponse> {
 		return this.send(`delete ${this.esc(path)}`)
 	}
 
-	ensurePath (path: string): Promise<PepResponse> {
+	async ensurePath (path: string): Promise<PepResponse> {
 		return this.send(`ensure-path ${this.esc(path)}`)
 	}
 
-	get (path: string, depth?: number): Promise<PepResponse> {
+	async get (path: string, depth?: number): Promise<PepResponse> {
 		return this.send(`get ${this.esc(path)}${depth !== undefined ? ' ' + depth : ''}`)
 	}
 
-	insert (path: string, xml: string, location: LocationType, sibling?: string): Promise<PepResponse> {
-		try {
-			return this.send(`insert ${this.esc(path)} ${this.makeLocation(location, sibling)} ${this.esc(xml)}`)
-		} catch (err) {
-			return Promise.reject(err)
-		}
+	async insert (path: string, xml: string, location: LocationType, sibling?: string): Promise<PepResponse> {
+		return this.send(`insert ${this.esc(path)} ${this.makeLocation(location, sibling)} ${this.esc(xml)}`)
 	}
 
-	move (oldPath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
-		try {
-			return this.send(`move ${this.esc(oldPath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`)
-		} catch (err) {
-			return Promise.reject(err)
-		}
+	async move (oldPath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
+		return this.send(`move ${this.esc(oldPath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`)
 	}
 
-	protocol (capability?: Capability | Capability[]): Promise<PepResponse> {
+	async protocol (capability?: Capability | Capability[]): Promise<PepResponse> {
 		if (!capability) {
 			capability = []
 		} else if (!Array.isArray(capability)) {
 			capability = [ capability ]
 		}
 		let list: string = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '').trim()
-		return this.send(`protocol ${list}`)
+		return this.send(`protocol${list.length > 0 ? ' ' : ''}${list}`)
 	}
 
-	reintialize (): Promise<PepResponse> {
+	async reintialize (): Promise<PepResponse> {
 		return this.send('reinitialize')
 	}
 
-	replace (path: string, xml: string): Promise<PepResponse> {
+	async replace (path: string, xml: string): Promise<PepResponse> {
 		return this.send(`replace ${this.esc(path)} ${this.esc(xml)}`)
 	}
 
-	set (path: string, textOrKey: string, attributeValue?: string): Promise<PepResponse> {
+	async set (path: string, textOrKey: string, attributeValue?: string): Promise<PepResponse> {
 		if (attributeValue) {
 			return this.send(`set attribute ${this.esc(path)} ${this.esc(textOrKey)} ${this.esc(attributeValue)}`)
 		} else {
@@ -634,7 +622,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 	}
 
-	uri (path: string, type: string, base?: string): Promise<PepResponse> {
+	async uri (path: string, type: string, base?: string): Promise<PepResponse> {
 		return this.send(`uri ${this.esc(path)} ${this.esc(type)}${base ? ' ' + this.esc(base) : ''}`)
 	}
 

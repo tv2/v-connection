@@ -89,6 +89,27 @@ export interface InternalElement extends VElement {
 export interface ExternalElement extends VElement {
 	/** Unique identifier for the template in the external system. */
 	vcpid: string // TODO this should really be a number
+	/** Set to `1.00` if the element is available. May be omitted or `0.00`. */
+	available?: string
+	/** Set to `yes` if the element is loading onto the associated VizEgnine, otherwise omitted. */
+	is_loading?: string
+	/** Set to `0.00` if the element is not loaded onto the associated VizEngine,
+	 *  `1.00` if it is loaded and a number between 0 and 1 to indicate loading progress.
+	 *  Omitted if owning playlist is not active.
+	 */
+	loaded?: string
+	/** Number of times the element has been taken, or omitted if the playlist is
+	 *  not active.
+	 */
+	take_count?: string
+	/** Set to `no` if the element has not been built from the database by the MSE, otherwise omitted. */
+	exists?: string
+	/** Set to an error message if there is a problem with this grahic. This often
+	 *  happens because the element is not available in the database.
+	 */
+	error?: string
+	/** Reference name of element references. Will be `ref`, `ref#1`, `ref#2` etc.. */
+	name?: string
 }
 
 /**
@@ -193,11 +214,23 @@ export interface VRundown {
 	 */
 	out (elementName: string | number): Promise<CommandResult>
 	/**
+	 *  Run the initiaization of an external graphic element. This will cause the
+	 *  element to load all necessary resources onto the assiciated VizEngine ready
+	 *  to be taken. Watch for `loaded="1.00"` in the element reference in the
+	 *  playlist to know when it is safe to take the element.
+	 *  @param elementName Reference for the graphical element to initialize.
+	 *  @returns Resolves on acceptance of the initialize command. Note that this
+	 *           is not when the element finishes loading on the VizEngine.
+	 */
+	initialize (elementName: number): Promise<CommandResult>
+	/**
 	 *  Activate a rundown, causing all initialisations to be run prior to the
 	 *  execution of a rundown.
+	 *  @param load Trigger the activation twice, which causes all external
+	 *              graphical elements to start loading.
 	 *  @returns Resolves on successful rundown activation.
 	 */
-	activate (): Promise<CommandResult>
+	activate (load?: boolean): Promise<CommandResult>
 	/**
 	 *  Deactivate a rundown, cleaning up any transient elements associated with
 	 *  the rundown from the VDOM tree. Those XML elements required for post-rundown
