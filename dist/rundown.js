@@ -29,8 +29,8 @@ class Rundown {
     }
     get pep() { return this.mse.getPep(); }
     async buildChannelMap(vcpid) {
-        if (vcpid) {
-            if (typeof this.channelMap[vcpid] === 'string') {
+        if (typeof vcpid === 'number') {
+            if (this.channelMap.hasOwnProperty(vcpid)) {
                 return true;
             }
         }
@@ -39,14 +39,23 @@ class Rundown {
             if (typeof e === 'number') {
                 let element = await this.getElement(e);
                 if (element.channel) {
-                    this.channelMap[e] = element.channel;
+                    this.channelMap[e] = {
+                        channelName: element.channel,
+                        refName: typeof element.name === 'string' ? element.name : 'ref'
+                    };
                 }
                 else {
-                    this.channelMap[e] = null;
+                    this.channelMap[e] = {
+                        channelName: null,
+                        refName: typeof element.name === 'string' ? element.name : 'ref'
+                    };
                 }
             }
         }
-        return typeof vcpid === 'number' ? typeof this.channelMap[vcpid] === 'string' : false;
+        return typeof vcpid === 'number' ? this.channelMap.hasOwnProperty(vcpid) : false;
+    }
+    ref(id) {
+        return this.channelMap[id].refName ? this.channelMap[id].refName.replace('#', '%23') : 'ref';
     }
     async listTemplates() {
         await this.mse.checkConnection();
@@ -108,8 +117,11 @@ ${entries}
         }
         else {
             let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : '';
-            this.channelMap[nameOrID] = elementNameOrChannel ? elementNameOrChannel : null;
-            await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
+            let { body: path } = await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
+            this.channelMap[nameOrID] = {
+                channelName: elementNameOrChannel ? elementNameOrChannel : null,
+                refName: path ? path.slice(path.lastIndexOf('/') + 1) : 'ref'
+            };
             return {
                 vcpid: nameOrID.toString(),
                 channel: elementNameOrChannel
@@ -133,10 +145,11 @@ ${entries}
             }) : [];
         return elementNames.concat(elementsRefs);
     }
-    async activate() {
-        let playlist = await this.mse.getPlaylist(this.playlist);
-        if (playlist.active_profile.value) {
-            console.log(`Warning: Re-activating a already active playlist '${this.playlist}'.`);
+    async activate(load) {
+        // let playlist = await this.mse.getPlaylist(this.playlist)
+        // if (!playlist.active_profile.value) {
+        if (load) {
+            await this.msehttp.initializePlaylist(this.playlist);
         }
         return this.msehttp.initializePlaylist(this.playlist);
     }
@@ -151,7 +164,12 @@ ${entries}
             return this.pep.delete(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
-            throw new Error('Method not implemented.');
+            if (await this.buildChannelMap(elementName)) {
+                return this.pep.delete(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
+            }
+            else {
+                throw new peptalk_1.InexistentError(-1, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
+            }
         }
     }
     async cue(elementName) {
@@ -159,10 +177,12 @@ ${entries}
             return this.msehttp.cue(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
-            if (this.buildChannelMap(elementName)) {
-                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            if (await this.buildChannelMap(elementName)) {
+                return this.msehttp.cue(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
             }
-            return this.msehttp.cue(`/external/pilotdb/elements/${elementName}`);
+            else {
+                throw new msehttp_1.HTTPRequestError(`Cannot cue external element as ID '${elementName}' is not known in this rundown.`, this.msehttp.baseURL, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
+            }
         }
     }
     async take(elementName) {
@@ -170,10 +190,12 @@ ${entries}
             return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
-            if (this.buildChannelMap(elementName)) {
-                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            if (await this.buildChannelMap(elementName)) {
+                return this.msehttp.take(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
             }
-            return this.msehttp.take(`/external/pilotdb/elements/${elementName}`);
+            else {
+                throw new msehttp_1.HTTPRequestError(`Cannot take external element as ID '${elementName}' is not known in this rundown.`, this.msehttp.baseURL, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
+            }
         }
     }
     async continue(elementName) {
@@ -181,10 +203,12 @@ ${entries}
             return this.msehttp.continue(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
-            if (this.buildChannelMap(elementName)) {
-                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            if (await this.buildChannelMap(elementName)) {
+                return this.msehttp.continue(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
             }
-            return this.msehttp.continue(`/external/pilotdb/elements/${elementName}`);
+            else {
+                throw new msehttp_1.HTTPRequestError(`Cannot continue external element as ID '${elementName}' is not known in this rundown.`, this.msehttp.baseURL, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
+            }
         }
     }
     async continueReverse(elementName) {
@@ -192,10 +216,12 @@ ${entries}
             return this.msehttp.continueReverse(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
-            if (this.buildChannelMap(elementName)) {
-                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            if (await this.buildChannelMap(elementName)) {
+                return this.msehttp.continueReverse(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
             }
-            return this.msehttp.continueReverse(`/external/pilotdb/elements/${elementName}`);
+            else {
+                throw new msehttp_1.HTTPRequestError(`Cannot continue reverse external element as ID '${elementName}' is not known in this rundown.`, this.msehttp.baseURL, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
+            }
         }
     }
     async out(elementName) {
@@ -203,10 +229,20 @@ ${entries}
             return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`);
         }
         else {
-            if (this.buildChannelMap(elementName)) {
-                await this.pep.set(`/external/pilotdb/elements/${elementName}`, 'viz_program', this.channelMap[elementName]);
+            if (await this.buildChannelMap(elementName)) {
+                return this.msehttp.out(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
             }
-            return this.msehttp.out(`/external/pilotdb/elements/${elementName}`);
+            else {
+                throw new msehttp_1.HTTPRequestError(`Cannot take out external element as ID '${elementName}' is not known in this rundown.`, this.msehttp.baseURL, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
+            }
+        }
+    }
+    async initialize(elementName) {
+        if (await this.buildChannelMap(elementName)) {
+            return this.msehttp.initialize(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
+        }
+        else {
+            throw new msehttp_1.HTTPRequestError(`Cannot initialize external element as ID '${elementName}' is not known in this rundown.`, this.msehttp.baseURL, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
         }
     }
     async purge() {
@@ -234,6 +270,7 @@ ${entries}
             else {
                 element.vcpid = elementName.toString();
                 element.channel = element.viz_program;
+                element.name = this.ref(elementName);
                 return element;
             }
         }

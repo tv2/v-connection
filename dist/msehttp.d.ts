@@ -4,6 +4,7 @@
  */
 /// <reference types="node" />
 import { URL } from 'url';
+import { ServerResponse } from 'http';
 export declare const uuidRe: RegExp;
 /** Result of executing an HTTP command. Command promise is resolved. */
 export interface CommandResult {
@@ -19,10 +20,32 @@ export interface CommandResult {
 /** Client error - a `400` code - resulting from an HTTP command. Commnd promise is rejected. */
 export interface IHTTPClientError extends Error, CommandResult {
 }
+export declare class HTTPClientError extends Error implements IHTTPClientError {
+    readonly path: string;
+    readonly body?: string;
+    readonly status: number;
+    readonly response: string;
+    constructor(response: ServerResponse, path: string, body?: string);
+}
 /** Server error - a `500` code - resulting from an HTTP command. Commnd promise is rejected. */
 export interface IHTTPServerError extends Error, CommandResult {
 }
+export declare class HTTPServerError extends Error implements IHTTPServerError {
+    readonly path: string;
+    readonly body?: string;
+    readonly status: number;
+    readonly response: string;
+    constructor(response: ServerResponse, path: string, body?: string);
+}
 export interface IHTTPRequestError extends Error, CommandResult {
+}
+export declare class HTTPRequestError extends Error implements IHTTPRequestError {
+    readonly path: string;
+    readonly body?: string;
+    readonly status: number;
+    readonly response: string;
+    readonly baseURL: string;
+    constructor(message: string, baseURL: string, path: string, body?: string);
 }
 /**
  *  Client interface for sending commands to the MSE over HTTP. Commands target
@@ -36,6 +59,7 @@ export interface HttpMSEClient {
     readonly port: number;
     readonly timeout: number;
     readonly profile: string;
+    readonly baseURL: string;
     /**
      *  Send a command to the MSE over the HTTP interface. The MIME type is `text/plain`.
      *  @param path The path to send the message to.
@@ -116,9 +140,12 @@ export interface HttpMSEClient {
      */
     cleanupShow(showID: string): Promise<CommandResult>;
     /**
-     *  Initialize a single element. Not supported in the MSE used for development.
+     *  Initialize a single element. Only works for external element references
+     *  in playlists, causing any resources required by the element to be loaded
+     *  onto the appropriate VizEngine.
      *  @param ref Path of an element to initialize.
-     *  @returns Rejects as not implemented.
+     *  @returns Resolves when the request to make the element has been made and
+     *           the element can be initialized.
      */
     initialize(ref: string): Promise<CommandResult>;
     /**

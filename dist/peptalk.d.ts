@@ -81,12 +81,22 @@ export interface IInvalidError extends PepError {
     status: 'invalid';
     description: string;
 }
+export declare class InvalidError extends PepError implements IInvalidError {
+    readonly status: 'invalid';
+    readonly description: string;
+    constructor(id: number, description: string, sent?: string);
+}
 /**
  *  A request makes sense but the operation is not allowed.
  */
 export interface INotAllowedError extends PepError {
     status: 'not_allowed';
     reason: string;
+}
+export declare class NotAllowedError extends PepError implements INotAllowedError {
+    readonly status: 'not_allowed';
+    readonly reason: string;
+    constructor(id: number, reason: string, sent?: string);
 }
 /**
  *  The server does not know the requested command.
@@ -95,12 +105,22 @@ export interface ISyntaxError extends PepError {
     status: 'syntax';
     description: string;
 }
+export declare class SyntaxError extends PepError implements ISyntaxError {
+    readonly status: 'syntax';
+    readonly description: string;
+    constructor(id: number, description: string, sent?: string);
+}
 /**
  *  All other kinds of error.
  */
 export interface IUnspecifiedError extends PepError {
     status: 'unspecified';
     description: string;
+}
+export declare class UnspecifiedError extends PepError implements IUnspecifiedError {
+    readonly description: string;
+    readonly status: 'unspecified';
+    constructor(id: number | '*', description: string, sent?: string);
 }
 export interface PendingRequest {
     id: number;
@@ -209,11 +229,11 @@ export interface PepTalkClient extends EventEmitter {
     move(oldPath: string, newPath: string, location: LocationType, sibling?: string): Promise<PepResponse>;
     /**
      *  Request protocol capability and query what is available.
-     *  @param capability Capability or capabilities required.
+     *  @param capability Capability or capabilities required. None to get list.
      *  @returns Resolves to a list of supported capabilities. Rejects if the
      *           protocol is not available.
      */
-    protocol(capability: Capability | Capability[]): Promise<PepResponse>;
+    protocol(capability?: Capability | Capability[]): Promise<PepResponse>;
     /**
      *  Re-initializes the associated Media Sequencer, setting everything to its
      *  initial state and initialising all logic.

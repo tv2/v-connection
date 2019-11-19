@@ -13,12 +13,13 @@ export declare class Rundown implements VRundown {
     private channelMap;
     constructor(mseRep: MSERep, show: string, profile: string, playlist: string, description: string);
     private buildChannelMap;
+    private ref;
     listTemplates(): Promise<string[]>;
     getTemplate(templateName: string): Promise<VTemplate>;
     createElement(templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>;
     createElement(vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>;
     listElements(): Promise<Array<string | number>>;
-    activate(): Promise<CommandResult>;
+    activate(load?: boolean): Promise<CommandResult>;
     deactivate(): Promise<CommandResult>;
     cleanup(): Promise<CommandResult>;
     deleteElement(elementName: string | number): Promise<PepResponse>;
@@ -27,6 +28,7 @@ export declare class Rundown implements VRundown {
     continue(elementName: string | number): Promise<CommandResult>;
     continueReverse(elementName: string | number): Promise<CommandResult>;
     out(elementName: string | number): Promise<CommandResult>;
+    initialize(elementName: number): Promise<CommandResult>;
     purge(): Promise<PepResponse>;
     getElement(elementName: string | number): Promise<VElement>;
     isActive(): Promise<boolean>;

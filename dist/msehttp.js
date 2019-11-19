@@ -15,6 +15,7 @@ class HTTPClientError extends Error {
         this.response = response.statusMessage;
     }
 }
+exports.HTTPClientError = HTTPClientError;
 class HTTPServerError extends Error {
     constructor(response, path, body) {
         super(`HTTP server error for '${path}': ${response.statusCode} - ${response.statusMessage}.`);
@@ -24,6 +25,7 @@ class HTTPServerError extends Error {
         this.response = response.statusMessage;
     }
 }
+exports.HTTPServerError = HTTPServerError;
 class HTTPRequestError extends Error {
     constructor(message, baseURL, path, body) {
         super(`HTTP request error for '${path}': ${message}.`);
@@ -34,6 +36,7 @@ class HTTPRequestError extends Error {
         this.response = message;
     }
 }
+exports.HTTPRequestError = HTTPRequestError;
 class MSEHTTP {
     constructor(profile, host, port) {
         this.timeout = 3000;
@@ -63,7 +66,7 @@ class MSEHTTP {
     async command(path, body) {
         try {
             if (typeof path === 'string') {
-                let response = await request.post({
+                let response = await request({
                     method: 'POST',
                     uri: `${this.baseURL}/${path}`,
                     body,
@@ -75,9 +78,9 @@ class MSEHTTP {
                 return { status: 200, response: response.toString() };
             }
             else {
-                let response = await request.post({
+                let response = await request({
                     method: 'POST',
-                    uri: path,
+                    url: path.toString(),
                     body,
                     timeout: this.timeout,
                     headers: {
@@ -115,9 +118,8 @@ class MSEHTTP {
     cleanupShow(showID) {
         return this.command('cleanup', `/storage/shows/{${showID}}`);
     }
-    async initialize(_ref) {
-        throw new Error('Feature not supported by the MSE used for testing.');
-        // return this.command('initialize', ref)
+    async initialize(ref) {
+        return this.command('initialize', ref);
     }
     async ping() {
         try {

@@ -50,6 +50,7 @@ class PepError extends Error {
 class InexistentError extends PepError {
     constructor(id, path, sent) {
         super('inexistent', id, `PepTalk inexistent error: Could not locate element at ${path}.`, sent);
+        this.status = 'inexistent';
         this.path = path;
     }
 }
@@ -57,26 +58,34 @@ exports.InexistentError = InexistentError;
 class InvalidError extends PepError {
     constructor(id, description, sent) {
         super('invalid', id, `Validation error: ${description}.`, sent);
+        this.status = 'invalid';
         this.description = description;
     }
 }
+exports.InvalidError = InvalidError;
 class NotAllowedError extends PepError {
     constructor(id, reason, sent) {
         super('not_allowed', id, `Request understood put not allowed: ${reason}.`, sent);
+        this.status = 'not_allowed';
         this.reason = reason;
     }
 }
+exports.NotAllowedError = NotAllowedError;
 class SyntaxError extends PepError {
     constructor(id, description, sent) {
         super('syntax', id, `Syntax error in request: ${description}.`, sent);
+        this.status = 'syntax';
         this.description = description;
     }
 }
+exports.SyntaxError = SyntaxError;
 class UnspecifiedError extends PepError {
     constructor(id, description, sent) {
         super('unspecified', id, description, sent);
+        this.status = 'unspecified';
     }
 }
+exports.UnspecifiedError = UnspecifiedError;
 class PepTalk extends events_1.EventEmitter {
     constructor(hostname, port) {
         super();
@@ -196,7 +205,7 @@ class PepTalk extends events_1.EventEmitter {
         }
         else {
             let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ') + errorIndex + 6;
-            endOfErrorName = endOfErrorName > 0 ? endOfErrorName : m.length;
+            endOfErrorName = endOfErrorName > errorIndex + 6 ? endOfErrorName : m.length;
             switch (m.slice(errorIndex + 6, endOfErrorName)) {
                 case 'inexistent':
                     error = new InexistentError(c, m.slice(endOfErrorName + 1), pending.sent);
@@ -243,7 +252,7 @@ class PepTalk extends events_1.EventEmitter {
             return `${location} ${this.esc(sibling)}`;
         }
     }
-    connect(noevents) {
+    async connect(noevents) {
         this.ws = new Promise((resolve, reject) => {
             // console.log('<<<', `ws://${this.hostname}:${this.port}/`)
             let ws = new websocket(`ws://${this.hostname}:${this.port}/`);
@@ -260,7 +269,7 @@ class PepTalk extends events_1.EventEmitter {
         });
         return this.send(noevents ? 'protocol peptalk noevents' : 'protocol peptalk');
     }
-    close() {
+    async close() {
         return this.send('close');
     }
     async ping() {
@@ -273,7 +282,7 @@ class PepTalk extends events_1.EventEmitter {
             throw new UnspecifiedError(pingTest.id, 'Unexpected response to ping request.');
         }
     }
-    send(message) {
+    async send(message) {
         let c = this.counter++;
         return Promise.race([
             this.failTimer(c),
@@ -292,40 +301,25 @@ class PepTalk extends events_1.EventEmitter {
             })
         ]);
     }
-    copy(sourcePath, newPath, location, sibling) {
-        try {
-            return this.send(`copy ${this.esc(sourcePath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`);
-        }
-        catch (err) {
-            return Promise.reject(err);
-        }
+    async copy(sourcePath, newPath, location, sibling) {
+        return this.send(`copy ${this.esc(sourcePath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`);
     }
-    delete(path) {
+    async delete(path) {
         return this.send(`delete ${this.esc(path)}`);
     }
-    ensurePath(path) {
+    async ensurePath(path) {
         return this.send(`ensure-path ${this.esc(path)}`);
     }
-    get(path, depth) {
+    async get(path, depth) {
         return this.send(`get ${this.esc(path)}${depth !== undefined ? ' ' + depth : ''}`);
     }
-    insert(path, xml, location, sibling) {
-        try {
-            return this.send(`insert ${this.esc(path)} ${this.makeLocation(location, sibling)} ${this.esc(xml)}`);
-        }
-        catch (err) {
-            return Promise.reject(err);
-        }
+    async insert(path, xml, location, sibling) {
+        return this.send(`insert ${this.esc(path)} ${this.makeLocation(location, sibling)} ${this.esc(xml)}`);
     }
-    move(oldPath, newPath, location, sibling) {
-        try {
-            return this.send(`move ${this.esc(oldPath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`);
-        }
-        catch (err) {
-            return Promise.reject(err);
-        }
+    async move(oldPath, newPath, location, sibling) {
+        return this.send(`move ${this.esc(oldPath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`);
     }
-    protocol(capability) {
+    async protocol(capability) {
         if (!capability) {
             capability = [];
         }
@@ -333,15 +327,15 @@ class PepTalk extends events_1.EventEmitter {
             capability = [capability];
         }
         let list = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '').trim();
-        return this.send(`protocol ${list}`);
+        return this.send(`protocol${list.length > 0 ? ' ' : ''}${list}`);
     }
-    reintialize() {
+    async reintialize() {
         return this.send('reinitialize');
     }
-    replace(path, xml) {
+    async replace(path, xml) {
         return this.send(`replace ${this.esc(path)} ${this.esc(xml)}`);
     }
-    set(path, textOrKey, attributeValue) {
+    async set(path, textOrKey, attributeValue) {
         if (attributeValue) {
             return this.send(`set attribute ${this.esc(path)} ${this.esc(textOrKey)} ${this.esc(attributeValue)}`);
         }
@@ -349,7 +343,7 @@ class PepTalk extends events_1.EventEmitter {
             return this.send(`set text ${this.esc(path)} ${this.esc(textOrKey)}`);
         }
     }
-    uri(path, type, base) {
+    async uri(path, type, base) {
         return this.send(`uri ${this.esc(path)} ${this.esc(type)}${base ? ' ' + this.esc(base) : ''}`);
     }
     setTimeout(t) {
