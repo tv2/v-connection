@@ -432,6 +432,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			try {
 				this.emit('error', new UnspecifiedError(c, `Unmatched response for request ${c}.`))
 			} catch (err) { /* Allow emit with no listeners. */ }
+			return // everything beyond here needs pending to be set
 		}
 		if (m.slice(firstSpace + 1).startsWith('ok')) {
 			let response: PepResponse = {
@@ -463,7 +464,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		let errorIndex = m.indexOf('error')
 		let error: PepError
 		if (errorIndex < 0 || errorIndex > 10) {
-			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending.sent ? pending.sent : 'sent is undefined')
+			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending && pending.sent ? pending.sent : 'sent is undefined')
 		} else {
 			let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ') + errorIndex + 6
 			endOfErrorName = endOfErrorName > errorIndex + 6 ? endOfErrorName : m.length
