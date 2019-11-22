@@ -41,13 +41,13 @@ class Rundown {
                 if (element.channel) {
                     this.channelMap[e] = {
                         channelName: element.channel,
-                        refName: typeof element.name === 'string' ? element.name : 'ref'
+                        refName: element.hasOwnProperty('name') && typeof element.name === 'string' ? element.name : 'ref'
                     };
                 }
                 else {
                     this.channelMap[e] = {
                         channelName: null,
-                        refName: typeof element.name === 'string' ? element.name : 'ref'
+                        refName: element.hasOwnProperty('name') && typeof element.name === 'string' ? element.name : 'ref'
                     };
                 }
             }
