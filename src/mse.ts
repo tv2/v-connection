@@ -154,7 +154,7 @@ export class MSERep extends EventEmitter implements MSE {
 			await this.checkConnection()
 			await this.pep.get(`/storage/shows/{${showID}}`, 1)
 		} catch (err) {
-			throw new Error(`The request to create a rundown for a show with ID '${showID}' failed. It does not exist in the MSE.`)
+			throw new Error(`The request to create a rundown for a show with ID '${showID}' failed. Error is: ${err.message}.`)
 		}
 		try {
 			await this.pep.get(`/config/profiles/${profileName}`, 1)
