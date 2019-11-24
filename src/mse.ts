@@ -159,7 +159,7 @@ export class MSERep extends EventEmitter implements MSE {
 		try {
 			await this.pep.get(`/config/profiles/${profileName}`, 1)
 		} catch (err) {
-			throw new Error(`The profile with name '${profileName}' for a new rundown does not exist.`)
+			throw new Error(`The profile with name '${profileName}' for a new rundown does not exist. Error is: ${err.message}.`)
 		}
 		if (playlistID) {
 			try {
