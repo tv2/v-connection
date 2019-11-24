@@ -140,13 +140,13 @@ class MSERep extends events_1.EventEmitter {
             await this.pep.get(`/storage/shows/{${showID}}`, 1);
         }
         catch (err) {
-            throw new Error(`The request to create a rundown for a show with ID '${showID}' failed. It does not exist in the MSE.`);
+            throw new Error(`The request to create a rundown for a show with ID '${showID}' failed. Error is: ${err.message}.`);
         }
         try {
             await this.pep.get(`/config/profiles/${profileName}`, 1);
         }
         catch (err) {
-            throw new Error(`The profile with name '${profileName}' for a new rundown does not exist.`);
+            throw new Error(`The profile with name '${profileName}' for a new rundown does not exist. Error is: ${err.message}.`);
         }
         if (playlistID) {
             try {
