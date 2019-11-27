@@ -35,7 +35,7 @@ async function run () {
 	let elementName = `CLI_TEST_${d.toISOString()}`
 	let element = await rundown.createElement(args.template, elementName, args._ ? args._ : [])
 	console.dir(element, { depth: 20 })
-	await rundown.cue(elementName)
+	// await rundown.cue(elementName)
 	await rundown.take(elementName)
 	await wait(args.timing)
 	console.log(`Taking element ${elementName} out.`)

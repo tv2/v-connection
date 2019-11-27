@@ -39,6 +39,7 @@ export class Rundown implements VRundown {
 		if (typeof vcpid === 'number') {
 			if (this.channelMap.hasOwnProperty(vcpid)) { return true }
 		}
+		await this.mse.checkConnection()
 		let elements = vcpid ? [ vcpid ] : await this.listElements()
 		for (let e of elements) {
 			if (typeof e === 'number') {
@@ -122,7 +123,9 @@ ${entries}
 				data,
 				channel
 			} as InternalElement
-		} else {
+		}
+		// @ts-ignore
+		if (typeof nameOrID as any === 'number') {
 			let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : ''
 			let { body: path } = await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
 `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`,
@@ -136,6 +139,7 @@ ${entries}
 				channel: elementNameOrChannel
 			} as ExternalElement
 		}
+		throw new Error('Create element called with neither a string or numberical reference.')
 	}
 
 	async listElements (): Promise<Array<string | number>> {
