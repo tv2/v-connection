@@ -124,7 +124,8 @@ ${entries}
 				channel
 			} as InternalElement
 		}
-		if (typeof nameOrID === 'number') {
+		// @ts-ignore
+		if (typeof nameOrID as any === 'number') {
 			let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : ''
 			let { body: path } = await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`,
 `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`,
