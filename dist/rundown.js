@@ -34,6 +34,7 @@ class Rundown {
                 return true;
             }
         }
+        await this.mse.checkConnection();
         let elements = vcpid ? [vcpid] : await this.listElements();
         for (let e of elements) {
             if (typeof e === 'number') {
@@ -115,7 +116,8 @@ ${entries}
                 channel
             };
         }
-        else {
+        // @ts-ignore
+        if (typeof nameOrID === 'number') {
             let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : '';
             let { body: path } = await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
             this.channelMap[nameOrID] = {
@@ -127,6 +129,7 @@ ${entries}
                 channel: elementNameOrChannel
             };
         }
+        throw new Error('Create element called with neither a string or numberical reference.');
     }
     async listElements() {
         await this.mse.checkConnection();
