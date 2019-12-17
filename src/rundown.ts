@@ -276,10 +276,10 @@ ${entries}
 	}
 
 	async purge (): Promise<PepResponse> {
-		let playlist = await this.mse.getPlaylist(this.playlist)
-		if (playlist.active_profile.value) {
-			throw new Error(`Cannot purge an active profile.`)
-		}
+		// let playlist = await this.mse.getPlaylist(this.playlist)
+		// if (playlist.active_profile.value) {
+		// 	throw new Error(`Cannot purge an active profile.`)
+		// }
 		await this.pep.replace(`/storage/shows/{${this.show}}/elements`, '<elements/>')
 		await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>')
 		return { id: '*', status: 'ok' } as PepResponse
