@@ -495,10 +495,10 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		try { this.emit('error', error) } catch (err) { /* Allow emit with no listeners. */ }
 	}
 
-	private failTimer (c: number): Promise<PepResponse> {
+	private failTimer (c: number, message: string): Promise<PepResponse> {
 		return new Promise((_resolve, reject) => {
 			setTimeout(() => {
-				reject(new Error(`Parallel promise to send message ${c} did not resolve in time.`))
+				reject(new Error(`Parallel promise to send message ${c} did not resolve in time. Message: ${message}`))
 			}, this.timeout)
 		})
 	}
@@ -557,7 +557,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	async send (message: string): Promise<PepResponse> {
 		let c = this.counter++
 		return Promise.race([
-			this.failTimer(c),
+			this.failTimer(c, message),
 			new Promise((resolve: (res: PepResponse) => void, reject: (reason?: any) => void) => {
 				this.ws.then(s => {
 					if (s === null) {
