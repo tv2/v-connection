@@ -139,7 +139,7 @@ ${entries}
 				channel: elementNameOrChannel
 			} as ExternalElement
 		}
-		throw new Error('Create element called with neither a string or numberical reference.')
+		throw new Error('Create element called with neither a string or numerical reference.')
 	}
 
 	async listElements (): Promise<Array<string | number>> {
