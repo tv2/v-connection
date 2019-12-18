@@ -94,7 +94,13 @@ export class Rundown implements VRundown {
 			}
 			let template = await this.getTemplate(nameOrID)
 			// console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
-			let fielddef = (template as any).model_xml.model.schema[0].fielddef
+			let fielddef
+			if (template.hasOwnProperty('model_xml') && typeof template.model_xml === 'object' &&
+				template.model_xml.hasOwnProperty('model') && typeof template.model_xml.model === 'object') {
+				fielddef = (template as any).model_xml.model.schema[0].fielddef
+			} else {
+				throw new Error(`Could not retrieve field definitions for tempalte '${nameOrID}'. Not creating element '${elementNameOrChannel}'.`)
+			}
 			let fieldNames: string[] = fielddef ? fielddef.map((x: any): string => x.$.name) : []
 			let entries = ''
 			let data: { [ name: string ]: string} = {}
@@ -139,7 +145,7 @@ ${entries}
 				channel: elementNameOrChannel
 			} as ExternalElement
 		}
-		throw new Error('Create element called with neither a string or numberical reference.')
+		throw new Error('Create element called with neither a string or numerical reference.')
 	}
 
 	async listElements (): Promise<Array<string | number>> {
@@ -315,6 +321,6 @@ ${entries}
 
 	async isActive (): Promise<boolean> {
 		let playlist = await this.mse.getPlaylist(this.playlist)
-		return typeof playlist.active_profile.value !== 'undefined'
+		return playlist.active_profile && typeof playlist.active_profile.value !== 'undefined'
 	}
 }
