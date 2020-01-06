@@ -165,16 +165,22 @@ ${entries}
 		return elementNames.concat(elementsRefs)
 	}
 
-	async activate (load?: boolean): Promise<CommandResult> {
+	async activate (load?: boolean, initShow: boolean = true): Promise<CommandResult> {
 		// let playlist = await this.mse.getPlaylist(this.playlist)
 		// if (!playlist.active_profile.value) {
 		if (load) {
 			await this.msehttp.initializePlaylist(this.playlist)
 		}
+		if (initShow) {
+			await this.msehttp.initializeShow(this.show)
+		}
 		return this.msehttp.initializePlaylist(this.playlist)
 	}
 
-	deactivate (): Promise<CommandResult> {
+	async deactivate (cleanupShow: boolean = true): Promise<CommandResult> {
+		if (cleanupShow) {
+			await this.msehttp.cleanupShow(this.show)
+		}
 		return this.msehttp.cleanupPlaylist(this.playlist)
 	}
 
