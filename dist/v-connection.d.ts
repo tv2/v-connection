@@ -214,18 +214,20 @@ export interface VRundown {
     /**
      *  Activate a rundown, causing all initialisations to be run prior to the
      *  execution of a rundown.
-     *  @param load Trigger the activation twice, which causes all external
-     *              graphical elements to start loading.
+     *  @param load     Trigger the activation twice, which causes all external
+     *                  graphical elements to start loading.
+     *  @param initShow Also initialize the show. This defaults to `true`.
      *  @returns Resolves on successful rundown activation.
      */
-    activate(load?: boolean): Promise<CommandResult>;
+    activate(load?: boolean, initShow?: boolean): Promise<CommandResult>;
     /**
      *  Deactivate a rundown, cleaning up any transient elements associated with
      *  the rundown from the VDOM tree. Those XML elements required for post-rundown
      *  analysis will remain.
+     *  @param cleanupShow Also cleanup the associated show. The default is true.
      *  @result Resolves on successful rundown deactivation.
      */
-    deactivate(): Promise<CommandResult>;
+    deactivate(cleanupShow?: boolean): Promise<CommandResult>;
     /**
      *  Cleanup the show and all associated renderers. This may be necessary if the
      *  state of the VizEngine is in a bad or in some way out of step with the automation

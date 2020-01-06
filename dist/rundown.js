@@ -155,15 +155,21 @@ ${entries}
             }) : [];
         return elementNames.concat(elementsRefs);
     }
-    async activate(load) {
+    async activate(load, initShow = true) {
         // let playlist = await this.mse.getPlaylist(this.playlist)
         // if (!playlist.active_profile.value) {
         if (load) {
             await this.msehttp.initializePlaylist(this.playlist);
         }
+        if (initShow) {
+            await this.msehttp.initializeShow(this.show);
+        }
         return this.msehttp.initializePlaylist(this.playlist);
     }
-    deactivate() {
+    async deactivate(cleanupShow = true) {
+        if (cleanupShow) {
+            await this.msehttp.cleanupShow(this.show);
+        }
         return this.msehttp.cleanupPlaylist(this.playlist);
     }
     cleanup() {

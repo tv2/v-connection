@@ -112,6 +112,9 @@ class MSEHTTP {
     initializePlaylist(playlistID) {
         return this.command('initialize', `/storage/playlists/{${playlistID}}`);
     }
+    initializeShow(showID) {
+        return this.command('initialize', `/storage/shows/{${showID}}`);
+    }
     cleanupPlaylist(playlistID) {
         return this.command('cleanup', `/storage/playlists/{${playlistID}}`);
     }
