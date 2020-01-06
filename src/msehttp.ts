@@ -138,7 +138,7 @@ export interface HttpMSEClient {
 	 */
 	continueReverse (ref: string): Promise<CommandResult>
 	/**
-	 *  Initialize the playlist with the given identifier.
+	 *  Initialize and activate the playlist with the given identifier.
 	 *  Activating a playlist causes any associated exterrnal elements to be built
 	 *  and maintained within the MSE.
 	 *  @param playlistID Identifier of the playlist to initialize and activate. Normally,
@@ -147,6 +147,16 @@ export interface HttpMSEClient {
 	 *           scheduled. Note that this is not when the playlist becomes active.
 	 */
 	initializePlaylist (playlistID: string): Promise<CommandResult>
+	/**
+	 *  Initialize and activate the show with the given identifier.
+	 *  Activating a show causes associated resources to load onto the engines
+	 *  associated with the active profile.
+	 *  @param showID Identifier of the show to initialize and activate. Normally,
+	 *                this is a UUID value not enclosed in curly braces.
+	 *  @returns Resolves if the show initialization and activation has been
+	 *           scheduled. Note that this is not when the playlist becomes active.
+	 */
+	initializeShow (showID: string): Promise<CommandResult>
 	/**
 	 *  Cleanup the playlist with the given identifier.
 	 *  Deactivating a playlist will stop the active maintenance of its referenced
@@ -273,6 +283,10 @@ class MSEHTTP implements HttpMSEClient {
 
 	initializePlaylist (playlistID: string): Promise<CommandResult> {
 		return this.command('initialize', `/storage/playlists/{${playlistID}}`)
+	}
+
+	initializeShow (showID: string): Promise<CommandResult> {
+		return this.command('initialize', `/storage/shows/{${showID}}`)
 	}
 
 	cleanupPlaylist (playlistID: string): Promise<CommandResult> {
