@@ -212,14 +212,20 @@ export interface VRundown {
      */
     initialize(elementName: number): Promise<CommandResult>;
     /**
-     *  Activate a rundown, causing all initialisations to be run prior to the
-     *  execution of a rundown.
-     *  @param load     Trigger the activation twice, which causes all external
-     *                  graphical elements to start loading.
-     *  @param initShow Also initialize the show. This defaults to `true`.
-     *  @returns Resolves on successful rundown activation.
+     *  Activate a rundown, causing all initialisations to be requested prior to
+     *  the execution of a rundown. Note that experimentation has shown that it
+     *  can be necessary to call this method a couple of times, spaces a few seconds
+     *  apart.
+     *  @param twice        Trigger the activations twice, which may cause
+     *                      graphical elements to start loading.
+     *  @param initShow     Initialize the show containing internal elements. This
+     *                      defaults to `true`.
+     *  @param initPlaylist Initialize the playlist containing external elements.
+     *                      This defaults to `true`.
+     *  @returns Resolves on successful rundown activation. Rejects if any step
+     *           fails.
      */
-    activate(load?: boolean, initShow?: boolean): Promise<CommandResult>;
+    activate(twice?: boolean, initShow?: boolean): Promise<CommandResult>;
     /**
      *  Deactivate a rundown, cleaning up any transient elements associated with
      *  the rundown from the VDOM tree. Those XML elements required for post-rundown

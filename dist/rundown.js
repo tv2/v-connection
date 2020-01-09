@@ -155,16 +155,25 @@ ${entries}
             }) : [];
         return elementNames.concat(elementsRefs);
     }
-    async activate(load, initShow = true) {
-        // let playlist = await this.mse.getPlaylist(this.playlist)
-        // if (!playlist.active_profile.value) {
-        if (load) {
-            await this.msehttp.initializePlaylist(this.playlist);
+    async activate(twice, initShow = true, initPlaylist = true) {
+        let result = {
+            path: '/',
+            status: 200,
+            response: 'No commands to run.'
+        };
+        if (twice && initShow) {
+            result = await this.msehttp.initializeShow(this.show);
+        }
+        if (twice && initPlaylist) {
+            result = await this.msehttp.initializePlaylist(this.playlist);
         }
         if (initShow) {
-            await this.msehttp.initializeShow(this.show);
+            result = await this.msehttp.initializeShow(this.show);
         }
-        return this.msehttp.initializePlaylist(this.playlist);
+        if (initPlaylist) {
+            result = await this.msehttp.initializePlaylist(this.playlist);
+        }
+        return result;
     }
     async deactivate(cleanupShow = true) {
         if (cleanupShow) {

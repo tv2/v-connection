@@ -19,7 +19,7 @@ export declare class Rundown implements VRundown {
     createElement(templateName: string, elementName: string, textFields: string[], channel?: string): Promise<InternalElement>;
     createElement(vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>;
     listElements(): Promise<Array<string | number>>;
-    activate(load?: boolean, initShow?: boolean): Promise<CommandResult>;
+    activate(twice?: boolean, initShow?: boolean, initPlaylist?: boolean): Promise<CommandResult>;
     deactivate(cleanupShow?: boolean): Promise<CommandResult>;
     cleanup(): Promise<CommandResult>;
     deleteElement(elementName: string | number): Promise<PepResponse>;
