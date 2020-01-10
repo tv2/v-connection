@@ -237,7 +237,7 @@ export interface VRundown {
 	 *  @returns Resolves on successful rundown activation. Rejects if any step
 	 *           fails.
 	 */
-	activate (twice?: boolean, initShow?: boolean): Promise<CommandResult>
+	activate (twice?: boolean, initShow?: boolean, initPlaylist?: boolean): Promise<CommandResult>
 	/**
 	 *  Deactivate a rundown, cleaning up any transient elements associated with
 	 *  the rundown from the VDOM tree. Those XML elements required for post-rundown
