@@ -114,7 +114,7 @@
     "@types/ws": "^6.0.3",
     "@types/xml2js": "^0.4.5",
     "@types/yargs": "^13.0.3",
-    "codecov": "^3.6.1",
+    "codecov": "^3.6.5",
     "gh-pages": "^2.1.1",
     "jest": "^24.9.0",
     "jest-haste-map": "^24.9.0",
