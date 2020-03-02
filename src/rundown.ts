@@ -114,8 +114,9 @@ export class Rundown implements VRundown {
 					data[fieldNames[x]] = aliasOrTextFields[x] ? aliasOrTextFields[x] : ''
 				}
 			}
+			let vizProgram = channel ? ` viz_program="${channel}"` : ''
 			await this.pep.insert(`/storage/shows/{${this.show}}/elements/${elementNameOrChannel}`,
-`<element name="${elementNameOrChannel}" guid="${uuid.v4()}" updated="${(new Date()).toISOString()}" creator="Sofie">
+`<element name="${elementNameOrChannel}" guid="${uuid.v4()}" updated="${(new Date()).toISOString()}" creator="Sofie" ${vizProgram}>
   <ref name="master_template">/storage/shows/{${this.show}}/mastertemplates/${nameOrID}</ref>
   <entry name="default_alternatives"/>
   <entry name="data">
