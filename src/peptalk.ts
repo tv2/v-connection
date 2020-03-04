@@ -534,6 +534,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			})
 			ws.once('close', () => {
 				this.ws = Promise.resolve(null)
+				this.connect()
 			})
 		})
 
