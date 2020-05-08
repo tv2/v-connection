@@ -294,11 +294,17 @@ export interface VProfile extends FlatEntry {
 	// TODO add other profile details
 	// handlers
 	// playlist_state
-	// execution_groups
+	execution_groups: {
+		[group: string]: VExecutionGroup
+	}
 	// cursorstate
 	// cursors - element - gui
 	// program - vix - video
 	// directory
+}
+
+export interface VExecutionGroup extends FlatEntry {
+	allocate?: string
 }
 
 /**
