@@ -24,6 +24,27 @@ let entryListXML = `<entry name="program">
   </entry>
 </entry>`
 
+let executionGroupsXML = `<entry name="execution_groups">
+  <entry allocate="false" name="OVL">
+    <entry>
+      <entry name="viz">background_d</entry>
+    </entry>
+    <entry>
+      <entry name="viz">background_e</entry>
+    </entry>
+  </entry>
+  <entry allocate="false" name="FULL">
+    <entry>
+      <entry name="viz">background_d</entry>
+    </entry>
+  </entry>
+  <entry allocate="false" name="WALL">
+    <entry name="entry#2">
+      <entry name="viz">background_f</entry>
+    </entry>
+  </entry>
+</entry>`
+
 describe('Roundtrip XML', () => {
 
 	test('Roundtrip a VizEngine entry', async () => {
@@ -38,6 +59,13 @@ describe('Roundtrip XML', () => {
 		let flat = await flattenEntry(fromXML.entry)
 		let fat = entry2XML(flat)
 		expect(buildXML(fat)).toBe(entryListXML)
+	})
+
+	test('Roundtrip Execution Groups', async () => {
+		let fromXML = await Xml2JS.parseStringPromise(executionGroupsXML)
+		let flat = await flattenEntry(fromXML.entry)
+		let fat = entry2XML(flat)
+		expect(buildXML(fat)).toBe(executionGroupsXML)
 	})
 })
 

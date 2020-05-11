@@ -52,9 +52,10 @@ export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
 	}
 	// MSE uses entries with nested sub-entries. Not Atom-compliant, but fairly consistent
 	if (x.entry && Array.isArray(x.entry)) {
+		let unnamedCount = 0
 		for (let e of x.entry) {
 			if (typeof e === 'object') {
-				if (e.$) {
+				if (e.$ && e.$.name) {
 					if (e.$.name === 'model_xml') {
 						try {
 							y[e.$.name] = e._ ? await Xml2JS.parseStringPromise(e._) : ''
@@ -66,7 +67,7 @@ export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
 					}
 					delete y[e.$.name].name
 				} else {
-					y.entry = await flattenEntry(e)
+					y[`_entry#${unnamedCount++}`] = await flattenEntry(e)
 				}
 			} else {
 				if (!y.value) { y = { value: [] } }
@@ -127,7 +128,12 @@ export function entry2XML (x: FlatEntry): AtomEntry {
 		if (typeof x[a] === 'object') {
 			let e = entry2XML(x[a] as FlatEntry)
 			// console.log('EEE >>>', a, x[a], e)
-			e.$.name = a
+			if (!a.startsWith('_')) {
+				e.$.name = a
+			}
+			if (e.$.value && e.$.key) {
+				delete e.$.key
+			}
 			if (e.entry && e.$.value && Array.isArray(e.entry) && e.entry.length === 0) {
 				e._ = e.$.value
 				delete e.$.value
