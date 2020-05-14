@@ -61,7 +61,7 @@ class MSERep extends events_1.EventEmitter {
     async getEngines() {
         await this.checkConnection();
         let handlers = await this.pep.getJS('/scheduler');
-        let vizEntries = handlers.js.scheduler.handler
+        let vizEntries = handlers.js.entry.handler
             .filter((x) => x.$.type === 'viz');
         let viz = await Promise.all(vizEntries.map(x => xml_1.flattenEntry(x)));
         return viz;

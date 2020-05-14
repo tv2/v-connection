@@ -283,6 +283,12 @@ export interface VizEngine extends FlatEntry {
 export interface VProfile extends FlatEntry {
     /** Name of the profile, used as the target of commands. */
     name: string;
+    execution_groups: {
+        [group: string]: VExecutionGroup;
+    };
+}
+export interface VExecutionGroup extends FlatEntry {
+    allocate?: string;
 }
 /**
  *  Representation of a MSE show.

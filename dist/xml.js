@@ -29,20 +29,26 @@ async function flattenEntry(x) {
     }
     // MSE uses entries with nested sub-entries. Not Atom-compliant, but fairly consistent
     if (x.entry && Array.isArray(x.entry)) {
+        let unnamedCount = 0;
         for (let e of x.entry) {
             if (typeof e === 'object') {
-                if (e.$.name === 'model_xml') {
-                    try {
-                        y[e.$.name] = e._ ? await Xml2JS.parseStringPromise(e._) : '';
+                if (e.$ && e.$.name) {
+                    if (e.$.name === 'model_xml') {
+                        try {
+                            y[e.$.name] = e._ ? await Xml2JS.parseStringPromise(e._) : '';
+                        }
+                        catch (err) {
+                            y[e.$.name] = e._;
+                        }
                     }
-                    catch (err) {
-                        y[e.$.name] = e._;
+                    else {
+                        y[e.$.name] = await flattenEntry(e);
                     }
+                    delete y[e.$.name].name;
                 }
                 else {
-                    y[e.$.name] = await flattenEntry(e);
+                    y[`_entry#${unnamedCount++}`] = await flattenEntry(e);
                 }
-                delete y[e.$.name].name;
             }
             else {
                 if (!y.value) {
@@ -109,7 +115,12 @@ function entry2XML(x) {
         if (typeof x[a] === 'object') {
             let e = entry2XML(x[a]);
             // console.log('EEE >>>', a, x[a], e)
-            e.$.name = a;
+            if (!a.startsWith('_')) {
+                e.$.name = a;
+            }
+            if (e.$.value && e.$.key) {
+                delete e.$.key;
+            }
             if (e.entry && e.$.value && Array.isArray(e.entry) && e.entry.length === 0) {
                 e._ = e.$.value;
                 delete e.$.value;
