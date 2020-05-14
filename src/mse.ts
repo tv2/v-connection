@@ -77,7 +77,7 @@ export class MSERep extends EventEmitter implements MSE {
 	async getEngines (): Promise<VizEngine[]> {
 		await this.checkConnection()
 		let handlers = await this.pep.getJS('/scheduler')
-		let vizEntries: AtomEntry[] = (handlers.js as any).scheduler.handler
+		let vizEntries: AtomEntry[] = (handlers.js as any).entry.handler
 			.filter((x: any) => x.$.type === 'viz')
 		let viz = await Promise.all(vizEntries.map(x => flattenEntry(x)))
 		return viz as VizEngine[]
