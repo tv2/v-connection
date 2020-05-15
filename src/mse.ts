@@ -17,6 +17,8 @@ export class MSERep extends EventEmitter implements MSE {
 	private pep: PepTalkClient & PepTalkJS
 	private connection?: Promise<PepResponse> = undefined
 
+	private isAwaitingConnection: boolean = false
+
 	constructor (hostname: string, restPort?: number, wsPort?: number, resthost?: string) {
 		super()
 		this.hostname = hostname
@@ -24,19 +26,27 @@ export class MSERep extends EventEmitter implements MSE {
 		this.wsPort = typeof wsPort === 'number' && wsPort > 0 ? wsPort : 8595
 		this.resthost = resthost // For ngrok testing only
 		this.pep = startPepTalk(this.hostname, this.wsPort)
+		this.pep.on('close', async () => {
+			if (this.connection && !this.isAwaitingConnection) {
+				this.connection = this.pep.connect()
+			}
+		})
 		this.connection = this.pep.connect()
 	}
 
 	async checkConnection () {
 		try {
 			if (this.connection) {
+				this.isAwaitingConnection = true
 				await this.connection
+				this.isAwaitingConnection = false
 			} else {
 				this.connection = this.pep.connect()
 				throw new Error('Attempt to connect to PepTalk server failed. Retrying.')
 			}
 		} catch (err) {
 			this.connection = this.pep.connect()
+			this.isAwaitingConnection = false
 			throw err
 		}
 	}

@@ -321,6 +321,8 @@ export interface PepTalkClient extends EventEmitter {
 	on (event: 'message', listener: (info: PepResponse) => void): this
 	/** Add a listener for all error messages from the server. */
 	on (event: 'error', listener: (err: PepError) => void): this
+	/** Add a listener for close event of the websocket connection. */
+	on (event: 'close', listener: () => void): this
 	// emit (event: 'message', info: PepResponse): boolean
 	// emit (event: 'error', error: PepError): boolean
 	emit (event: 'message', res: PepResponse): boolean
@@ -534,7 +536,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			})
 			ws.once('close', () => {
 				this.ws = Promise.resolve(null)
-				this.connect()
+				this.emit('close')
 			})
 		})
 
