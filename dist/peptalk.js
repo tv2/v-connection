@@ -266,7 +266,7 @@ class PepTalk extends events_1.EventEmitter {
             });
             ws.once('close', () => {
                 this.ws = Promise.resolve(null);
-                this.connect();
+                this.emit('close');
             });
         });
         return this.send(noevents ? 'protocol peptalk noevents' : 'protocol peptalk');
