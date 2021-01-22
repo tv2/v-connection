@@ -1,145 +1,158 @@
 {
-  "name": "v-connection",
-  "version": "0.0.1",
-  "description": "Sofie TV Automation Vizrt Media Sequencer Engine connection library",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/olzzon/v-connection.git"
-  },
-  "keywords": [
-    "broadcast",
-    "graphics",
-    "Vizrt",
-    "automation",
-    "production",
-    "open",
-    "source"
-  ],
-  "contributors": [
-    {
-      "name": "Johan Nyman",
-      "email": "johan@superfly.tv",
-      "url": "http://superfly.tv"
-    },
-    {
-      "name": "Richard Cartwright",
-      "email": "spark@superfly.tv",
-      "url": "https://superfly.tv"
-    }
-  ],
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/olzzon/v-connection/issues"
-  },
-  "scripts": {
-    "info": "npm-scripts-info",
-    "cleancache": "yarn cache clean atem-connection atem-state casparcg-connection casparcg-state superfly-timeline",
-    "unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
-    "installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
-    "buildclean": "yarn installclean && yarn build",
-    "build": "rimraf dist && yarn build:main",
-    "buildtest": "yarn build && jest",
-    "build:main": "tsc -p tsconfig.json",
-    "lint": "tslint --project tsconfig.jest.json --config tslint.json",
-    "unitci": "jest",
-    "unit": "jest",
-    "testci": "yarn test",
-    "test": "yarn lint && yarn build && yarn unit",
-    "test:integration": "yarn lint && jest --config=jest-integration.config.js",
-    "watch": "jest --watch",
-    "cov": "jest --coverage; open-cli coverage/lcov-report/index.html",
-    "cov-open": "open-cli coverage/lcov-report/index.html",
-    "send-coverage": "yarn testci && codecov",
-    "docs": "yarn docs:html && open-cli docs/index.html",
-    "docs:test": "yarn docs:html",
-    "docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
-    "docs:json": "typedoc --mode file --json docs/typedoc.json src/index.ts",
-    "docs:publish": "yarn docs:html && gh-pages -d docs",
-    "changelog": "standard-version",
-    "release": "yarn reset && yarn testci && yarn docs:publish && yarn changelog",
-    "prepareChangelog": "standard-version --prerelease",
-    "reset": "git clean -dfx && git reset --hard && yarn",
-    "ci": "yarn testci",
-    "validate:dependencies": "yarn audit && yarn license-validate",
-    "license-validate": "node-license-validator -p -d --allow-licenses MIT BSD BSD-2-Clause BSD-3-Clause ISC Apache Unlicense WTFPL --allow-packages cycle"
-  },
-  "scripts-info": {
-    "info": "Display information about the scripts",
-    "installclean": "Remove yarn.lock, cleare yarn cache, and reinstall",
-    "build": "(Trash and re)build the library",
-    "build:main": "Builds main build command without trash.",
-    "lint": "Lint all typescript source files",
-    "unit": "Build the library and run unit tests",
-    "test": "Lint, build, and test the library",
-    "test:integration": "Integration tests. Work in progress",
-    "watch": "Watch source files, rebuild library on changes, rerun relevant tests",
-    "cov": "Run tests, generate the HTML coverage report, and open it in a browser",
-    "cov-open": "Open current test coverage",
-    "send-coverage": "send coverage to codecov",
-    "docs": "Generate HTML API documentation and open it in a browser",
-    "docs:test": "Running the docs generation for testing.",
-    "docs:html": "Generate HTML documentation",
-    "docs:json": "Generate API documentation in typedoc JSON format",
-    "docs:publish": "Generate HTML API documentation and push it to GitHub Pages",
-    "changelog": "Bump package.json version, update CHANGELOG.md, tag a release",
-    "release": "Clean, build, test, publish docs, and prepare release (a one-step publish process). Updates versions and creates git commits.",
-    "reset": "Delete all untracked files and reset the repo to the last commit",
-    "ci": "Test script for running by the CI (CircleCI)",
-    "validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
-    "license-validate": "Validate licenses for dependencies.",
-    "watch-server": "Run HTTP server and restart when changes are made."
-  },
-  "engines": {
-    "node": ">=10.10"
-  },
-  "files": [
-    "/dist",
-    "/CHANGELOG.md",
-    "/README.md",
-    "/LICENSE"
-  ],
-  "dependencies": {
-    "request": "^2.88.2",
-    "request-promise-native": "^1.0.9",
-    "uuid": "^8.3.2",
-    "ws": "^7.4.2",
-    "xml2js": "^0.4.23"
-  },
-  "devDependencies": {
-    "@types/jest": "^26.0.20",
-    "@types/koa": "^2.11.6",
-    "@types/koa-bodyparser": "^4.3.0",
-    "@types/node": "^12.19.15",
-    "@types/request": "^2.48.5",
-    "@types/request-promise-native": "^1.0.17",
-    "@types/uuid": "^8.3.0",
-    "@types/ws": "^7.4.0",
-    "@types/xml2js": "^0.4.8",
-    "@types/yargs": "^15.0.12",
-    "codecov": "^3.8.1",
-    "gh-pages": "^3.1.0",
-    "jest": "^26.6.3",
-    "jest-haste-map": "^26.6.2",
-    "jest-resolve": "^26.6.2",
-    "koa": "^2.13.1",
-    "koa-bodyparser": "^4.3.0",
-    "node-license-validator": "^1.3.0",
-    "npm-scripts-info": "^0.3.9",
-    "open-cli": "^6.0.1",
-    "rimraf": "^3.0.2",
-    "standard-version": "^9.1.0",
-    "ts-jest": "^26.4.4",
-    "ts-node": "^9.1.1",
-    "tslint": "^5.20.0",
-    "tslint-config-standard": "^8.0.1",
-    "typedoc": "^0.20.16",
-    "typescript": "~4.0",
-    "yargs": "^16.2.0"
-  },
-  "standard-version": {
-    "message": "chore(release): %s [skip ci]",
-    "tagPrefix": ""
-  }
+	"name": "v-connection",
+	"version": "0.0.1",
+	"description": "Sofie TV Automation Vizrt Media Sequencer Engine connection library",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/olzzon/v-connection.git"
+	},
+	"keywords": [
+		"broadcast",
+		"graphics",
+		"Vizrt",
+		"automation",
+		"production",
+		"open",
+		"source"
+	],
+	"contributors": [
+		{
+			"name": "Johan Nyman",
+			"email": "johan@superfly.tv",
+			"url": "http://superfly.tv"
+		},
+		{
+			"name": "Richard Cartwright",
+			"email": "spark@superfly.tv",
+			"url": "https://superfly.tv"
+		}
+	],
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/olzzon/v-connection/issues"
+	},
+	"scripts": {
+		"info": "npm-scripts-info",
+		"cleancache": "yarn cache clean atem-connection atem-state casparcg-connection casparcg-state superfly-timeline",
+		"unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
+		"installclean": "yarn unlink:all & yarn cleancache && yarn --check-files",
+		"buildclean": "yarn installclean && yarn build",
+		"build": "rimraf dist && yarn build:main",
+		"buildtest": "yarn build && jest",
+		"build:main": "tsc -p tsconfig.build.json",
+		"lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint-fix": "yarn lint --fix",
+		"unitci": "jest",
+		"unit": "jest",
+		"testci": "yarn test",
+		"test": "yarn lint && yarn build && yarn unit",
+		"test:integration": "yarn lint && jest --config=jest-integration.config.js",
+		"watch": "jest --watch",
+		"cov": "jest --coverage; open-cli coverage/lcov-report/index.html",
+		"cov-open": "open-cli coverage/lcov-report/index.html",
+		"send-coverage": "yarn testci && codecov",
+		"docs": "yarn docs:html && open-cli docs/index.html",
+		"docs:test": "yarn docs:html",
+		"docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
+		"docs:json": "typedoc --mode file --json docs/typedoc.json src/index.ts",
+		"docs:publish": "yarn docs:html && gh-pages -d docs",
+		"changelog": "standard-version",
+		"release": "yarn reset && yarn testci && yarn docs:publish && yarn changelog",
+		"prepareChangelog": "standard-version --prerelease",
+		"reset": "git clean -dfx && git reset --hard && yarn",
+		"ci": "yarn testci",
+		"validate:dependencies": "yarn audit && yarn license-validate",
+		"license-validate": "yarn sofie-licensecheck"
+	},
+	"scripts-info": {
+		"info": "Display information about the scripts",
+		"installclean": "Remove yarn.lock, cleare yarn cache, and reinstall",
+		"build": "(Trash and re)build the library",
+		"build:main": "Builds main build command without trash.",
+		"lint": "Lint all typescript source files",
+		"unit": "Build the library and run unit tests",
+		"test": "Lint, build, and test the library",
+		"test:integration": "Integration tests. Work in progress",
+		"watch": "Watch source files, rebuild library on changes, rerun relevant tests",
+		"cov": "Run tests, generate the HTML coverage report, and open it in a browser",
+		"cov-open": "Open current test coverage",
+		"send-coverage": "send coverage to codecov",
+		"docs": "Generate HTML API documentation and open it in a browser",
+		"docs:test": "Running the docs generation for testing.",
+		"docs:html": "Generate HTML documentation",
+		"docs:json": "Generate API documentation in typedoc JSON format",
+		"docs:publish": "Generate HTML API documentation and push it to GitHub Pages",
+		"changelog": "Bump package.json version, update CHANGELOG.md, tag a release",
+		"release": "Clean, build, test, publish docs, and prepare release (a one-step publish process). Updates versions and creates git commits.",
+		"reset": "Delete all untracked files and reset the repo to the last commit",
+		"ci": "Test script for running by the CI (CircleCI)",
+		"validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
+		"license-validate": "Validate licenses for dependencies.",
+		"watch-server": "Run HTTP server and restart when changes are made."
+	},
+	"engines": {
+		"node": ">=10.10"
+	},
+	"prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
+	"husky": {
+		"hooks": {
+			"pre-commit": "lint-staged"
+		}
+	},
+	"lint-staged": {
+		"*.{css,json,md,scss}": [
+			"prettier --write"
+		],
+		"*.{ts,tsx,js,jsx}": [
+			"yarn lint-fix"
+		]
+	},
+	"files": [
+		"/dist",
+		"/CHANGELOG.md",
+		"/README.md",
+		"/LICENSE"
+	],
+	"dependencies": {
+		"request": "^2.88.2",
+		"request-promise-native": "^1.0.9",
+		"uuid": "^8.3.2",
+		"ws": "^7.4.2",
+		"xml2js": "^0.4.23"
+	},
+	"devDependencies": {
+		"@sofie-automation/code-standard-preset": "^0.2.2",
+		"@types/jest": "^26.0.20",
+		"@types/koa": "^2.11.6",
+		"@types/koa-bodyparser": "^4.3.0",
+		"@types/node": "^12.19.15",
+		"@types/request": "^2.48.5",
+		"@types/request-promise-native": "^1.0.17",
+		"@types/uuid": "^8.3.0",
+		"@types/ws": "^7.4.0",
+		"@types/xml2js": "^0.4.8",
+		"@types/yargs": "^15.0.12",
+		"codecov": "^3.8.1",
+		"gh-pages": "^3.1.0",
+		"jest": "^26.6.3",
+		"jest-haste-map": "^26.6.2",
+		"jest-resolve": "^26.6.2",
+		"koa": "^2.13.1",
+		"koa-bodyparser": "^4.3.0",
+		"npm-scripts-info": "^0.3.9",
+		"open-cli": "^6.0.1",
+		"rimraf": "^3.0.2",
+		"standard-version": "^9.1.0",
+		"ts-jest": "^26.4.4",
+		"ts-node": "^9.1.1",
+		"typedoc": "^0.20.16",
+		"typescript": "~4.0",
+		"yargs": "^16.2.0"
+	},
+	"standard-version": {
+		"message": "chore(release): %s [skip ci]",
+		"tagPrefix": ""
+	}
 }

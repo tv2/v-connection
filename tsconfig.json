@@ -1,18 +1,8 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2017",
-    "noImplicitAny": true,
-    "outDir": "./dist",
-    "sourceMap": true
-  },
-  "extends": "./config/tsconfig.base",
-  "include": [
-    "./src/**/*"
-, "scratch"  ],
-  "exclude": [
-    "node_modules/**",
-    "src/**/*spec.ts",
-    "src/**/__mocks__/*"
-  ]
+	"extends": "./tsconfig.build.json",
+	"exclude": ["node_modules/**"],
+	"compilerOptions": {
+		"types": ["jest", "node"]
+	},
+	"include": ["src/**/*.ts", "scratch/**/*.ts"]
 }
