@@ -63,7 +63,7 @@ export interface IPepError extends Error, PepMessage {
 }
 
 export function isIPepError(err: Error): err is IPepError {
-	return err.hasOwnProperty('status')
+	return Object.prototype.hasOwnProperty.call(err, 'status')
 }
 
 class PepError extends Error implements IPepError {
@@ -161,6 +161,7 @@ export class UnspecifiedError extends PepError implements IUnspecifiedError {
 	readonly status: 'unspecified' = 'unspecified'
 	constructor(id: number | '*', description: string, sent?: string) {
 		super('unspecified', id, description, sent)
+		this.description = description
 	}
 }
 
@@ -329,7 +330,7 @@ export interface PepTalkClient extends EventEmitter {
 /** [[PepResponse]] with additional Javascript representation. */
 export interface PepResponseJS extends PepResponse {
 	/** Javascript representation of the response [[body]]. */
-	js: Object
+	js: Record<string, unknown>
 }
 
 /**

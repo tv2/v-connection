@@ -25,16 +25,16 @@ webby.on('message', (m) => console.log('message1:', m))
 
 webby2.on('message', (m) => console.log('message2:', m))
 
-let state =
-	'STATE_<entry name="LOWER">\n' +
-	'    <entry name="object">TV2/PILOT_TEMPLATES/SPORT/OL2016/overlays/Bund</entry>\n' +
-	'    <entry name="location">$object</entry>\n' +
-	'    <entry name="state">IN</entry>\n' +
-	'    <entry name="data">\n' +
-	'        <entry name="20">Fred Flintstone</entry>\n' +
-	'        <entry name="21">Sofie Developer</entry>\n' +
-	'    </entry>\n' +
-	'</entry>\n'
+// let state =
+// 	'STATE_<entry name="LOWER">\n' +
+// 	'    <entry name="object">TV2/PILOT_TEMPLATES/SPORT/OL2016/overlays/Bund</entry>\n' +
+// 	'    <entry name="location">$object</entry>\n' +
+// 	'    <entry name="state">IN</entry>\n' +
+// 	'    <entry name="data">\n' +
+// 	'        <entry name="20">Fred Flintstone</entry>\n' +
+// 	'        <entry name="21">Sofie Developer</entry>\n' +
+// 	'    </entry>\n' +
+// 	'</entry>\n'
 
 // setTimeout(() => {
 //   // webby.send('2 set attribute {112}/storage/shows/{239F365A-5671-43F3-AD44-D44EB7C4F206}/elements/100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0 status prequeue\n\n')

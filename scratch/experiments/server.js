@@ -1,5 +1,4 @@
 const koa = require('koa')
-const xml2js = require('xml2js')
 const ws = require('ws')
 const app = new koa()
 
@@ -14,7 +13,7 @@ webby.on('open', () => {
 
 async function getMessage(c) {
 	let begin = false
-	let ok = false
+	// let ok = false
 	let text = []
 	return new Promise((resolve, reject) => {
 		function processMessage(m) {
@@ -31,7 +30,7 @@ async function getMessage(c) {
 					return
 				}
 				if (begin && m.indexOf('ok') >= 0) {
-					ok = true
+					// ok = true
 					resolve(text)
 					return
 				}

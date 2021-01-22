@@ -51,7 +51,7 @@ export class Rundown implements VRundown {
 
 	private async buildChannelMap(vcpid?: number): Promise<boolean> {
 		if (typeof vcpid === 'number') {
-			if (this.channelMap.hasOwnProperty(vcpid)) {
+			if (Object.prototype.hasOwnProperty.call(this.channelMap, vcpid)) {
 				return true
 			}
 		}
@@ -63,17 +63,23 @@ export class Rundown implements VRundown {
 				if (element.channel) {
 					this.channelMap[e] = {
 						channelName: element.channel,
-						refName: element.hasOwnProperty('name') && typeof element.name === 'string' ? element.name : 'ref',
+						refName:
+							Object.prototype.hasOwnProperty.call(element, 'name') && typeof element.name === 'string'
+								? element.name
+								: 'ref',
 					}
 				} else {
 					this.channelMap[e] = {
 						channelName: null,
-						refName: element.hasOwnProperty('name') && typeof element.name === 'string' ? element.name : 'ref',
+						refName:
+							Object.prototype.hasOwnProperty.call(element, 'name') && typeof element.name === 'string'
+								? element.name
+								: 'ref',
 					}
 				}
 			}
 		}
-		return typeof vcpid === 'number' ? this.channelMap.hasOwnProperty(vcpid) : false
+		return typeof vcpid === 'number' ? Object.prototype.hasOwnProperty.call(this.channelMap, vcpid) : false
 	}
 
 	private ref(id: number): string {
@@ -124,9 +130,9 @@ export class Rundown implements VRundown {
 			// console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
 			let fielddef
 			if (
-				template.hasOwnProperty('model_xml') &&
+				Object.prototype.hasOwnProperty.call(template, 'model_xml') &&
 				typeof template.model_xml === 'object' &&
-				template.model_xml.hasOwnProperty('model') &&
+				Object.prototype.hasOwnProperty.call(template.model_xml, 'model') &&
 				typeof template.model_xml.model === 'object'
 			) {
 				fielddef = (template as any).model_xml.model.schema[0].fielddef
@@ -169,8 +175,7 @@ ${entries}
 				channel,
 			} as InternalElement
 		}
-		// @ts-ignore
-		if ((typeof nameOrID as any) === 'number') {
+		if (typeof nameOrID === 'number') {
 			const vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : ''
 			const { body: path } = await this.pep.insert(
 				`/storage/playlists/{${this.playlist}}/elements/`,

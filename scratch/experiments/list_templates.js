@@ -1,4 +1,3 @@
-const request = require('request-promise-native')
 const ws = require('ws')
 const xml2js = require('xml2js')
 

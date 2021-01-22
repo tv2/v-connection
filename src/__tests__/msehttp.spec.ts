@@ -81,7 +81,7 @@ describe('MSE HTTP library when happy', () => {
 			}
 		})
 
-		await new Promise((resolve, _reject) => {
+		await new Promise<void>((resolve, _reject) => {
 			server = app.listen(testPort, () => {
 				resolve()
 			})
@@ -245,12 +245,13 @@ describe('MSE HTTP library when happy', () => {
 	})
 
 	afterAll(async () => {
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			server.close((err) => {
 				if (err) return reject(err)
 				resolve()
 			})
 		})
+		// @ts-ignore
 		msehttp = null
 	})
 })
@@ -271,6 +272,7 @@ describe('MSE HTTP library when sad', () => {
 	})
 
 	afterAll(() => {
+		// @ts-ignore
 		msehttp = null
 	})
 })

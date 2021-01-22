@@ -65,7 +65,7 @@ Part of the REST API documentation only, a four-layer model is referred to:
 
 Note that the model can be considered as having just three layers as the element model is really just part of the master template.
 
-The details of how all these layers are applied in practice will be explored using real examples.  
+The details of how all these layers are applied in practice will be explored using real examples.
 
 ## Protocols
 
@@ -105,11 +105,11 @@ Like TreeTalk, PepTalk can be reached by Telnet on port `8594` or as a websocket
 
 Here are some contrived examples:
 
-* `42 set attribute /path/to/element {9}new value`
+- `42 set attribute /path/to/element {9}new value`
   - result on success is `42 ok`
-* `43 get /path/to/element 10` (10 is the depth of the tree - optional)
+- `43 get /path/to/element 10` (10 is the depth of the tree - optional)
   - result on success is `43` followed by XML for the element at that path
-* `44 replace /path/to/element {33}<entry name="fred">ginger</entry>`
+- `44 replace /path/to/element {33}<entry name="fred">ginger</entry>`
   - result on success is `44 ok`
 
 In experiments, it was possible to query and alter the VDOM tree using PepTalk over websockets. This seems to be a good approach to editing the data within elements and other operations in the VDOM tree. It may also be a good way to spot changes being made to the tree by third party applications as these are reported as events.
@@ -135,65 +135,68 @@ This might be an option to explore further if other approaches are unsuccessful.
 
 ### Prototyping
 
-A simple Node.js application has been written ([`cli_bund.js`](../src/scratch/cli_bund.js)) that allows interaction with the an MSE to change the text of a lower third overlay, _take-in_ the graphic, wait ten seconds and _take-out_ the graphic. This will be the basis of ongoing development, using the following modules:
+A simple Node.js application has been written ([`cli_bund.js`](../scratch/cli_bund.js)) that allows interaction with the an MSE to change the text of a lower third overlay, _take-in_ the graphic, wait ten seconds and _take-out_ the graphic. This will be the basis of ongoing development, using the following modules:
 
-* [`ws`](https://www.npmjs.com/package/ws) to connect to the MSE over webscockets with PepTalk. Used for reading and writing data and monitoring events.
-* [`request-promise-native`](https://www.npmjs.com/package/request-promise-native) to POST commands to the REST interface of the MSE.
+- [`ws`](https://www.npmjs.com/package/ws) to connect to the MSE over webscockets with PepTalk. Used for reading and writing data and monitoring events.
+- [`request-promise-native`](https://www.npmjs.com/package/request-promise-native) to POST commands to the REST interface of the MSE.
 
 So as to work with the XML structures in a Javascript-like format, the following library will be used:
 
-* [`xml2js`](https://www.npmjs.com/package/xml2js) to convert XML to Javascript Objects and to programmatically build XML elements for sending to the MSE. Using this module, it should be difficult to generate syntactically-bad XML.
+- [`xml2js`](https://www.npmjs.com/package/xml2js) to convert XML to Javascript Objects and to programmatically build XML elements for sending to the MSE. Using this module, it should be difficult to generate syntactically-bad XML.
 
 The structure of this prototype will be used as the basis of ongoing development.
 
 ### Required information
 
-This section describes information the v-connection library is likely to need to do its job. Some information may not be required depending of the agreed workflow. Questions are shown in ***bold italic***.
+This section describes information the v-connection library is likely to need to do its job. Some information may not be required depending of the agreed workflow. Questions are shown in **_bold italic_**.
 
 #### Configuration
 
 As part of its configuration, the v-connection library will need some or all of the following information:
 
-* Viz Engine host names or ip addresses and an _alias_ for making reference to their handlers. ***Does Sofie configure these handlers?*** ***Does Sofie monitor health and/or state of a Viz Engine (as well as an MSE)?***
-* A _profile_ name - Mosart used `MOSART` so Sofie should probably use `SOFIE`. ***Does Sofie create the profile?*** ***Do we set the show (`directory`) at this point?***
-* _Execution groups_ and mappings to Viz Engine aliases. Names are typically `DSK` and `FULL1` but may differ in more complex setups, e.g. large graphic walls. ***Does Sofie configure this?***
-* MSE hostname or IP address. Also, port numbers for HTTP/REST traffic (defaults to `8580`) and PepTalk over websockets (defaults to `8595`) if different from defaults.
+- Viz Engine host names or ip addresses and an _alias_ for making reference to their handlers. **_Does Sofie configure these handlers?_** **_Does Sofie monitor health and/or state of a Viz Engine (as well as an MSE)?_**
+- A _profile_ name - Mosart used `MOSART` so Sofie should probably use `SOFIE`. **_Does Sofie create the profile?_** **_Do we set the show (`directory`) at this point?_**
+- _Execution groups_ and mappings to Viz Engine aliases. Names are typically `DSK` and `FULL1` but may differ in more complex setups, e.g. large graphic walls. **_Does Sofie configure this?_**
+- MSE hostname or IP address. Also, port numbers for HTTP/REST traffic (defaults to `8580`) and PepTalk over websockets (defaults to `8595`) if different from defaults.
 
-It is assumed that the show will be loaded into MSE via another tool, such as Viz Trio. ***Is this the case?***
+It is assumed that the show will be loaded into MSE via another tool, such as Viz Trio. **_Is this the case?_**
 
 #### Per rundown
 
 ##### Initialisation
 
-Information that must be provided on the Initialisation of a rundown in a gallery prior to the first take. ***Where does this information come from upstream?***
+Information that must be provided on the Initialisation of a rundown in a gallery prior to the first take. **_Where does this information come from upstream?_**
 
-* Which show is in use? A UUID, e.g. `/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}`
-* Create a new playlist.
- - Has a UUID _name_ e.g. `{B1607743-7FD0-45D5-98EE-50C152EFB4EC}`
- - Also has a _description_ e.g. `NEWS.ON-AIR-NEWS02`
- - May contain a profile reference, e.g. `/config/profiles/SOFIE`
-* Create a show element (overlays) or playlist element (fullscreens / complex) per graphics _piece_:
+- Which show is in use? A UUID, e.g. `/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}`
+- Create a new playlist.
+
+* Has a UUID _name_ e.g. `{B1607743-7FD0-45D5-98EE-50C152EFB4EC}`
+* Also has a _description_ e.g. `NEWS.ON-AIR-NEWS02`
+* May contain a profile reference, e.g. `/config/profiles/SOFIE`
+
+- Create a show element (overlays) or playlist element (fullscreens / complex) per graphics _piece_:
   - For pilot elements:
-	  - External reference, e.g. `/external/pilotdb/elements/2236983`
- - For overlays (internal elements):
-    - Name of the master template, e.g. _Bund_, _Topt_, _Ident_.
-    - Name for the element instance, e.g. `100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_1`
-    - Initial data values according the templates `model_xml` schema. For example, for a _Bund_, `{ "name": "Richard", "title": "Coder" }` ***For templates with numbers labelling fields, should we use names or numbers here?***
+    - External reference, e.g. `/external/pilotdb/elements/2236983`
 
-Elements will need to be created and updated as the rundown changes. ***OK?***
+* For overlays (internal elements):
+  - Name of the master template, e.g. _Bund_, _Topt_, _Ident_.
+  - Name for the element instance, e.g. `100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_1`
+  - Initial data values according the templates `model_xml` schema. For example, for a _Bund_, `{ "name": "Richard", "title": "Coder" }` **_For templates with numbers labelling fields, should we use names or numbers here?_**
 
-***Should Sofie send any show/playlist initialisation commands?***
+Elements will need to be created and updated as the rundown changes. **_OK?_**
 
-Some shows require a page to be taken in then out prior to displaying elements to establish a specific style. ***How will Sofie do this?***
+**_Should Sofie send any show/playlist initialisation commands?_**
+
+Some shows require a page to be taken in then out prior to displaying elements to establish a specific style. **_How will Sofie do this?_**
 
 ##### Execution
 
 For the playout of each graphics piece, send commands where each one includes either the show (internal) or pilot (external) references:
 
-* `cue` the element just prior to the `take`
-* `take` the element to display it
-* `continue` the element to advance graphics state ***TV 2 Mosart users press the right arrow key to do this - what is the Sofie equivalent?***
-* `out` to remove the element with animation
+- `cue` the element just prior to the `take`
+- `take` the element to display it
+- `continue` the element to advance graphics state **_TV 2 Mosart users press the right arrow key to do this - what is the Sofie equivalent?_**
+- `out` to remove the element with animation
 
 Note that `cut` can be used to remove an element without the animation.
 
@@ -203,11 +206,11 @@ At the end of a segment, `take` the _ALL_OUT_ element to clear all layers.
 
 At the end of a rundown, some tidying up is required:
 
-* Remove all internal elements created in a show.
-* Clean up the playlist. ***Is this a good idea?***
-* ***Anything else? Call the show/playlist clean command?***
+- Remove all internal elements created in a show.
+- Clean up the playlist. **_Is this a good idea?_**
+- **_Anything else? Call the show/playlist clean command?_**
 
-***When should this be done? Allow time for post-rundown analysis?***
+**_When should this be done? Allow time for post-rundown analysis?_**
 
 ### State
 

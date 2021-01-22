@@ -5,7 +5,7 @@ const readFile = require('util').promisify(fs.readFile)
 let parser = new xml2js.Parser()
 
 async function run() {
-	let data = await readFile('src/scratch/experiments/master_teas.xml', 'utf8')
+	let data = await readFile('scratch/experiments/master_teas.xml', 'utf8')
 	let result = await parser.parseStringPromise(data)
 	let templates = {}
 	for (let t of result.entry.element) {

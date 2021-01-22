@@ -1,4 +1,3 @@
-const request = require('request-promise-native')
 const ws = require('ws')
 
 let webby = new ws('ws://mse_ws.ngrok.io/')

@@ -3,10 +3,10 @@ const ws = require('ws')
 
 let webby = new ws('ws://1d8dab0e.ngrok.io/')
 
-let change = `<entry name="data">
-    <entry name="20">${process.argv[2]}</entry>
-    <entry name="21">${process.argv[3]}</entry>
-</entry>`
+// let change = `<entry name="data">
+//     <entry name="20">${process.argv[2]}</entry>
+//     <entry name="21">${process.argv[3]}</entry>
+// </entry>`
 
 webby.on('open', () => {
 	console.log('Open 1')

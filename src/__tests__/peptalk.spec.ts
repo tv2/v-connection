@@ -48,7 +48,7 @@ describe('PepTalk happy', () => {
 					return ws.send(`${index} ok special ${response}\r\n`)
 				}
 				if (message.indexOf('get') >= 0) {
-					const bits = message.match(/\d+\sget\s\{\d+\}\/(\w+)\/with\/lines\/(\d)\s?(\d+)?.*/)
+					const bits = message.match(/\d+\sget\s\{\d+\}\/(\w+)\/with\/lines\/(\d)\s?(\d+)?.*/) as RegExpMatchArray
 					const depth = typeof (bits[3] as string | undefined) === 'string' ? bits[3] : '0'
 					const name = bits[1]
 					if (bits[2] === '2') {
@@ -77,11 +77,11 @@ describe('PepTalk happy', () => {
 					return ws.send(`${index} ok\r\n`)
 				}
 				if (message.indexOf('insert') >= 0) {
-					const nameMatch = message.match(/name=\"(\w+)\"/)
+					const nameMatch = message.match(/name="(\w+)"/) as RegExpMatchArray
 					return ws.send(`${index} ok ${nameMatch[1]}#2\r\n`)
 				}
 				if (message.indexOf('move') >= 0) {
-					const destMatch = message.match(/\/move\/to\/(\w+)\s/)
+					const destMatch = message.match(/\/move\/to\/(\w+)\s/) as RegExpMatchArray
 					return ws.send(`${index} ok ${destMatch[1]}#2`)
 				}
 				if (message.indexOf('protocol') >= 0) {
@@ -91,7 +91,7 @@ describe('PepTalk happy', () => {
 					return ws.send(`${index} ok`)
 				}
 				if (message.indexOf('replace') >= 0) {
-					const nameMatch = message.match(/name=\"(\w+)\"/)
+					const nameMatch = message.match(/name="(\w+)"/) as RegExpMatchArray
 					return ws.send(`${index} ok ${nameMatch[1]}#2\r\n`)
 				}
 				if (message.indexOf('set text') >= 0) {

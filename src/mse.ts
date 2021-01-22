@@ -34,7 +34,7 @@ export class MSERep extends EventEmitter implements MSE {
 		this.connection = this.pep.connect()
 	}
 
-	async checkConnection() {
+	async checkConnection(): Promise<void> {
 		try {
 			if (this.connection) {
 				this.isAwaitingConnection = true
@@ -262,7 +262,7 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	// Advanced feature
-	createProfile(_profileName: string, _profileDetailsTbc: any): Promise<VProfile> {
+	createProfile(_profileName: string, _profileDetailsTbc: unknown): Promise<VProfile> {
 		return Promise.reject(new Error('Not implemented. Creating profiles is a future feature.'))
 	}
 
