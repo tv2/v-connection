@@ -1,4 +1,4 @@
-import { createMSE } from '../mse'
+import { createMSE } from '../src/mse'
 import * as yargs from 'yargs'
 
 let args = yargs
@@ -29,42 +29,28 @@ async function wait (t: number) {
 }
 
 async function run () {
-	if (args._.some(x => isNaN(+x))) {
-		throw new Error('A VCPID integer identifier for each Pilot element is required.')
-	}
+	if (isNaN(+args._[0])) { throw new Error('A VCPID integer identifier for a Pilot element is required.') }
 	let mse = createMSE(args.host, args.httpport, args.port, args.httphost.length > 0 ? args.httphost : undefined)
 	let rundown = await mse.createRundown(args.showID, args.profile)
-	let elementRefs = args._.map(x => +x)
-	await Promise.all(elementRefs.slice(0, 2).map(er =>
-	 	rundown.createElement(er, args.channel)))
-	// await wait(1000)
+	let elementRef = +args._[0]
+	let element = await rundown.createElement(elementRef, args.channel)
 	await rundown.activate()
-
+	console.dir(element, { depth: 20 })
 	await wait(100)
-
-	// while (true) {
-	for (let i = 0 ; i < elementRefs.length ; i++) {
-		console.log('Starting to process element', elementRefs[i])
-		if (i >= 2) {
-			console.log(await rundown.createElement(elementRefs[i], args.channel))
-		}
-		console.log(await rundown.initialize(elementRefs[i]))
-		// await rundown.activate()
-		for (let x = 0 ; x < 5 ; x++) {
-			console.log(x)
-			await wait(1000)
-		}
-		console.log('take', elementRefs[i])
-		console.log(await rundown.getElement(elementRefs[i]))
-		await rundown.take(elementRefs[i])
-		for (let x = 0 ; x < 5 ; x++) {
-			console.log(x)
-			await wait(1000)
-		}
-		console.log('out', elementRefs[i])
-		await rundown.out(elementRefs[i])
+	await rundown.initialize(elementRef)
+	await wait(args.timing)
+	for (let x = 0 ; x < 5 ; x++) {
+		console.log(x)
+		await wait(1000)
 	}
-	// }
+	console.log('take')
+	await rundown.take(elementRef)
+	for (let x = 0 ; x < 5 ; x++) {
+		console.log(x)
+		await wait(1000)
+	}
+	console.log('out')
+	await rundown.out(elementRef)
 	if (args['delete']) {
 		// await rundown.deleteElement(elementRef)
 		await rundown.deactivate()

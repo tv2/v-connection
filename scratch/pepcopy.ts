@@ -1,4 +1,4 @@
-import { startPepTalk, LocationType } from '../peptalk'
+import { startPepTalk, LocationType } from '../src/peptalk'
 import * as yargs from 'yargs'
 
 let args = yargs

@@ -1,13 +1,9 @@
-import { startPepTalk } from '../peptalk'
+import { startPepTalk } from '../src/peptalk'
 import * as yargs from 'yargs'
 
 let args = yargs
 	.string('host')
 	.number('port')
-	.string('_')
-	.alias('_', 'path')
-	.coerce('path', a => a.reduce(
-		(x: string, y: string) => `${x}${x.length === 0 || x.endsWith('/') ? '' : '/'}${y}`, ''))
 	.default('host', 'localhost')
 	.default('port', 8595)
 	.argv
@@ -18,8 +14,9 @@ async function run () {
 	let pt = startPepTalk(args.host, args.port)
 	let connected = await pt.connect()
 	console.log(connected)
+	console.log(pt.setTimeout(10000))
 	try {
-		console.log(await pt.delete(args.path))
+		console.log(await pt.reintialize())
 	} catch (err) { console.dir(err) }
 	await pt.close()
 }

@@ -1,4 +1,4 @@
-import { startPepTalk, LocationType } from '../peptalk'
+import { startPepTalk, LocationType } from '../src/peptalk'
 import * as yargs from 'yargs'
 
 let args = yargs
@@ -31,8 +31,7 @@ async function run () {
 	let connected = await pt.connect(true)
 	console.log(connected)
 	try {
-		console.log(await pt.insert(args._[0], args._[1],
-			args.location ? args.location : LocationType.First, args.sibling))
+		console.log(await pt.replace(args._[0], args._[1]))
 	} catch (err) { console.error('!!!', err) }
 	await pt.close()
 }

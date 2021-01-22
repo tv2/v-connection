@@ -1,4 +1,4 @@
-import { startPepTalk, LocationType } from '../peptalk'
+import { startPepTalk, LocationType } from '../src/peptalk'
 import * as yargs from 'yargs'
 
 let args = yargs
@@ -12,6 +12,7 @@ let args = yargs
 	.default('host', 'localhost')
 	.default('port', 8595)
 	.default('location', 'first')
+	.default('js', false)
 	.demandCommand(2, 2)
 	.coerce('location', (l: string): LocationType => {
 		switch (l.slice(0, 1).toLowerCase()) {
@@ -31,7 +32,8 @@ async function run () {
 	let connected = await pt.connect(true)
 	console.log(connected)
 	try {
-		console.log(await pt.replace(args._[0], args._[1]))
+		console.log(await pt.move(args._[0], args._[1],
+			args.location ? args.location : LocationType.First, args.sibling))
 	} catch (err) { console.error('!!!', err) }
 	await pt.close()
 }

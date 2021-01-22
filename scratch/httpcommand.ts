@@ -1,4 +1,4 @@
-import { createHTTPContext } from '../msehttp'
+import { createHTTPContext } from '../src/msehttp'
 import * as yargs from 'yargs'
 
 let args = yargs

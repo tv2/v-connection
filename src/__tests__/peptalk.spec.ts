@@ -311,7 +311,7 @@ describe('PepTalk happy', () => {
 
 	afterAll(async () => {
 		await pep.close().catch(err => console.error('Warning: PepTalk connection already closed:', err.message))
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			server.close((err) => {
 				if (err) return reject(err)
 				resolve()
@@ -391,7 +391,7 @@ describe('PepTalk connection lifecycle', () => {
 		} catch (err) {
 			console.log('Info: Request to close a closed connection threw as expected with:', err.message)
 		}
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			server.close((err) => {
 				if (err) return reject(err)
 				resolve()
@@ -453,7 +453,7 @@ describe('PepTalk server death', () => {
 
 	test('Close server and ping', async () => {
 		expect(pep.setTimeout(300)).toBe(300)
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			server.close((err) => {
 				if (err) return reject(err)
 				resolve()
@@ -469,7 +469,7 @@ describe('PepTalk server death', () => {
 		} catch (err) {
 			console.log('Info: Request to close a closed connection threw as expected with:', err.message)
 		}
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			server.close((err) => {
 				if (err) return reject(err)
 				resolve()
@@ -552,7 +552,7 @@ describe('PepTalk with sadness', () => {
 		} catch (err) {
 			console.log('Info: Request to close a closed connection threw as expected with:', err.message)
 		}
-		return new Promise((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			server.close((err) => {
 				if (err) return reject(err)
 				resolve()

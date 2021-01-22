@@ -1,4 +1,4 @@
-import { startPepTalk } from '../peptalk'
+import { startPepTalk } from '../src/peptalk'
 import * as yargs from 'yargs'
 
 let args = yargs
@@ -19,7 +19,7 @@ async function run () {
 	let connected = await pt.connect()
 	console.log(connected)
 	try {
-		console.log(await pt.ensurePath(args.path))
+		console.log(await pt.delete(args.path))
 	} catch (err) { console.dir(err) }
 	await pt.close()
 }

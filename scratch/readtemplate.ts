@@ -1,4 +1,4 @@
-import { createMSE } from '../mse'
+import { createMSE } from '../src/mse'
 import * as yargs from 'yargs'
 
 let args = yargs
