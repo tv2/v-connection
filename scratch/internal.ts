@@ -1,7 +1,7 @@
 import { createMSE } from '../src/mse'
 import * as yargs from 'yargs'
 
-let args = yargs
+const args = yargs
 	.string('host')
 	.number('port')
 	.string('profile')
@@ -19,21 +19,20 @@ let args = yargs
 	.default('delete', true)
 	.default('timing', 10000)
 	.default('httphost', '')
-	.default('httpport', 8580)
-	.argv
+	.default('httpport', 8580).argv
 
-async function wait (t: number) {
+async function wait(t: number) {
 	return new Promise((resolve, _reject) => {
 		setTimeout(resolve, t)
 	})
 }
 
-async function run () {
-	let mse = createMSE(args.host, args.httpport, args.port, args.httphost.length > 0 ? args.httphost : undefined)
-	let rundown = await mse.createRundown(args.showID, args.profile)
-	let d = new Date()
-	let elementName = `CLI_TEST_${d.toISOString()}`
-	let element = await rundown.createElement(args.template, elementName, args._ ? (args._ as string[]) : [])
+async function run() {
+	const mse = createMSE(args.host, args.httpport, args.port, args.httphost.length > 0 ? args.httphost : undefined)
+	const rundown = await mse.createRundown(args.showID, args.profile)
+	const d = new Date()
+	const elementName = `CLI_TEST_${d.toISOString()}`
+	const element = await rundown.createElement(args.template, elementName, args._ ? (args._ as string[]) : [])
 	console.dir(element, { depth: 20 })
 	// await rundown.cue(elementName)
 	await rundown.take(elementName)

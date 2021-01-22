@@ -1,33 +1,35 @@
 const ws = require('ws')
 
-let webby = new ws('ws://localhost:8595');
+let webby = new ws('ws://localhost:8595')
 
 webby.on('open', () => {
-  console.log('Open');
-  webby.send('1 protocol peptalk\n\n');
-});
+	console.log('Open')
+	webby.send('1 protocol peptalk\n\n')
+})
 
 webby.on('upgrade', () => {
-  console.log('Upgrade');
-});
+	console.log('Upgrade')
+})
 
-webby.on('message', m => { if (m.indexOf('status') < 0) console.log('message:', m) });
+webby.on('message', (m) => {
+	if (m.indexOf('status') < 0) console.log('message:', m)
+})
 
-function generateId () {
-  let s = '';
-  for ( let x = 0 ; x < 20 ; x++ ) {
-    let r = Math.random();
-    let l = r * 26 | 0;
-    s += String.fromCharCode(97 + l);
-  }
-  return s;
+function generateId() {
+	let s = ''
+	for (let x = 0; x < 20; x++) {
+		let r = Math.random()
+		let l = (r * 26) | 0
+		s += String.fromCharCode(97 + l)
+	}
+	return s
 }
 
-let id = generateId();
-let counter = 2;
+let id = generateId()
+let counter = 2
 
-let path = `/mseq_internal/${id}`;
-let entry = `<entry name="${id}"/>`;
+let path = `/mseq_internal/${id}`
+let entry = `<entry name="${id}"/>`
 
 let env = `<env command="take" profile="/config/profiles/Rejse set 2">
   <element complete="false" description="Name 1/Titel 1 " layer="BUND" showautodescription="false" templatedescription="LGFX_BUNDT" name="1000">
@@ -47,22 +49,26 @@ let env = `<env command="take" profile="/config/profiles/Rejse set 2">
         <entry name="21"/>
       </entry>
       <entry name="isfilescript">false</entry>
-      <entry name="modified">${(new Date()).toISOString().slice(0, -5)}</entry>
+      <entry name="modified">${new Date().toISOString().slice(0, -5)}</entry>
     </entry>
-    <entry usage="updating" name="payload_xml">&lt;payload xmlns=&quot;http://www.vizrt.com/types&quot;&gt;&lt;field name=&quot;20&quot;&gt;&lt;value&gt;${process.argv[2]}&lt;/value&gt;&lt;/field&gt;&lt;field name=&quot;21&quot;&gt;&lt;value&gt;${process.argv[3]}&lt;/value&gt;&lt;/field&gt;&lt;/payload&gt;</entry>
+    <entry usage="updating" name="payload_xml">&lt;payload xmlns=&quot;http://www.vizrt.com/types&quot;&gt;&lt;field name=&quot;20&quot;&gt;&lt;value&gt;${
+			process.argv[2]
+		}&lt;/value&gt;&lt;/field&gt;&lt;field name=&quot;21&quot;&gt;&lt;value&gt;${
+	process.argv[3]
+}&lt;/value&gt;&lt;/field&gt;&lt;/payload&gt;</entry>
   </element>
 </env>`
 
-console.log(env);
+console.log(env)
 
 setTimeout(() => {
-  webby.send(`${counter++} insert ${path} last {${entry.length}}${entry}\n\n`);
-  webby.send(`${counter++} insert ${path}/env last {${env.length}}${env}\n\n`)
+	webby.send(`${counter++} insert ${path} last {${entry.length}}${entry}\n\n`)
+	webby.send(`${counter++} insert ${path}/env last {${env.length}}${env}\n\n`)
 }, 5000)
 
 setTimeout(() => {
-  console.log('The end');
-  webby.close();
-}, 10000);
+	console.log('The end')
+	webby.close()
+}, 10000)
 
-process.on('SIGHUP', webby.close);
+process.on('SIGHUP', webby.close)

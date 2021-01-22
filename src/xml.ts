@@ -13,9 +13,9 @@ import * as Xml2JS from 'xml2js'
  */
 export interface AtomEntry {
 	/** Attributes of the entry, including its required `name`. */
-	'$': { [z: string]: string }
+	$: { [z: string]: string }
 	/** Content data of the atom entry (`CDATA`). */
-	'_'?: string
+	_?: string
 	/** Sub-entry or entries of the atom pub object. */
 	entry?: AtomEntry | Array<AtomEntry> | string[]
 	// TODO ref type
@@ -36,14 +36,14 @@ export interface FlatEntry {
  *  @param x Source atom pub entry.
  *  @return Simplified version of `x`.
  */
-export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
-	let keys = Object.keys(x)
+export async function flattenEntry(x: AtomEntry): Promise<FlatEntry> {
+	const keys = Object.keys(x)
 	if (keys.length === 1 && (x.entry || x.ref)) {
 		return flattenEntry((x.entry ? x.entry : x.ref) as AtomEntry)
 	}
 	let y: { [a: string]: any } = {}
 	if (x.$) {
-		for (let a in x.$) {
+		for (const a in x.$) {
 			y[a] = x.$[a]
 		}
 	}
@@ -53,7 +53,7 @@ export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
 	// MSE uses entries with nested sub-entries. Not Atom-compliant, but fairly consistent
 	if (x.entry && Array.isArray(x.entry)) {
 		let unnamedCount = 0
-		for (let e of x.entry) {
+		for (const e of x.entry) {
 			if (typeof e === 'object') {
 				if (e.$ && e.$.name) {
 					if (e.$.name === 'model_xml') {
@@ -70,35 +70,39 @@ export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
 					y[`_entry#${unnamedCount++}`] = await flattenEntry(e)
 				}
 			} else {
-				if (!y.value) { y = { value: [] } }
+				if (!y.value) {
+					y = { value: [] }
+				}
 				y.value.push(e)
- 			}
+			}
 		}
 	}
 	// Apart from when a _special_ XML element name is used. This code picks up those with different _keys_.
-	for (let k of keys.filter(z => z !== 'entry' && z !== '$' && z !== '_')) {
+	for (const k of keys.filter((z) => z !== 'entry' && z !== '$' && z !== '_')) {
 		if (typeof x[k] === 'object') {
 			if (Array.isArray(x[k])) {
-				await Promise.all(x[k].map(async (z: any) => {
-					if (typeof z === 'object') {
-						if (z.$ && z.$.name) {
-							y[z.$.name] = await flattenEntry(z as AtomEntry)
-							y[z.$.name].key = k
-							delete y[z.$.name].name
-						} else {
-							if (!y[k]) {
-								y[k] = []
-								y[`${k}_key`] = k
+				await Promise.all(
+					x[k].map(async (z: any) => {
+						if (typeof z === 'object') {
+							if (z.$ && z.$.name) {
+								y[z.$.name] = await flattenEntry(z as AtomEntry)
+								y[z.$.name].key = k
+								delete y[z.$.name].name
+							} else {
+								if (!y[k]) {
+									y[k] = []
+									y[`${k}_key`] = k
+								}
+								y[k].push(await flattenEntry(z as AtomEntry))
 							}
-							y[k].push(await flattenEntry(z as AtomEntry))
 						}
-					}
-					if (typeof z === 'string') {
-						y[k] = { value: z, key: k }
-					}
-				}))
+						if (typeof z === 'string') {
+							y[k] = { value: z, key: k }
+						}
+					})
+				)
 			} else {
-				let e = x[k]
+				const e = x[k]
 				if (e.$ && e.$.name) {
 					y[e.$.name] = await flattenEntry(e)
 					y[e.$.name].key = k
@@ -120,13 +124,13 @@ export async function flattenEntry (x: AtomEntry): Promise<FlatEntry> {
  *  @params x Source simplified object.
  *  @return Ready for XML building version of `x`.
  */
-export function entry2XML (x: FlatEntry): AtomEntry {
-	if (Object.keys(x).length === 0) return { $: {} as { [ z: string]: string } }
-	let y = { $: {} as { [ z: string]: any }, entry: [] as any[] }
-	for (let a in x) {
+export function entry2XML(x: FlatEntry): AtomEntry {
+	if (Object.keys(x).length === 0) return { $: {} as { [z: string]: string } }
+	const y = { $: {} as { [z: string]: any }, entry: [] as any[] }
+	for (const a in x) {
 		// console.log(a, typeof(x[a]), x[a])
 		if (typeof x[a] === 'object') {
-			let e = entry2XML(x[a] as FlatEntry)
+			const e = entry2XML(x[a] as FlatEntry)
 			// console.log('EEE >>>', a, x[a], e)
 			if (!a.startsWith('_')) {
 				e.$.name = a
@@ -138,15 +142,16 @@ export function entry2XML (x: FlatEntry): AtomEntry {
 				e._ = e.$.value
 				delete e.$.value
 				delete e.entry
-			} else if (e.entry && Array.isArray(e.entry) && e.entry[0] &&
-					(e.entry[0] as AtomEntry).$) {
+			} else if (e.entry && Array.isArray(e.entry) && e.entry[0] && (e.entry[0] as AtomEntry).$) {
 				let counter = 0
-				let ed = []
-				while ((typeof (e.entry[0] as AtomEntry).$[counter.toString()]) === 'string') {
+				const ed = []
+				while (typeof (e.entry[0] as AtomEntry).$[counter.toString()] === 'string') {
 					ed.push((e.entry[0] as AtomEntry).$[counter.toString()])
-					counter ++
+					counter++
 				}
-				if (ed.length > 0) { e.entry = ed }
+				if (ed.length > 0) {
+					e.entry = ed
+				}
 			}
 			y.entry.push(e)
 		} else {
@@ -162,7 +167,7 @@ export function entry2XML (x: FlatEntry): AtomEntry {
  *  @param x Atom pub entry to build.
  *  @return Seialized XML representation of `x`.
  */
-export function buildXML (x: AtomEntry): string {
-	let builder = new Xml2JS.Builder({ headless: true })
+export function buildXML(x: AtomEntry): string {
+	const builder = new Xml2JS.Builder({ headless: true })
 	return builder.buildObject({ entry: x })
 }

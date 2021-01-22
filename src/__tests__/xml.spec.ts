@@ -1,7 +1,7 @@
 import { flattenEntry, entry2XML, buildXML } from '../xml'
 import * as Xml2JS from 'xml2js'
 
-let testXML = `<entry mode="enabled" status="uninitialized" type="viz" name="Viz A">
+const testXML = `<entry mode="enabled" status="uninitialized" type="viz" name="Viz A">
   <entry name="encoding">UTF-8</entry>
   <entry name="state"/>
   <entry name="renderer">
@@ -14,7 +14,7 @@ let testXML = `<entry mode="enabled" status="uninitialized" type="viz" name="Viz
   <entry name="info"/>
 </entry>`
 
-let entryListXML = `<entry name="program">
+const entryListXML = `<entry name="program">
   <entry name="viz">
     <entry>FULL1</entry>
     <entry>DSK</entry>
@@ -24,7 +24,7 @@ let entryListXML = `<entry name="program">
   </entry>
 </entry>`
 
-let executionGroupsXML = `<entry name="execution_groups">
+const executionGroupsXML = `<entry name="execution_groups">
   <entry allocate="false" name="OVL">
     <entry>
       <entry name="viz">background_d</entry>
@@ -46,30 +46,29 @@ let executionGroupsXML = `<entry name="execution_groups">
 </entry>`
 
 describe('Roundtrip XML', () => {
-
 	test('Roundtrip a VizEngine entry', async () => {
-		let fromXML = await Xml2JS.parseStringPromise(testXML)
-		let flat = await flattenEntry(fromXML.entry)
-		let fat = entry2XML(flat)
+		const fromXML = await Xml2JS.parseStringPromise(testXML)
+		const flat = await flattenEntry(fromXML.entry)
+		const fat = entry2XML(flat)
 		expect(buildXML(fat)).toBe(testXML)
 	})
 
 	test('Roundtrip with value list', async () => {
-		let fromXML = await Xml2JS.parseStringPromise(entryListXML)
-		let flat = await flattenEntry(fromXML.entry)
-		let fat = entry2XML(flat)
+		const fromXML = await Xml2JS.parseStringPromise(entryListXML)
+		const flat = await flattenEntry(fromXML.entry)
+		const fat = entry2XML(flat)
 		expect(buildXML(fat)).toBe(entryListXML)
 	})
 
 	test('Roundtrip Execution Groups', async () => {
-		let fromXML = await Xml2JS.parseStringPromise(executionGroupsXML)
-		let flat = await flattenEntry(fromXML.entry)
-		let fat = entry2XML(flat)
+		const fromXML = await Xml2JS.parseStringPromise(executionGroupsXML)
+		const flat = await flattenEntry(fromXML.entry)
+		const fat = entry2XML(flat)
 		expect(buildXML(fat)).toBe(executionGroupsXML)
 	})
 })
 
-let nonEntry = `<entry name="elements">
+const nonEntry = `<entry name="elements">
     <element available="1.00" creator="Sofie" description="Firstname Lastname/title" guid="2019-09-27T09:06:34Z_od-triotravel03.tv2.local_6667_0" loaded="0.00" take_count="0" updated="2019-09-27T09:06:34Z" name="SUPERFLY2">
         <ref name="master_template">/storage/shows/{66E45216-9476-4BDC-9556-C3DB487ED9DF}/mastertemplates/LGFX_SOCIAL_MEDIA</ref>
         <entry name="default_alternatives"/>
@@ -91,7 +90,7 @@ let nonEntry = `<entry name="elements">
     </element>
 </entry>`
 
-let tempEntry = `<entry name="mastertemplates">
+const tempEntry = `<entry name="mastertemplates">
     <element templatedescription="&quot;APP PROMO&quot;" name="APP_PROMO_NEWS_SPO">
         <entry name="default_alternatives"/>
         <entry name="layers">
@@ -134,19 +133,18 @@ let tempEntry = `<entry name="mastertemplates">
 	</entry>`
 
 describe('Transform a non-entry', () => {
-
 	test('For a show element', async () => {
-		let fromXML = await Xml2JS.parseStringPromise(nonEntry)
+		const fromXML = await Xml2JS.parseStringPromise(nonEntry)
 		// console.log(JSON.stringify(fromXML, null, 2))
-		let flat = await flattenEntry(fromXML)
+		const flat = await flattenEntry(fromXML)
 		// console.log(JSON.stringify(flat, null, 2))
 		expect(flat).toBeTruthy()
 	})
 
 	test('For a few tempaltes', async () => {
-		let fromXML = await Xml2JS.parseStringPromise(tempEntry)
+		const fromXML = await Xml2JS.parseStringPromise(tempEntry)
 		// console.log(JSON.stringify(fromXML, null, 2))
-		let flat = await flattenEntry(fromXML)
+		const flat = await flattenEntry(fromXML)
 		// console.log(JSON.stringify(flat, null, 2))
 		expect(flat).toBeTruthy()
 	})

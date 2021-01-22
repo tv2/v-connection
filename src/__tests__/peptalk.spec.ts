@@ -1,25 +1,34 @@
-import { startPepTalk, PepTalkClient, PepTalkJS, LocationType, Capability,
-	UnspecifiedError, InexistentError, InvalidError, SyntaxError, NotAllowedError } from '../peptalk'
+import {
+	startPepTalk,
+	PepTalkClient,
+	PepTalkJS,
+	LocationType,
+	Capability,
+	UnspecifiedError,
+	InexistentError,
+	InvalidError,
+	SyntaxError,
+	NotAllowedError,
+} from '../peptalk'
 import * as websocket from 'ws'
 
 const testPort = 8418
 
 const extractIndex = (s: string): string => {
-	let firstSpace = s.indexOf(' ')
+	const firstSpace = s.indexOf(' ')
 	return firstSpace > 0 ? s.slice(0, firstSpace) : ''
 }
 
 describe('PepTalk happy', () => {
-
 	let server: websocket.Server
 	let pep: PepTalkClient & PepTalkJS
 
 	beforeAll(async () => {
 		server = new websocket.Server({ port: testPort })
-		server.on('connection', ws => {
+		server.on('connection', (ws) => {
 			ws.on('message', (message: string) => {
 				// console.log('Received', message)
-				let index = extractIndex(message)
+				const index = extractIndex(message)
 				if (message === '1 protocol peptalk\r\n') {
 					return ws.send('1 protocol peptalk noevents')
 				}
@@ -31,24 +40,24 @@ describe('PepTalk happy', () => {
 					return ws.send(`${index} ok <entry name="pongy"/>\r\n`)
 				}
 				if (message.indexOf('anything goes here') >= 0) {
-					let response = 'responds here'
+					const response = 'responds here'
 					return ws.send(`${index} ok anything {${response.length}}${response}\r\n`)
 				}
 				if (message.indexOf('special') >= 0) {
-					let response = message.slice(message.indexOf('special') + 8).trim()
+					const response = message.slice(message.indexOf('special') + 8).trim()
 					return ws.send(`${index} ok special ${response}\r\n`)
 				}
 				if (message.indexOf('get') >= 0) {
-					let bits = message.match(/\d+\sget\s\{\d+\}\/(\w+)\/with\/lines\/(\d)\s?(\d+)?.*/)
-					let depth = typeof (bits[3] as string | undefined) === 'string' ? bits[3] : '0'
-					let name = bits[1]
+					const bits = message.match(/\d+\sget\s\{\d+\}\/(\w+)\/with\/lines\/(\d)\s?(\d+)?.*/)
+					const depth = typeof (bits[3] as string | undefined) === 'string' ? bits[3] : '0'
+					const name = bits[1]
 					if (bits[2] === '2') {
-						let value = `<entry depth="${depth}" name="${name}">something</entry>`
+						const value = `<entry depth="${depth}" name="${name}">something</entry>`
 						ws.send(`${index} ok {${value.length}}${value.slice(0, 13)}\r\n`)
 						return ws.send(`${value.slice(13)}\r\n`)
 					}
 					if (bits[2] === '3') {
-						let value = `<entry depth="${depth}" name="${name}">something</entry>`
+						const value = `<entry depth="${depth}" name="${name}">something</entry>`
 						ws.send(`${index} ok {${value.length}}${value.slice(0, 13)}\r\n`)
 						ws.send(`${value.slice(13, 14)}\r\n`)
 						return ws.send(`${value.slice(14)}\r\n`)
@@ -68,11 +77,11 @@ describe('PepTalk happy', () => {
 					return ws.send(`${index} ok\r\n`)
 				}
 				if (message.indexOf('insert') >= 0) {
-					let nameMatch = message.match(/name=\"(\w+)\"/)
+					const nameMatch = message.match(/name=\"(\w+)\"/)
 					return ws.send(`${index} ok ${nameMatch[1]}#2\r\n`)
 				}
 				if (message.indexOf('move') >= 0) {
-					let destMatch = message.match(/\/move\/to\/(\w+)\s/)
+					const destMatch = message.match(/\/move\/to\/(\w+)\s/)
 					return ws.send(`${index} ok ${destMatch[1]}#2`)
 				}
 				if (message.indexOf('protocol') >= 0) {
@@ -82,7 +91,7 @@ describe('PepTalk happy', () => {
 					return ws.send(`${index} ok`)
 				}
 				if (message.indexOf('replace') >= 0) {
-					let nameMatch = message.match(/name=\"(\w+)\"/)
+					const nameMatch = message.match(/name=\"(\w+)\"/)
 					return ws.send(`${index} ok ${nameMatch[1]}#2\r\n`)
 				}
 				if (message.indexOf('set text') >= 0) {
@@ -111,7 +120,7 @@ describe('PepTalk happy', () => {
 			// id: 2,
 			sent: 'get {1}/ 0',
 			status: 'ok',
-			body: 'PONG!'
+			body: 'PONG!',
 		})
 	})
 
@@ -120,18 +129,18 @@ describe('PepTalk happy', () => {
 			// id: 3,
 			sent: 'anything goes here',
 			status: 'ok',
-			body: 'anything responds here'
+			body: 'anything responds here',
 		})
 	})
 
 	test('Send special', async () => {
-		let toSend = 'åæ'
+		const toSend = 'åæ'
 		expect(Buffer.byteLength(toSend, 'utf8')).toBe(4)
 		await expect(pep.send(`special {4}${toSend}`)).resolves.toMatchObject({
 			body: 'special åæ',
 			// id: 4,
 			sent: 'special {4}åæ',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
@@ -140,7 +149,7 @@ describe('PepTalk happy', () => {
 			body: '<entry depth="0" name="name"/>',
 			// id: 5,
 			sent: 'get {18}/name/with/lines/1',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
@@ -149,7 +158,7 @@ describe('PepTalk happy', () => {
 			body: '<entry depth="2" name="multi">something</entry>',
 			// id: 6,
 			sent: 'get {19}/multi/with/lines/2 2',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
@@ -158,19 +167,17 @@ describe('PepTalk happy', () => {
 			body: '<entry depth="7" name="multithree">something</entry>',
 			// id: 7,
 			sent: 'get {24}/multithree/with/lines/3 7',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
 	test('Copy', async () => {
-		await expect(pep.copy('/copy/source',
-				'/copy/destination', LocationType.First)).resolves.toMatchObject(
-			{
-				body: 'destination',
-				// id: 8,
-				sent: 'copy {12}/copy/source {17}/copy/destination first',
-				status: 'ok'
-			})
+		await expect(pep.copy('/copy/source', '/copy/destination', LocationType.First)).resolves.toMatchObject({
+			body: 'destination',
+			// id: 8,
+			sent: 'copy {12}/copy/source {17}/copy/destination first',
+			status: 'ok',
+		})
 	})
 
 	test('Delete', async () => {
@@ -178,7 +185,7 @@ describe('PepTalk happy', () => {
 			body: '',
 			// id: 9,
 			sent: 'delete {15}/bye/bye/thingy',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
@@ -187,62 +194,55 @@ describe('PepTalk happy', () => {
 			body: '',
 			// id: 10,
 			sent: 'ensure-path {20}/please/let/me/exist',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
 	test('Insert', async () => {
-		await expect(pep.insert('/put/it/here',
-				'<entry name="it"/>', LocationType.Last)).resolves.toMatchObject(
-			{
-				body: 'it#2',
-				// id: 11,
-				sent: 'insert {12}/put/it/here last {18}<entry name="it"/>',
-				status: 'ok'
-			})
+		await expect(pep.insert('/put/it/here', '<entry name="it"/>', LocationType.Last)).resolves.toMatchObject({
+			body: 'it#2',
+			// id: 11,
+			sent: 'insert {12}/put/it/here last {18}<entry name="it"/>',
+			status: 'ok',
+		})
 	})
 
 	test('Move', async () => {
-		await expect(pep.move('/move/from/source',
-			'/move/to/destination', LocationType.Before, 'Fred')).resolves.toMatchObject(
-			{
-				body: 'destination#2',
-				// id: 12
-				sent: 'move {17}/move/from/source {20}/move/to/destination before {4}Fred',
-				status: 'ok'
-			})
+		await expect(
+			pep.move('/move/from/source', '/move/to/destination', LocationType.Before, 'Fred')
+		).resolves.toMatchObject({
+			body: 'destination#2',
+			// id: 12
+			sent: 'move {17}/move/from/source {20}/move/to/destination before {4}Fred',
+			status: 'ok',
+		})
 	})
 
 	test('Two capabilities', async () => {
-		await expect(pep.protocol(
-				[Capability.noevents, Capability.uri])).resolves.toMatchObject(
-			{
-				body: 'protocol noevents uri peptalk treetalk',
-				// id: 13,
-				sent: 'protocol noevents uri',
-				status: 'ok'
-			})
+		await expect(pep.protocol([Capability.noevents, Capability.uri])).resolves.toMatchObject({
+			body: 'protocol noevents uri peptalk treetalk',
+			// id: 13,
+			sent: 'protocol noevents uri',
+			status: 'ok',
+		})
 	})
 
 	test('One Capability', async () => {
-		await expect(pep.protocol(
-				Capability.noevents)).resolves.toMatchObject(
-			{
-				body: 'protocol noevents uri peptalk treetalk',
-				// id: 13,
-				sent: 'protocol noevents',
-				status: 'ok'
-			})
+		await expect(pep.protocol(Capability.noevents)).resolves.toMatchObject({
+			body: 'protocol noevents uri peptalk treetalk',
+			// id: 13,
+			sent: 'protocol noevents',
+			status: 'ok',
+		})
 	})
 
 	test('No Capability', async () => {
-		await expect(pep.protocol()).resolves.toMatchObject(
-			{
-				body: 'protocol noevents uri peptalk treetalk',
-				// id: 13,
-				sent: 'protocol',
-				status: 'ok'
-			})
+		await expect(pep.protocol()).resolves.toMatchObject({
+			body: 'protocol noevents uri peptalk treetalk',
+			// id: 13,
+			sent: 'protocol',
+			status: 'ok',
+		})
 	})
 
 	test('Reinitialize', async () => {
@@ -250,19 +250,17 @@ describe('PepTalk happy', () => {
 			sent: 'reinitialize',
 			// id: 14,
 			body: '',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
 	test('Replace', async () => {
-		await expect(pep.replace('/my/value/is/not/important',
-				'<entry name="seeya"/>')).resolves.toMatchObject(
-			{
-				body: 'seeya#2',
-				// id: 15
-				sent: 'replace {26}/my/value/is/not/important {21}<entry name="seeya"/>',
-				status: 'ok'
-			})
+		await expect(pep.replace('/my/value/is/not/important', '<entry name="seeya"/>')).resolves.toMatchObject({
+			body: 'seeya#2',
+			// id: 15
+			sent: 'replace {26}/my/value/is/not/important {21}<entry name="seeya"/>',
+			status: 'ok',
+		})
 	})
 
 	test('Set element value', async () => {
@@ -270,19 +268,17 @@ describe('PepTalk happy', () => {
 			body: '',
 			// id: 16,
 			sent: 'set text {20}/give/me/a/new/value {11}bunny boots',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
 	test('Set attribute value', async () => {
-		await (expect(pep.set('/update/my/best/attribute',
-				'nose_size', '42'))).resolves.toMatchObject(
-			{
-				body: '42',
-				// id: 17,
-				sent: 'set attribute {25}/update/my/best/attribute {9}nose_size {2}42',
-				status: 'ok'
-			})
+		await expect(pep.set('/update/my/best/attribute', 'nose_size', '42')).resolves.toMatchObject({
+			body: '42',
+			// id: 17,
+			sent: 'set attribute {25}/update/my/best/attribute {9}nose_size {2}42',
+			status: 'ok',
+		})
 	})
 
 	test('Uri', async () => {
@@ -290,7 +286,7 @@ describe('PepTalk happy', () => {
 			body: 'http://localhost:8594/element_collection/storage/my/home/in/pep',
 			// id: 18,
 			sent: 'uri {15}/my/home/in/pep {18}element_collection',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
@@ -300,17 +296,19 @@ describe('PepTalk happy', () => {
 			// id: 5,
 			sent: 'get {18}/name/with/lines/1 42',
 			status: 'ok',
-			js: { entry: {
-				$: {
-					depth: '42',
-					name: 'name'
-				}
-			}}
+			js: {
+				entry: {
+					$: {
+						depth: '42',
+						name: 'name',
+					},
+				},
+			},
 		})
 	})
 
 	afterAll(async () => {
-		await pep.close().catch(err => console.error('Warning: PepTalk connection already closed:', err.message))
+		await pep.close().catch((err) => console.error('Warning: PepTalk connection already closed:', err.message))
 		return new Promise<void>((resolve, reject) => {
 			server.close((err) => {
 				if (err) return reject(err)
@@ -326,10 +324,10 @@ describe('PepTalk connection lifecycle', () => {
 
 	beforeAll(async () => {
 		server = new websocket.Server({ port: testPort })
-		server.on('connection', ws => {
+		server.on('connection', (ws) => {
 			ws.on('message', (message: string) => {
 				// console.log('Received', message)
-				let index = extractIndex(message)
+				const index = extractIndex(message)
 				if (message.indexOf('protocol peptalk\r\n') >= 0) {
 					return ws.send(`${index} protocol peptalk uri`)
 				}
@@ -357,12 +355,12 @@ describe('PepTalk connection lifecycle', () => {
 		await expect(pep.connect()).resolves.toMatchObject({
 			body: 'protocol peptalk uri',
 			sent: 'protocol peptalk',
-			status: 'ok'
+			status: 'ok',
 		})
 		await expect(pep.close()).resolves.toMatchObject({
 			body: 'bye',
 			sent: 'close',
-			status: 'ok'
+			status: 'ok',
 		})
 		await expect(pep.ping()).rejects.toThrow('Not connected')
 	})
@@ -371,17 +369,17 @@ describe('PepTalk connection lifecycle', () => {
 		await expect(pep.connect()).resolves.toMatchObject({
 			body: 'protocol peptalk uri',
 			sent: 'protocol peptalk',
-			status: 'ok'
+			status: 'ok',
 		})
 		await expect(pep.connect()).resolves.toMatchObject({
 			body: 'protocol peptalk uri',
 			sent: 'protocol peptalk',
-			status: 'ok'
+			status: 'ok',
 		})
 		await expect(pep.close()).resolves.toMatchObject({
 			body: 'bye',
 			sent: 'close',
-			status: 'ok'
+			status: 'ok',
 		})
 	})
 
@@ -406,10 +404,10 @@ describe('PepTalk server death', () => {
 
 	beforeAll(async () => {
 		server = new websocket.Server({ port: testPort })
-		server.on('connection', ws => {
+		server.on('connection', (ws) => {
 			ws.on('message', (message: string) => {
 				// console.log('Received', message)
-				let index = extractIndex(message)
+				const index = extractIndex(message)
 				if (message.indexOf('protocol peptalk\r\n') >= 0) {
 					return ws.send(`${index} protocol peptalk uri`)
 				}
@@ -434,7 +432,7 @@ describe('PepTalk server death', () => {
 			// id: 2,
 			sent: 'get {1}/ 0',
 			status: 'ok',
-			body: 'PONG!'
+			body: 'PONG!',
 		})
 	})
 
@@ -442,7 +440,7 @@ describe('PepTalk server death', () => {
 		expect(pep).toMatchObject({
 			hostname: 'localhost',
 			port: testPort,
-			timeout: 3000
+			timeout: 3000,
 		})
 		expect(pep.setTimeout(1000)).toBe(1000)
 		expect(pep.timeout).toBe(1000)
@@ -484,10 +482,10 @@ describe('PepTalk with sadness', () => {
 
 	beforeAll(async () => {
 		server = new websocket.Server({ port: testPort })
-		server.on('connection', ws => {
+		server.on('connection', (ws) => {
 			ws.on('message', (message: string) => {
 				// console.log('Received', message)
-				let index = extractIndex(message)
+				const index = extractIndex(message)
 				if (message.indexOf('protocol peptalk\r\n') >= 0) {
 					return ws.send(`${index} protocol peptalk uri`)
 				}
@@ -499,9 +497,8 @@ describe('PepTalk with sadness', () => {
 					return ws.send(`${index} ok <entry name="pongy"/>\r\n`)
 				}
 				if (message.indexOf('get') >= 0) {
-					let errorName = message.slice(message.lastIndexOf('/') + 1,
-				 		message.lastIndexOf(' '))
-					let path = message.slice(message.indexOf('/'), message.lastIndexOf(' '))
+					const errorName = message.slice(message.lastIndexOf('/') + 1, message.lastIndexOf(' '))
+					const path = message.slice(message.indexOf('/'), message.lastIndexOf(' '))
 					return ws.send(`${index} error ${errorName} ${path}\r\n`)
 				}
 
@@ -518,7 +515,7 @@ describe('PepTalk with sadness', () => {
 			// id: 2,
 			sent: 'get {1}/ 0',
 			status: 'ok',
-			body: 'PONG!'
+			body: 'PONG!',
 		})
 	})
 
