@@ -16,7 +16,7 @@ async function run () {
 		let http = createHTTPContext(args.profile, args.host, args.port)
 		http.setHTTPTimeout(10000)
 		let start = process.hrtime()
-		let res = await http.command(args._[0], args._[1])
+		let res = await http.command(args._[0] as string, args._[1] as string)
 		let end = process.hrtime(start)
 		console.log(res)
 		console.log('Request / response took ', end[0] * 1000000000 + end[1] + 'ns')

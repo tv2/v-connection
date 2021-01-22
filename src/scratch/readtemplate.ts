@@ -16,7 +16,7 @@ let args = yargs
 async function run () {
 	let mse = createMSE(args.host, undefined, args.port)
 	let rundown = await mse.createRundown(args.showID, args.profile)
-	let template = await rundown.getTemplate(args._[0])
+	let template = await rundown.getTemplate(args._[0] as string)
 	console.dir(template, { depth: 20 })
 	await mse.deleteRundown(rundown)
 	await mse.close()

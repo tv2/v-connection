@@ -33,7 +33,7 @@ async function run () {
 	let rundown = await mse.createRundown(args.showID, args.profile)
 	let d = new Date()
 	let elementName = `CLI_TEST_${d.toISOString()}`
-	let element = await rundown.createElement(args.template, elementName, args._ ? args._ : [])
+	let element = await rundown.createElement(args.template, elementName, args._ ? (args._ as string[]) : [])
 	console.dir(element, { depth: 20 })
 	// await rundown.cue(elementName)
 	await rundown.take(elementName)
