@@ -92,8 +92,14 @@
     "watch-server": "Run HTTP server and restart when changes are made."
   },
   "engines": {
-    "node": ">=8.1.15"
+    "node": ">=10.10"
   },
+	"files": [
+		"/dist",
+		"/CHANGELOG.md",
+		"/README.md",
+		"/LICENSE"
+	],
   "dependencies": {
     "koa": "^2.11.0",
     "request": "^2.88.0",
