@@ -283,7 +283,7 @@ export interface PepTalkClient extends EventEmitter {
 /** [[PepResponse]] with additional Javascript representation. */
 export interface PepResponseJS extends PepResponse {
     /** Javascript representation of the response [[body]]. */
-    js: Object;
+    js: Record<string, unknown>;
 }
 /**
  *  Additional methods for accessing VDOM tree elements are Javascript objects.

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createMSE = exports.MSERep = void 0;
 const peptalk_1 = require("./peptalk");
 const events_1 = require("events");
 const xml_1 = require("./xml");
@@ -48,20 +49,20 @@ class MSERep extends events_1.EventEmitter {
     // private readonly sofieShowRE = /<entry name="sofie_show">\/storage\/shows\/\{([^\}]*)\}<\/entry>/
     async getRundowns() {
         await this.checkConnection();
-        let playlistList = await this.pep.getJS('/storage/playlists', 3);
-        let atomEntry = playlistList.js;
+        const playlistList = await this.pep.getJS('/storage/playlists', 3);
+        const atomEntry = playlistList.js;
         // Horrible hack ... playlists not following atom pub model
         if (atomEntry.entry) {
             atomEntry.entry.entry = atomEntry.entry.playlist;
             delete atomEntry.entry.playlist;
         }
-        let flatList = await xml_1.flattenEntry(playlistList.js);
+        const flatList = await xml_1.flattenEntry(playlistList.js);
         return Object.keys(flatList)
-            .filter(k => k !== 'name' && typeof flatList[k] !== 'string' && flatList[k].sofie_show)
-            .map(k => new rundown_1.Rundown(this, flatList[k].sofie_show.value, flatList[k].profile, k, flatList[k].description));
+            .filter((k) => k !== 'name' && typeof flatList[k] !== 'string' && flatList[k].sofie_show)
+            .map((k) => new rundown_1.Rundown(this, flatList[k].sofie_show.value, flatList[k].profile, k, flatList[k].description));
     }
     async getRundown(playlistID) {
-        let playlist = await this.getPlaylist(playlistID);
+        const playlist = await this.getPlaylist(playlistID);
         if (!playlist.sofie_show) {
             throw new Error('Cannnot retrieve a rundown witnout a sofie show property.');
         }
@@ -69,28 +70,27 @@ class MSERep extends events_1.EventEmitter {
     }
     async getEngines() {
         await this.checkConnection();
-        let handlers = await this.pep.getJS('/scheduler');
-        let vizEntries = handlers.js.entry.handler
-            .filter((x) => x.$.type === 'viz');
-        let viz = await Promise.all(vizEntries.map(x => xml_1.flattenEntry(x)));
+        const handlers = await this.pep.getJS('/scheduler');
+        const vizEntries = handlers.js.entry.handler.filter((x) => x.$.type === 'viz');
+        const viz = await Promise.all(vizEntries.map((x) => xml_1.flattenEntry(x)));
         return viz;
     }
     async listProfiles() {
         await this.checkConnection();
-        let profileList = await this.pep.getJS('/config/profiles', 1);
-        let flatList = await xml_1.flattenEntry(profileList.js);
+        const profileList = await this.pep.getJS('/config/profiles', 1);
+        const flatList = await xml_1.flattenEntry(profileList.js);
         return Object.keys(flatList).filter((x) => x !== 'name');
     }
     async getProfile(profileName) {
         await this.checkConnection();
-        let profile = await this.pep.getJS(`/config/profiles/${profileName}`);
-        let flatProfile = await xml_1.flattenEntry(profile.js);
+        const profile = await this.pep.getJS(`/config/profiles/${profileName}`);
+        const flatProfile = await xml_1.flattenEntry(profile.js);
         return flatProfile;
     }
     async listShows() {
         await this.checkConnection();
-        let showList = await this.pep.getJS('/storage/shows', 1);
-        let flatList = await xml_1.flattenEntry(showList.js);
+        const showList = await this.pep.getJS('/storage/shows', 1);
+        const flatList = await xml_1.flattenEntry(showList.js);
         return Object.keys(flatList).filter((x) => x !== 'name');
     }
     async getShow(showName) {
@@ -104,20 +104,20 @@ class MSERep extends events_1.EventEmitter {
             return Promise.reject(new Error(`Show name must be a UUID and '${showName}' is not.`));
         }
         await this.checkConnection();
-        let show = await this.pep.getJS(`/storage/shows/${showName}`);
-        let flatShow = await xml_1.flattenEntry(show.js);
+        const show = await this.pep.getJS(`/storage/shows/${showName}`);
+        const flatShow = await xml_1.flattenEntry(show.js);
         return flatShow;
     }
     async listPlaylists() {
         await this.checkConnection();
-        let playlistList = await this.pep.getJS('/storage/playlists', 1);
-        let atomEntry = playlistList.js;
+        const playlistList = await this.pep.getJS('/storage/playlists', 1);
+        const atomEntry = playlistList.js;
         // Horrible hack ... playlists not following atom pub model
         if (atomEntry.entry) {
             atomEntry.entry.entry = atomEntry.entry.playlist;
             delete atomEntry.entry.playlist;
         }
-        let flatList = await xml_1.flattenEntry(playlistList.js);
+        const flatList = await xml_1.flattenEntry(playlistList.js);
         return Object.keys(flatList).filter((x) => x !== 'name');
     }
     async getPlaylist(playlistName) {
@@ -131,7 +131,7 @@ class MSERep extends events_1.EventEmitter {
             return Promise.reject(new Error(`Playlist name must be a UUID and '${playlistName}' is not.`));
         }
         await this.checkConnection();
-        let playlist = await this.pep.getJS(`/storage/playlists/${playlistName}`);
+        const playlist = await this.pep.getJS(`/storage/playlists/${playlistName}`);
         let flatPlaylist = await xml_1.flattenEntry(playlist.js);
         if (Object.keys(flatPlaylist).length === 1) {
             flatPlaylist = flatPlaylist[Object.keys(flatPlaylist)[0]];
@@ -142,7 +142,7 @@ class MSERep extends events_1.EventEmitter {
     async createRundown(showID, profileName, playlistID, description) {
         let playlistExists = false;
         showID = showID.toUpperCase();
-        let date = new Date();
+        const date = new Date();
         description = description ? description : `Sofie Rundown ${date.toISOString()}`;
         try {
             await this.checkConnection();
@@ -159,7 +159,7 @@ class MSERep extends events_1.EventEmitter {
         }
         if (playlistID) {
             try {
-                let playlist = await this.getPlaylist(playlistID.toUpperCase());
+                const playlist = await this.getPlaylist(playlistID.toUpperCase());
                 if (!playlist.profile.endsWith(`/${profileName}`)) {
                     throw new Error(`Referenced playlist exists but references profile '${playlist.profile}' rather than the given '${profileName}'.`);
                 }
@@ -174,7 +174,15 @@ class MSERep extends events_1.EventEmitter {
         }
         if (!playlistExists) {
             playlistID = playlistID && playlistID.match(uuidRe) ? playlistID.toUpperCase() : uuid.v4().toUpperCase();
-            let modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+            const modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1)
+                .toString()
+                .padStart(2, '0')}.${date.getFullYear()} ${date
+                .getHours()
+                .toString()
+                .padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date
+                .getSeconds()
+                .toString()
+                .padStart(2, '0')}`;
             await this.pep.insert(`/storage/playlists/{${playlistID}}`, `<playlist description="${description}" modified="${modifiedDate}" profile="/config/profiles/${profileName}" name="{${playlistID}}">
     <elements/>
     <entry name="environment">
@@ -197,12 +205,12 @@ class MSERep extends events_1.EventEmitter {
     }
     // Rundown basics task
     async deleteRundown(rundown) {
-        let playlist = await this.getPlaylist(rundown.playlist);
+        const playlist = await this.getPlaylist(rundown.playlist);
         // console.dir(playlist, { depth: 10 })
         if (playlist.active_profile.value) {
             throw new Error(`Cannot delete an active profile.`);
         }
-        let delres = await this.pep.delete(`/storage/playlists/{${rundown.playlist}}`);
+        const delres = await this.pep.delete(`/storage/playlists/{${rundown.playlist}}`);
         return delres.status === 'ok';
     }
     // Advanced feature
@@ -215,7 +223,7 @@ class MSERep extends events_1.EventEmitter {
     }
     async ping() {
         try {
-            let res = await this.pep.ping();
+            const res = await this.pep.ping();
             return { path: 'ping', status: 200, response: res.body };
         }
         catch (err) {

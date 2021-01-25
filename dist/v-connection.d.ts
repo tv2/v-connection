@@ -251,7 +251,7 @@ export interface VRundown {
      *  Is the associated MSE playlist currently active?
      *  @returns Resolves with the activation status of the associated MSE playlist.
      */
-    isActive(): Promise<Boolean>;
+    isActive(): Promise<boolean>;
 }
 /**
  *  Represenation of a connection and state of a Viz Engine.

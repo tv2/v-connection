@@ -10,11 +10,11 @@
  */
 export interface AtomEntry {
     /** Attributes of the entry, including its required `name`. */
-    '$': {
+    $: {
         [z: string]: string;
     };
     /** Content data of the atom entry (`CDATA`). */
-    '_'?: string;
+    _?: string;
     /** Sub-entry or entries of the atom pub object. */
     entry?: AtomEntry | Array<AtomEntry> | string[];
     [z: string]: any;

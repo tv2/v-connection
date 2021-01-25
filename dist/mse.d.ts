@@ -25,7 +25,7 @@ export declare class MSERep extends EventEmitter implements MSE {
     getPlaylist(playlistName: string): Promise<VPlaylist>;
     createRundown(showID: string, profileName: string, playlistID?: string, description?: string): Promise<VRundown>;
     deleteRundown(rundown: VRundown): Promise<boolean>;
-    createProfile(_profileName: string, _profileDetailsTbc: any): Promise<VProfile>;
+    createProfile(_profileName: string, _profileDetailsTbc: unknown): Promise<VProfile>;
     deleteProfile(_profileName: string): Promise<boolean>;
     ping(): Promise<CommandResult>;
     close(): Promise<boolean>;

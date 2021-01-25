@@ -4,6 +4,7 @@
  *  of a Media Sequencer Engine.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createHTTPContext = exports.HTTPRequestError = exports.HTTPServerError = exports.HTTPClientError = exports.uuidRe = void 0;
 const request = require("request-promise-native");
 exports.uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/;
 class HTTPClientError extends Error {
@@ -54,7 +55,7 @@ class MSEHTTP {
                 throw err;
             }
         }
-        let response = err.response;
+        const response = err.response;
         if (response.statusCode >= 400 && response.statusCode < 500) {
             return new HTTPClientError(response, path, body);
         }
@@ -66,26 +67,26 @@ class MSEHTTP {
     async command(path, body) {
         try {
             if (typeof path === 'string') {
-                let response = await request({
+                const response = await request({
                     method: 'POST',
                     uri: `${this.baseURL}/${path}`,
                     body,
                     timeout: this.timeout,
                     headers: {
-                        'Content-Type': 'text/plain'
-                    }
+                        'Content-Type': 'text/plain',
+                    },
                 });
                 return { status: 200, response: response.toString() };
             }
             else {
-                let response = await request({
+                const response = await request({
                     method: 'POST',
                     url: path.toString(),
                     body,
                     timeout: this.timeout,
                     headers: {
-                        'Content-Type': 'text/plain'
-                    }
+                        'Content-Type': 'text/plain',
+                    },
                 });
                 return { status: 200, response: response.toString() };
             }
@@ -122,6 +123,7 @@ class MSEHTTP {
         return this.command('cleanup', `/storage/shows/{${showID}}`);
     }
     async initialize(ref) {
+        // initialize a single element
         return this.command('initialize', ref);
     }
     async ping() {
@@ -129,7 +131,7 @@ class MSEHTTP {
             await request.get({
                 method: 'GET',
                 uri: this.baseURL,
-                timeout: this.timeout
+                timeout: this.timeout,
             });
             return { status: 200, response: 'PONG!' };
         }

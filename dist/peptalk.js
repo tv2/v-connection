@@ -4,6 +4,7 @@
  *  of a Media Sequencer Engine.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.startPepTalk = exports.UnspecifiedError = exports.SyntaxError = exports.NotAllowedError = exports.InvalidError = exports.InexistentError = exports.isIPepError = exports.Capability = exports.LocationType = void 0;
 const events_1 = require("events");
 const websocket = require("ws");
 const Xml2JS = require("xml2js");
@@ -36,7 +37,7 @@ var Capability;
     Capability["prettycolors"] = "prettycolors";
 })(Capability = exports.Capability || (exports.Capability = {}));
 function isIPepError(err) {
-    return err.hasOwnProperty('status');
+    return Object.prototype.hasOwnProperty.call(err, 'status');
 }
 exports.isIPepError = isIPepError;
 class PepError extends Error {
@@ -83,6 +84,7 @@ class UnspecifiedError extends PepError {
     constructor(id, description, sent) {
         super('unspecified', id, description, sent);
         this.status = 'unspecified';
+        this.description = description;
     }
 }
 exports.UnspecifiedError = UnspecifiedError;
@@ -105,17 +107,17 @@ class PepTalk extends events_1.EventEmitter {
         let split = m.trim().split('\r\n');
         if (split.length === 0)
             return;
-        let re = /\{(\d+)\}/g;
-        let last = split[split.length - 1];
+        const re = /\{(\d+)\}/g;
+        const last = split[split.length - 1];
         let reres = re.exec(last);
         let leftovers = null;
         // console.log('SBF >>>', split)
         while (reres !== null) {
-            let lastBytes = Buffer.byteLength(last, 'utf8');
-            if (lastBytes - (reres.index + reres[0].length + (+reres[1])) < 0) {
+            const lastBytes = Buffer.byteLength(last, 'utf8');
+            if (lastBytes - (reres.index + reres[0].length + +reres[1]) < 0) {
                 leftovers = {
                     previous: last,
-                    remaining: +reres[1] - lastBytes + reres[0].length + reres.index
+                    remaining: +reres[1] - lastBytes + reres[0].length + reres.index,
                 };
                 split = split.slice(0, -1);
                 break;
@@ -137,7 +139,7 @@ class PepTalk extends events_1.EventEmitter {
             }
         }
         if (split.length > 1) {
-            for (let sm of split) {
+            for (const sm of split) {
                 // console.log('smsm >>>', sm)
                 if (sm.length > 0)
                     this.processMessage(sm);
@@ -148,10 +150,10 @@ class PepTalk extends events_1.EventEmitter {
         if (split.length === 0)
             return;
         m = split[0];
-        let firstSpace = m.indexOf(' ');
+        const firstSpace = m.indexOf(' ');
         if (firstSpace <= 0)
             return;
-        let c = +m.slice(0, firstSpace);
+        const c = +m.slice(0, firstSpace);
         if (isNaN(c) || m.slice(firstSpace + 1).startsWith('begin')) {
             if (m.startsWith('* ') || m.slice(firstSpace + 1).startsWith('begin')) {
                 this.emit('message', { id: '*', body: m, status: 'ok' });
@@ -160,24 +162,28 @@ class PepTalk extends events_1.EventEmitter {
                 try {
                     this.emit('error', new UnspecifiedError('*', `Unexpected message from server: '${m}'.`));
                 }
-                catch (err) { /* Allow emit with no listeners. */ }
+                catch (err) {
+                    /* Allow emit with no listeners. */
+                }
             }
             return; // probably an event
         }
-        let pending = this.pendingRequests[c];
+        const pending = this.pendingRequests[c];
         if (!pending) {
             try {
                 this.emit('error', new UnspecifiedError(c, `Unmatched response for request ${c}.`));
             }
-            catch (err) { /* Allow emit with no listeners. */ }
+            catch (err) {
+                /* Allow emit with no listeners. */
+            }
             return; // everything beyond here needs pending to be set
         }
         if (m.slice(firstSpace + 1).startsWith('ok')) {
-            let response = {
+            const response = {
                 id: pending.id,
                 sent: pending.sent,
                 status: 'ok',
-                body: this.unesc(m.slice(firstSpace + 4)).trim()
+                body: this.unesc(m.slice(firstSpace + 4)).trim(),
             };
             pending.resolve(response);
             delete this.pendingRequests[c];
@@ -188,18 +194,18 @@ class PepTalk extends events_1.EventEmitter {
             return;
         }
         if (m.slice(firstSpace + 1).startsWith('protocol')) {
-            let response = {
+            const response = {
                 id: pending.id,
                 sent: pending.sent,
                 status: 'ok',
-                body: this.unesc(m.slice(firstSpace + 1)).trim()
+                body: this.unesc(m.slice(firstSpace + 1)).trim(),
             };
             pending.resolve(response);
             delete this.pendingRequests[c];
             this.emit('message', response);
             return;
         }
-        let errorIndex = m.indexOf('error');
+        const errorIndex = m.indexOf('error');
         let error;
         if (errorIndex < 0 || errorIndex > 10) {
             error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending && pending.sent ? pending.sent : 'sent is undefined');
@@ -233,7 +239,9 @@ class PepTalk extends events_1.EventEmitter {
         try {
             this.emit('error', error);
         }
-        catch (err) { /* Allow emit with no listeners. */ }
+        catch (err) {
+            /* Allow emit with no listeners. */
+        }
     }
     failTimer(c, message) {
         return new Promise((_resolve, reject) => {
@@ -256,12 +264,12 @@ class PepTalk extends events_1.EventEmitter {
     async connect(noevents) {
         this.ws = new Promise((resolve, reject) => {
             // console.log('<<<', `ws://${this.hostname}:${this.port}/`)
-            let ws = new websocket(`ws://${this.hostname}:${this.port}/`);
+            const ws = new websocket(`ws://${this.hostname}:${this.port}/`);
             ws.once('open', () => {
                 ws.on('message', this.processMessage.bind(this));
                 resolve(ws);
             });
-            ws.once('error', err => {
+            ws.once('error', (err) => {
                 reject(err);
             });
             ws.once('close', () => {
@@ -275,7 +283,7 @@ class PepTalk extends events_1.EventEmitter {
         return this.send('close');
     }
     async ping() {
-        let pingTest = await this.get('/', 0);
+        const pingTest = await this.get('/', 0);
         if (pingTest.body.indexOf('<entry') >= 0) {
             pingTest.body = 'PONG!';
             return pingTest;
@@ -285,22 +293,24 @@ class PepTalk extends events_1.EventEmitter {
         }
     }
     async send(message) {
-        let c = this.counter++;
+        const c = this.counter++;
         return Promise.race([
             this.failTimer(c, message),
             new Promise((resolve, reject) => {
-                this.ws.then(s => {
+                this.ws
+                    .then((s) => {
                     if (s === null) {
                         reject(new Error('Not connected.'));
                     }
                     else {
                         s.send(`${c} ${message}\r\n`);
                     }
-                }).catch(err => {
+                })
+                    .catch((err) => {
                     reject(new UnspecifiedError('*', `Unexpected send error from websocket: ${err.message}`, message));
                 });
                 this.pendingRequests[c] = { resolve, reject, id: c, sent: message };
-            })
+            }),
         ]);
     }
     async copy(sourcePath, newPath, location, sibling) {
@@ -328,7 +338,10 @@ class PepTalk extends events_1.EventEmitter {
         else if (!Array.isArray(capability)) {
             capability = [capability];
         }
-        let list = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '').trim();
+        const list = capability
+            .map((x) => x.toString())
+            .reduce((x, y) => `${x} ${y}`, '')
+            .trim();
         return this.send(`protocol${list.length > 0 ? ' ' : ''}${list}`);
     }
     async reintialize() {
@@ -354,7 +367,7 @@ class PepTalk extends events_1.EventEmitter {
         return this.timeout;
     }
     async getJS(path, depth) {
-        let result = await this.get(path, depth);
+        const result = (await this.get(path, depth));
         result.js = await Xml2JS.parseStringPromise(result.body);
         return result;
     }

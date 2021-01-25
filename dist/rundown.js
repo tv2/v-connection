@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Rundown = void 0;
 const msehttp_1 = require("./msehttp");
 const peptalk_1 = require("./peptalk");
 const xml_1 = require("./xml");
@@ -25,48 +26,54 @@ class Rundown {
         }
         this.description = description;
         this.msehttp = msehttp_1.createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort);
-        this.buildChannelMap().catch(err => console.error(`Warning: Failed to build channel map: ${err.message}`));
+        this.buildChannelMap().catch((err) => console.error(`Warning: Failed to build channel map: ${err.message}`));
     }
-    get pep() { return this.mse.getPep(); }
+    get pep() {
+        return this.mse.getPep();
+    }
     async buildChannelMap(vcpid) {
         if (typeof vcpid === 'number') {
-            if (this.channelMap.hasOwnProperty(vcpid)) {
+            if (Object.prototype.hasOwnProperty.call(this.channelMap, vcpid)) {
                 return true;
             }
         }
         await this.mse.checkConnection();
-        let elements = vcpid ? [vcpid] : await this.listElements();
-        for (let e of elements) {
+        const elements = vcpid ? [vcpid] : await this.listElements();
+        for (const e of elements) {
             if (typeof e === 'number') {
-                let element = await this.getElement(e);
+                const element = await this.getElement(e);
                 if (element.channel) {
                     this.channelMap[e] = {
                         channelName: element.channel,
-                        refName: element.hasOwnProperty('name') && typeof element.name === 'string' ? element.name : 'ref'
+                        refName: Object.prototype.hasOwnProperty.call(element, 'name') && typeof element.name === 'string'
+                            ? element.name
+                            : 'ref',
                     };
                 }
                 else {
                     this.channelMap[e] = {
                         channelName: null,
-                        refName: element.hasOwnProperty('name') && typeof element.name === 'string' ? element.name : 'ref'
+                        refName: Object.prototype.hasOwnProperty.call(element, 'name') && typeof element.name === 'string'
+                            ? element.name
+                            : 'ref',
                     };
                 }
             }
         }
-        return typeof vcpid === 'number' ? this.channelMap.hasOwnProperty(vcpid) : false;
+        return typeof vcpid === 'number' ? Object.prototype.hasOwnProperty.call(this.channelMap, vcpid) : false;
     }
     ref(id) {
         return this.channelMap[id].refName ? this.channelMap[id].refName.replace('#', '%23') : 'ref';
     }
     async listTemplates() {
         await this.mse.checkConnection();
-        let templateList = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates`, 1);
-        let flatTemplates = await xml_1.flattenEntry(templateList.js);
-        return Object.keys(flatTemplates).filter(x => x !== 'name');
+        const templateList = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates`, 1);
+        const flatTemplates = await xml_1.flattenEntry(templateList.js);
+        return Object.keys(flatTemplates).filter((x) => x !== 'name');
     }
     async getTemplate(templateName) {
         await this.mse.checkConnection();
-        let template = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates/${templateName}`);
+        const template = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates/${templateName}`);
         let flatTemplate = await xml_1.flattenEntry(template.js);
         if (Object.keys(flatTemplate).length === 1) {
             flatTemplate = flatTemplate[Object.keys(flatTemplate)[0]];
@@ -86,11 +93,13 @@ class Rundown {
                 if (err.message.startsWith('An internal graphics element'))
                     throw err;
             }
-            let template = await this.getTemplate(nameOrID);
+            const template = await this.getTemplate(nameOrID);
             // console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
             let fielddef;
-            if (template.hasOwnProperty('model_xml') && typeof template.model_xml === 'object' &&
-                template.model_xml.hasOwnProperty('model') && typeof template.model_xml.model === 'object') {
+            if (Object.prototype.hasOwnProperty.call(template, 'model_xml') &&
+                typeof template.model_xml === 'object' &&
+                Object.prototype.hasOwnProperty.call(template.model_xml, 'model') &&
+                typeof template.model_xml.model === 'object') {
                 fielddef = template.model_xml.model.schema[0].fielddef;
             }
             else {
@@ -98,7 +107,7 @@ class Rundown {
             }
             let fieldNames = fielddef ? fielddef.map((x) => x.$.name) : [];
             let entries = '';
-            let data = {};
+            const data = {};
             if (Array.isArray(aliasOrTextFields)) {
                 if (aliasOrTextFields.length > fieldNames.length) {
                     throw new Error(`For template '${nameOrID}' with ${fieldNames.length} field(s), ${aliasOrTextFields.length} fields have been provided.`);
@@ -109,8 +118,8 @@ class Rundown {
                     data[fieldNames[x]] = aliasOrTextFields[x] ? aliasOrTextFields[x] : '';
                 }
             }
-            let vizProgram = channel ? ` viz_program="${channel}"` : '';
-            await this.pep.insert(`/storage/shows/{${this.show}}/elements/${elementNameOrChannel}`, `<element name="${elementNameOrChannel}" guid="${uuid.v4()}" updated="${(new Date()).toISOString()}" creator="Sofie" ${vizProgram}>
+            const vizProgram = channel ? ` viz_program="${channel}"` : '';
+            await this.pep.insert(`/storage/shows/{${this.show}}/elements/${elementNameOrChannel}`, `<element name="${elementNameOrChannel}" guid="${uuid.v4()}" updated="${new Date().toISOString()}" creator="Sofie" ${vizProgram}>
   <ref name="master_template">/storage/shows/{${this.show}}/mastertemplates/${nameOrID}</ref>
   <entry name="default_alternatives"/>
   <entry name="data">
@@ -121,46 +130,47 @@ ${entries}
                 name: elementNameOrChannel,
                 template: nameOrID,
                 data,
-                channel
+                channel,
             };
         }
-        // @ts-ignore
         if (typeof nameOrID === 'number') {
-            let vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : '';
-            let { body: path } = await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
+            const vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : '';
+            const { body: path } = await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
             this.channelMap[nameOrID] = {
                 channelName: elementNameOrChannel ? elementNameOrChannel : null,
-                refName: path ? path.slice(path.lastIndexOf('/') + 1) : 'ref'
+                refName: path ? path.slice(path.lastIndexOf('/') + 1) : 'ref',
             };
             return {
                 vcpid: nameOrID.toString(),
-                channel: elementNameOrChannel
+                channel: elementNameOrChannel,
             };
         }
         throw new Error('Create element called with neither a string or numerical reference.');
     }
     async listElements() {
         await this.mse.checkConnection();
-        let [showElementsList, playlistElementsList] = await Promise.all([
+        const [showElementsList, playlistElementsList] = await Promise.all([
             this.pep.getJS(`/storage/shows/{${this.show}}/elements`, 1),
-            this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2)
+            this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2),
         ]);
-        let flatShowElements = await xml_1.flattenEntry(showElementsList.js);
-        let elementNames = Object.keys(flatShowElements).filter(x => x !== 'name');
-        let flatPlaylistElements = await xml_1.flattenEntry(playlistElementsList.js);
-        let elementsRefs = flatPlaylistElements.elements ?
-            Object.keys(flatPlaylistElements.elements).map(k => {
-                let ref = flatPlaylistElements.elements[k].value;
-                let lastSlash = ref.lastIndexOf('/');
+        const flatShowElements = await xml_1.flattenEntry(showElementsList.js);
+        const elementNames = Object.keys(flatShowElements).filter((x) => x !== 'name');
+        const flatPlaylistElements = await xml_1.flattenEntry(playlistElementsList.js);
+        const elementsRefs = flatPlaylistElements.elements
+            ? Object.keys(flatPlaylistElements.elements).map((k) => {
+                const ref = flatPlaylistElements.elements[k].value;
+                const lastSlash = ref.lastIndexOf('/');
                 return +ref.slice(lastSlash + 1);
-            }) : [];
+            })
+            : [];
         return elementNames.concat(elementsRefs);
     }
     async activate(twice, initShow = true, initPlaylist = true) {
         let result = {
+            // Returned when initShow = false and initPlaylist = false
             path: '/',
             status: 200,
-            response: 'No commands to run.'
+            response: 'No commands to run.',
         };
         if (twice && initShow) {
             result = await this.msehttp.initializeShow(this.show);
@@ -283,13 +293,15 @@ ${entries}
     async getElement(elementName) {
         await this.mse.checkConnection();
         if (typeof elementName === 'number') {
-            let playlistsList = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2);
-            let flatPlaylistElements = await xml_1.flattenEntry(playlistsList.js);
-            let elementKey = Object.keys(flatPlaylistElements.elements).find(k => {
-                let ref = flatPlaylistElements.elements[k].value;
+            const playlistsList = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2);
+            const flatPlaylistElements = await xml_1.flattenEntry(playlistsList.js);
+            const elementKey = Object.keys(flatPlaylistElements.elements).find((k) => {
+                const ref = flatPlaylistElements.elements[k].value;
                 return ref.endsWith(`/${elementName}`);
             });
-            let element = typeof elementKey === 'string' ? flatPlaylistElements.elements[elementKey] : undefined;
+            const element = typeof elementKey === 'string'
+                ? flatPlaylistElements.elements[elementKey]
+                : undefined;
             if (!element) {
                 throw new peptalk_1.InexistentError(typeof playlistsList.id === 'number' ? playlistsList.id : 0, `/storage/playlists/{${this.playlist}}/elements#${elementName}`);
             }
@@ -301,14 +313,14 @@ ${entries}
             }
         }
         else {
-            let element = await this.pep.getJS(`/storage/shows/{${this.show}}/elements/${elementName}`);
-            let flatElement = (await xml_1.flattenEntry(element.js))[elementName];
+            const element = await this.pep.getJS(`/storage/shows/{${this.show}}/elements/${elementName}`);
+            const flatElement = (await xml_1.flattenEntry(element.js))[elementName];
             flatElement.name = elementName;
             return flatElement;
         }
     }
     async isActive() {
-        let playlist = await this.mse.getPlaylist(this.playlist);
+        const playlist = await this.mse.getPlaylist(this.playlist);
         return playlist.active_profile && typeof playlist.active_profile.value !== 'undefined';
     }
 }

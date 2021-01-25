@@ -6,6 +6,7 @@
  *  and [RFC4287](https://tools.ietf.org/html/rfc4287).
  */
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.buildXML = exports.entry2XML = exports.flattenEntry = void 0;
 const Xml2JS = require("xml2js");
 /**
  *  Transform a direct-from-XML format [[AtomEntry|atom pub entry]] into its flatter,
@@ -14,13 +15,13 @@ const Xml2JS = require("xml2js");
  *  @return Simplified version of `x`.
  */
 async function flattenEntry(x) {
-    let keys = Object.keys(x);
+    const keys = Object.keys(x);
     if (keys.length === 1 && (x.entry || x.ref)) {
         return flattenEntry((x.entry ? x.entry : x.ref));
     }
     let y = {};
     if (x.$) {
-        for (let a in x.$) {
+        for (const a in x.$) {
             y[a] = x.$[a];
         }
     }
@@ -30,7 +31,7 @@ async function flattenEntry(x) {
     // MSE uses entries with nested sub-entries. Not Atom-compliant, but fairly consistent
     if (x.entry && Array.isArray(x.entry)) {
         let unnamedCount = 0;
-        for (let e of x.entry) {
+        for (const e of x.entry) {
             if (typeof e === 'object') {
                 if (e.$ && e.$.name) {
                     if (e.$.name === 'model_xml') {
@@ -59,7 +60,7 @@ async function flattenEntry(x) {
         }
     }
     // Apart from when a _special_ XML element name is used. This code picks up those with different _keys_.
-    for (let k of keys.filter(z => z !== 'entry' && z !== '$' && z !== '_')) {
+    for (const k of keys.filter((z) => z !== 'entry' && z !== '$' && z !== '_')) {
         if (typeof x[k] === 'object') {
             if (Array.isArray(x[k])) {
                 await Promise.all(x[k].map(async (z) => {
@@ -83,7 +84,7 @@ async function flattenEntry(x) {
                 }));
             }
             else {
-                let e = x[k];
+                const e = x[k];
                 if (e.$ && e.$.name) {
                     y[e.$.name] = await flattenEntry(e);
                     y[e.$.name].key = k;
@@ -109,11 +110,11 @@ exports.flattenEntry = flattenEntry;
 function entry2XML(x) {
     if (Object.keys(x).length === 0)
         return { $: {} };
-    let y = { $: {}, entry: [] };
-    for (let a in x) {
+    const y = { $: {}, entry: [] };
+    for (const a in x) {
         // console.log(a, typeof(x[a]), x[a])
         if (typeof x[a] === 'object') {
-            let e = entry2XML(x[a]);
+            const e = entry2XML(x[a]);
             // console.log('EEE >>>', a, x[a], e)
             if (!a.startsWith('_')) {
                 e.$.name = a;
@@ -126,11 +127,10 @@ function entry2XML(x) {
                 delete e.$.value;
                 delete e.entry;
             }
-            else if (e.entry && Array.isArray(e.entry) && e.entry[0] &&
-                e.entry[0].$) {
+            else if (e.entry && Array.isArray(e.entry) && e.entry[0] && e.entry[0].$) {
                 let counter = 0;
-                let ed = [];
-                while ((typeof e.entry[0].$[counter.toString()]) === 'string') {
+                const ed = [];
+                while (typeof e.entry[0].$[counter.toString()] === 'string') {
                     ed.push(e.entry[0].$[counter.toString()]);
                     counter++;
                 }
@@ -154,7 +154,7 @@ exports.entry2XML = entry2XML;
  *  @return Seialized XML representation of `x`.
  */
 function buildXML(x) {
-    let builder = new Xml2JS.Builder({ headless: true });
+    const builder = new Xml2JS.Builder({ headless: true });
     return builder.buildObject({ entry: x });
 }
 exports.buildXML = buildXML;
