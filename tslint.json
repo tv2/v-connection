@@ -1,9 +1,0 @@
-{
-  "extends": "tslint-config-standard",
-  "rules": {
-    "indent": [true, "tabs", 2],
-    "ter-indent": [true, "tab",{
-			"SwitchCase": 1
-    }]
-  }
-}
