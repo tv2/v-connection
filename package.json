@@ -55,15 +55,16 @@
 		"send-coverage": "yarn testci && codecov",
 		"docs": "yarn docs:html && open-cli docs/index.html",
 		"docs:test": "yarn docs:html",
-		"docs:html": "typedoc src/index.ts --excludePrivate --mode file --theme minimal --out docs",
-		"docs:json": "typedoc --mode file --json docs/typedoc.json src/index.ts",
+		"docs:html": "typedoc src/index.ts --excludePrivate --theme minimal --out docs",
+		"docs:json": "typedoc --json docs/typedoc.json src/index.ts",
 		"docs:publish": "yarn docs:html && gh-pages -d docs",
 		"changelog": "standard-version",
 		"release": "yarn reset && yarn testci && yarn docs:publish && yarn changelog",
 		"prepareChangelog": "standard-version --prerelease",
 		"reset": "git clean -dfx && git reset --hard && yarn",
 		"ci": "yarn testci",
-		"validate:dependencies": "yarn audit && yarn license-validate",
+		"validate:dependencies": "yarn audit --groups dependencies && yarn license-validate",
+		"validate:dev-dependencies": "yarn audit --groups devDependencies",
 		"license-validate": "yarn sofie-licensecheck"
 	},
 	"scripts-info": {
@@ -89,6 +90,7 @@
 		"reset": "Delete all untracked files and reset the repo to the last commit",
 		"ci": "Test script for running by the CI (CircleCI)",
 		"validate:dependencies": "Scan dependencies for vulnerabilities and check licenses",
+		"validate:dev-dependencies": "Scan dependencies for vulnerabilities in dev dependencies",
 		"license-validate": "Validate licenses for dependencies.",
 		"watch-server": "Run HTTP server and restart when changes are made."
 	},
