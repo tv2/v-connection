@@ -4,22 +4,23 @@ Library to enable the Sofie TV Automation system to control a Vizrt [Media Seque
 
 This library is currently experimental. It currently contains:
 
-* [_blog_ about what has been discovered so far](./doc/architecture_notes.md);
-* [terminology related to the VDOM tree](./doc/VDOM_terminology.md);
-* [simple prototype application that has been used to control a Viz Engine via MSE](./src/scratch/cli_bund.js);
-* [draft typescript interface](./src/v-connection.ts).
+- [_blog_ about what has been discovered so far](./doc/architecture_notes.md);
+- [terminology related to the VDOM tree](./doc/VDOM_terminology.md);
+- [simple prototype application that has been used to control a Viz Engine via MSE](./scratch/cli_bund.js);
+- [draft typescript interface](./src/v-connection.ts).
 
 ## Abstract
+
 This library bridges the Vizrt Media Sequencer Engine and typescript to all the [Sofie TV Automation system](https://github.com/nrkno/Sofie-TV-automation) to control graphics generation.
 
 ## Supported devices
 
-* [Vizrt Media Sequencer Engine](https://documentation.vizrt.com/viz-engine-guide/3.5/general_requirements_media_sequencer.html) to control [Viz Engine](https://www.vizrt.com/products/viz-engine).
+- [Vizrt Media Sequencer Engine](https://documentation.vizrt.com/viz-engine-guide/3.5/general_requirements_media_sequencer.html) to control [Viz Engine](https://www.vizrt.com/products/viz-engine).
 
 ### Prerequisites
 
-* This addon has been developed with Node.js v8.1.15 LTS.
-* Install the [yarn package manager](https://yarnpkg.com/en/docs/install).
+- This addon has been developed with Node.js v8.1.15 LTS.
+- Install the [yarn package manager](https://yarnpkg.com/en/docs/install).
 
 ### Building
 
@@ -57,10 +58,10 @@ Note that `restPort` and `wsPort` are optional. If omitted, the default port num
 
 This version of the library assumes the following setup are has been done within an MSE in advance:
 
-* _handlers_ describing connections to VizEngines have been created.
-* _handlers_ for external elements, e.g. pilot database, have been created (typically named `namespace_...`).
-* a _profile_ has been created to specify the relationship between channel names and engines and to represent the state of a running show.
-* one or more _shows_ that contain scenes and master templates that can be used be this library to build internal element instances.
+- _handlers_ describing connections to VizEngines have been created.
+- _handlers_ for external elements, e.g. pilot database, have been created (typically named `namespace_...`).
+- a _profile_ has been created to specify the relationship between channel names and engines and to represent the state of a running show.
+- one or more _shows_ that contain scenes and master templates that can be used be this library to build internal element instances.
 
 Given that setup, the steps to use the library are:
 

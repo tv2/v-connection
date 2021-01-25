@@ -8,12 +8,12 @@ import { URL } from 'url'
 
 const testPort = 4317
 
-const wait = (t: number) => new Promise<void>((resolve) => {
-	setTimeout(resolve, t)
-})
+const wait = (t: number) =>
+	new Promise<void>((resolve) => {
+		setTimeout(resolve, t)
+	})
 
 describe('MSE HTTP library when happy', () => {
-
 	let app: Koa
 	let server: http.Server
 	let msehttp: HttpMSEClient
@@ -22,20 +22,21 @@ describe('MSE HTTP library when happy', () => {
 		app = new Koa()
 		msehttp = createHTTPContext('SOFIE', 'localhost', testPort)
 
-		app.use(bodyParser({ enableTypes: [ 'text' ] }))
-		app.use(async ctx => {
+		app.use(bodyParser({ enableTypes: ['text'] }))
+		app.use(async (ctx) => {
 			// console.log(ctx)
 			if (ctx.path === '/') {
 				ctx.body = 'Look at me'
 			}
-			if (ctx.path === '/profiles/SOFIE') { // Ping test
+			if (ctx.path === '/profiles/SOFIE') {
+				// Ping test
 				ctx.body = '<profile/>'
 			}
 			if (ctx.path.startsWith('/profiles/SOFIE/initialize')) {
 				if (ctx.headers['content-type'] !== 'text/plain') {
 					throw new Error('Missing content header.')
 				}
-				let body = ctx.request.body
+				const body = ctx.request.body
 				ctx.body = `Scheduled initialization and activation of ${body}.`
 				return
 			}
@@ -43,7 +44,7 @@ describe('MSE HTTP library when happy', () => {
 				if (ctx.headers['content-type'] !== 'text/plain') {
 					throw new Error('Missing content header.')
 				}
-				let body = ctx.request.body
+				const body = ctx.request.body
 				ctx.body = `Scheduled cleanup and deactivation of ${body}.`
 				return
 			}
@@ -68,11 +69,11 @@ describe('MSE HTTP library when happy', () => {
 				return
 			}
 			if (ctx.path.startsWith('/profiles/SOFIE/')) {
-				let command = ctx.path.slice(16)
+				const command = ctx.path.slice(16)
 				if (ctx.headers['content-type'] !== 'text/plain') {
 					throw new Error('Missing content header.')
 				}
-				let body = ctx.request.body
+				const body = ctx.request.body
 				if (!body.endsWith(command)) {
 					throw new Error('Command name is not as expected')
 				}
@@ -80,8 +81,10 @@ describe('MSE HTTP library when happy', () => {
 			}
 		})
 
-		await new Promise((resolve, _reject) => {
-			server = app.listen(testPort, () => { resolve() })
+		await new Promise<void>((resolve, _reject) => {
+			server = app.listen(testPort, () => {
+				resolve()
+			})
 		})
 	})
 
@@ -91,94 +94,95 @@ describe('MSE HTTP library when happy', () => {
 			port: 4317,
 			host: 'localhost',
 			profile: 'SOFIE',
-			baseURL: 'http://localhost:4317/profiles/SOFIE'
+			baseURL: 'http://localhost:4317/profiles/SOFIE',
 		})
 	})
 
 	test('Basic connection test', async () => {
-		let fromMe = await request(`http://localhost:${testPort}`)
+		const fromMe = await request(`http://localhost:${testPort}`)
 		expect(fromMe).toBe('Look at me')
 	})
 
 	test('Ping test', async () => {
-		let pingResult = await msehttp.ping()
+		const pingResult = await msehttp.ping()
 		expect(pingResult).toMatchObject({ status: 200, response: 'PONG!' })
 	})
 
 	test('Cue', async () => {
-		let cueResult = await msehttp.cue('/an/element/to/cue')
+		const cueResult = await msehttp.cue('/an/element/to/cue')
 		expect(cueResult).toMatchObject({
 			status: 200,
-			response: 'Scheduled cue on /an/element/to/cue.\r\n'
+			response: 'Scheduled cue on /an/element/to/cue.\r\n',
 		})
 	})
 
 	test('Take', async () => {
-		let takeResult = await msehttp.take('/an/element/to/take')
+		const takeResult = await msehttp.take('/an/element/to/take')
 		expect(takeResult).toMatchObject({
 			status: 200,
-			response: 'Scheduled take on /an/element/to/take.\r\n'
+			response: 'Scheduled take on /an/element/to/take.\r\n',
 		})
 	})
 
 	test('Out', async () => {
-		let outResult = await msehttp.out('/an/element/to/out')
+		const outResult = await msehttp.out('/an/element/to/out')
 		expect(outResult).toMatchObject({
 			status: 200,
-			response: 'Scheduled out on /an/element/to/out.\r\n'
+			response: 'Scheduled out on /an/element/to/out.\r\n',
 		})
 	})
 
 	test('Continue', async () => {
-		let contResult = await msehttp.continue('/an/element/to/continue')
+		const contResult = await msehttp.continue('/an/element/to/continue')
 		expect(contResult).toMatchObject({
 			status: 200,
-			response: 'Scheduled continue on /an/element/to/continue.\r\n'
+			response: 'Scheduled continue on /an/element/to/continue.\r\n',
 		})
 	})
 
 	test('Continue reverse', async () => {
-		let crResult = await msehttp.continueReverse('/an/element/to/continue_reverse')
+		const crResult = await msehttp.continueReverse('/an/element/to/continue_reverse')
 		expect(crResult).toMatchObject({
 			status: 200,
-			response: 'Scheduled continue_reverse on /an/element/to/continue_reverse.\r\n'
+			response: 'Scheduled continue_reverse on /an/element/to/continue_reverse.\r\n',
 		})
 	})
 
 	test('Initialize playlist', async () => {
-		let playlistID = uuid.v4().toUpperCase()
-		let initResult = await msehttp.initializePlaylist(playlistID)
+		const playlistID = uuid.v4().toUpperCase()
+		const initResult = await msehttp.initializePlaylist(playlistID)
 		expect(initResult).toMatchObject({
 			status: 200,
-			response: `Scheduled initialization and activation of /storage/playlists/{${playlistID}}.`
+			response: `Scheduled initialization and activation of /storage/playlists/{${playlistID}}.`,
 		})
 	})
 
 	test('Cleanup playlist', async () => {
-		let playlistID = uuid.v4().toUpperCase()
-		let cleanResult = await msehttp.cleanupPlaylist(playlistID)
+		const playlistID = uuid.v4().toUpperCase()
+		const cleanResult = await msehttp.cleanupPlaylist(playlistID)
 		expect(cleanResult).toMatchObject({
 			status: 200,
-			response: `Scheduled cleanup and deactivation of /storage/playlists/{${playlistID}}.`
+			response: `Scheduled cleanup and deactivation of /storage/playlists/{${playlistID}}.`,
 		})
 	})
 
 	test('Cleanup show', async () => {
-		let showID = uuid.v4().toUpperCase()
-		let initResult = await msehttp.cleanupShow(showID)
+		const showID = uuid.v4().toUpperCase()
+		const initResult = await msehttp.cleanupShow(showID)
 		expect(initResult).toMatchObject({
 			status: 200,
-			response: `Scheduled cleanup and deactivation of /storage/shows/{${showID}}.`
+			response: `Scheduled cleanup and deactivation of /storage/shows/{${showID}}.`,
 		})
 	})
 
 	test('Take with URL', async () => {
-		let takeResult = await msehttp.command(
+		const takeResult = await msehttp.command(
 			new URL(`http://localhost:${testPort}/profiles/SOFIE/take`),
-			'/an/element/to/take')
+			'/an/element/to/take'
+		)
 		expect(takeResult).toMatchObject({
 			status: 200,
-			response: 'Scheduled take on /an/element/to/take.\r\n'
+			response: 'Scheduled take on /an/element/to/take.\r\n',
 		})
 	})
 
@@ -236,17 +240,18 @@ describe('MSE HTTP library when happy', () => {
 	test('Unsuppoted element initialize', async () => {
 		await expect(msehttp.initialize('/this/now/works')).resolves.toMatchObject({
 			response: 'Scheduled initialization and activation of /this/now/works.',
-			status: 200
+			status: 200,
 		})
 	})
 
 	afterAll(async () => {
-		await new Promise((resolve, reject) => {
+		await new Promise<void>((resolve, reject) => {
 			server.close((err) => {
 				if (err) return reject(err)
 				resolve()
 			})
 		})
+		// @ts-ignore
 		msehttp = null
 	})
 })
@@ -267,6 +272,7 @@ describe('MSE HTTP library when sad', () => {
 	})
 
 	afterAll(() => {
+		// @ts-ignore
 		msehttp = null
 	})
 })

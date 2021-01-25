@@ -18,7 +18,7 @@ export enum LocationType {
 	/** Insert a new element before the given sibling */
 	Before = 'before',
 	/** Insert a new element after the given sibling. */
-	After = 'after'
+	After = 'after',
 }
 
 /**
@@ -32,7 +32,7 @@ export enum Capability {
 	xmlscheduling = 'xmlscheduling',
 	xmlscheduling_feedback = 'xmlscheduling_feedback',
 	pretty = 'pretty',
-	prettycolors = 'prettycolors'
+	prettycolors = 'prettycolors',
 }
 
 type PepErrorStatus = 'inexistent' | 'invalid' | 'not_allowed' | 'syntax' | 'unspecified' | 'timeout'
@@ -62,15 +62,15 @@ export interface IPepError extends Error, PepMessage {
 	status: PepErrorStatus
 }
 
-export function isIPepError (err: Error): err is IPepError {
-	return err.hasOwnProperty('status')
+export function isIPepError(err: Error): err is IPepError {
+	return Object.prototype.hasOwnProperty.call(err, 'status')
 }
 
 class PepError extends Error implements IPepError {
 	readonly status: PepErrorStatus
 	readonly id: number | '*'
 	readonly sent?: string | undefined
-	constructor (status: PepErrorStatus, id: number | '*', message?: string, sent?: string) {
+	constructor(status: PepErrorStatus, id: number | '*', message?: string, sent?: string) {
 		super(`PepTalk ${status} error for request ${id}${message ? ': ' + message : '.'}`)
 		this.status = status
 		this.id = id
@@ -90,10 +90,8 @@ export interface IInexistentError extends PepError {
 export class InexistentError extends PepError implements IInexistentError {
 	readonly status: 'inexistent' = 'inexistent'
 	readonly path: string
-	constructor (id: number, path: string, sent?: string) {
-		super('inexistent', id,
-			`PepTalk inexistent error: Could not locate element at ${path}.`,
-			sent)
+	constructor(id: number, path: string, sent?: string) {
+		super('inexistent', id, `PepTalk inexistent error: Could not locate element at ${path}.`, sent)
 		this.path = path
 	}
 }
@@ -110,7 +108,7 @@ export interface IInvalidError extends PepError {
 export class InvalidError extends PepError implements IInvalidError {
 	readonly status: 'invalid' = 'invalid'
 	readonly description: string
-	constructor (id: number, description: string, sent?: string) {
+	constructor(id: number, description: string, sent?: string) {
 		super('invalid', id, `Validation error: ${description}.`, sent)
 		this.description = description
 	}
@@ -127,7 +125,7 @@ export interface INotAllowedError extends PepError {
 export class NotAllowedError extends PepError implements INotAllowedError {
 	readonly status: 'not_allowed' = 'not_allowed'
 	readonly reason: string
-	constructor (id: number, reason: string, sent?: string) {
+	constructor(id: number, reason: string, sent?: string) {
 		super('not_allowed', id, `Request understood put not allowed: ${reason}.`, sent)
 		this.reason = reason
 	}
@@ -144,7 +142,7 @@ export interface ISyntaxError extends PepError {
 export class SyntaxError extends PepError implements ISyntaxError {
 	readonly status: 'syntax' = 'syntax'
 	readonly description: string
-	constructor (id: number, description: string, sent?: string) {
+	constructor(id: number, description: string, sent?: string) {
 		super('syntax', id, `Syntax error in request: ${description}.`, sent)
 		this.description = description
 	}
@@ -161,8 +159,9 @@ export interface IUnspecifiedError extends PepError {
 export class UnspecifiedError extends PepError implements IUnspecifiedError {
 	readonly description: string
 	readonly status: 'unspecified' = 'unspecified'
-	constructor (id: number | '*', description: string, sent?: string) {
+	constructor(id: number | '*', description: string, sent?: string) {
 		super('unspecified', id, description, sent)
+		this.description = description
 	}
 }
 
@@ -199,24 +198,24 @@ export interface PepTalkClient extends EventEmitter {
 	 *  @returns Resolves to the result of sending a protocol command to initiate
 	 *  PepTalk.
 	 */
-	connect (noevents?: boolean): Promise<PepResponse>
+	connect(noevents?: boolean): Promise<PepResponse>
 	/**
 	 *  Close an open PepTalk connection.
 	 *  @returns Resolves on successful close.
 	 */
-	close (): Promise<PepResponse>
+	close(): Promise<PepResponse>
 	/**
 	 *  Test the connection to the PepTalk server.
 	 *  @returns Resolves on successful connection test with body `PONG!`.
 	 */
-	ping (): Promise<PepResponse>
+	ping(): Promise<PepResponse>
 	/**
 	 *  Send an unstructured request to a PepTalk server. This method should only
 	 *  be used if none of the other methods of this interface are suitable.
 	 *  @param message Message to send, excluding the unique message identifier.
 	 *  @returns Resolves on a non-error response to the request.
 	 */
-	send (message: string): Promise<PepResponse>
+	send(message: string): Promise<PepResponse>
 	/**
 	 *  Copy an element within the VDOM tree.
 	 *  @param sourcePath Path the the source element to copy.
@@ -225,13 +224,13 @@ export interface PepTalkClient extends EventEmitter {
 	 *  @param sibling For relative location, path of the relative sibling.
 	 *  @returns Resolves with the response to the request.
 	 */
-	copy (sourcePath: string, newPath: string, location: LocationType, sibling?: string): Promise<PepResponse>
+	copy(sourcePath: string, newPath: string, location: LocationType, sibling?: string): Promise<PepResponse>
 	/**
 	 *  Delete an element from the VDOM tree.
 	 *  @param path Path to the element to delete.
 	 *  @returns Resolves on a successful delete operation.
 	 */
-	delete (path: string): Promise<PepResponse>
+	delete(path: string): Promise<PepResponse>
 	/**
 	 *  Add nodes in the VDOM tree to ensure a given path will exist. All added nodes
 	 *  are entries are of the form:
@@ -242,14 +241,14 @@ export interface PepTalkClient extends EventEmitter {
 	 * @path Path to ensure that all nested nodes exist.
 	 * @returns Resolves on finding or successful creation of all the nested entries.
 	 */
-	ensurePath (path: string): Promise<PepResponse>
+	ensurePath(path: string): Promise<PepResponse>
 	/**
 	 *  Retrieve the value of an entry in the VDOM tree at the given path.
 	 *  @param path Path to the element to retrieve that value of.
 	 *  @param depth Optional maximum depth of nested elements to retrieve.
 	 *  @returns Resolves to an XML serialization of the requested value.
 	 */
-	get (path: string, depth?: number): Promise<PepResponse>
+	get(path: string, depth?: number): Promise<PepResponse>
 	/**
 	 *  Insert a value into the VDOM tree.
 	 *  @param path Full path of the element to insert.
@@ -259,7 +258,7 @@ export interface PepTalkClient extends EventEmitter {
 	 *  @returns Resolves to the name of the newly inserted element that may have
 	 *           been updated by the MSE.
 	 */
-	insert (path: string, xml: string, location: LocationType, sibling?: string): Promise<PepResponse>
+	insert(path: string, xml: string, location: LocationType, sibling?: string): Promise<PepResponse>
 	/**
 	 *  Move a value within the VDOM tree.
 	 *  @param oldPath Path to the existing element to move.
@@ -270,20 +269,20 @@ export interface PepTalkClient extends EventEmitter {
 	 *  @returns Resolves to the name of the moved element that may have
 	 *           been updated by the MSE.
 	 */
-	move (oldPath: string, newPath: string, location: LocationType, sibling?: string): Promise<PepResponse>
+	move(oldPath: string, newPath: string, location: LocationType, sibling?: string): Promise<PepResponse>
 	/**
 	 *  Request protocol capability and query what is available.
 	 *  @param capability Capability or capabilities required. None to get list.
 	 *  @returns Resolves to a list of supported capabilities. Rejects if the
 	 *           protocol is not available.
 	 */
-	protocol (capability?: Capability | Capability[]): Promise<PepResponse>
+	protocol(capability?: Capability | Capability[]): Promise<PepResponse>
 	/**
 	 *  Re-initializes the associated Media Sequencer, setting everything to its
 	 *  initial state and initialising all logic.
 	 *  @returns Resolves when re-initialization is complete.
 	 */
-	reintialize (): Promise<PepResponse>
+	reintialize(): Promise<PepResponse>
 	/**
 	 *  Replace an element in the VDOM tree, an atomic delete and insert. If the
 	 *  element to replace does not exist, this is equivalent to insert.
@@ -292,7 +291,7 @@ export interface PepTalkClient extends EventEmitter {
 	 *  @returns Resolves to the name of the replaced element that may have
 	 *           been updated by the MSE.
 	 */
-	replace (path: string, xml: string): Promise<PepResponse>
+	replace(path: string, xml: string): Promise<PepResponse>
 	/**
 	 *  Set a text value in the VDOM tree, either the text content of an element or
 	 *  the value of an attribute.
@@ -301,7 +300,7 @@ export interface PepTalkClient extends EventEmitter {
 	 *  @param attributeValue If seeting an attribute, the value to be set.
 	 *  @returns Resolves with the value that has been set.
 	 */
-	set (path: string, textOrKey: string, attributeValue?: string): Promise<PepResponse>
+	set(path: string, textOrKey: string, attributeValue?: string): Promise<PepResponse>
 	/**
 	 *  Converts a VDOM path into a MSE HTTP URI path.
 	 *  @param path Path to the element to find by HTTP.
@@ -309,29 +308,29 @@ export interface PepTalkClient extends EventEmitter {
 	 *  @param base Optional base URL to use in the response.
 	 *  @returns Resolves to the URI of the VDOM element via the MSE HTTP API.
 	 */
-	uri (path: string, type: string, base?: string): Promise<PepResponse>
+	uri(path: string, type: string, base?: string): Promise<PepResponse>
 	/**
 	 *  Set the timeout before a PepTalk request will be considered as failed.
 	 *  @param t Timeout measured in milliseconds.
 	 *  @returns The actual timeout value.
 	 */
-	setTimeout (t: number): number
+	setTimeout(t: number): number
 	// PepTalk events
 	/** Add a listener for all non-error messages and events from the server. */
-	on (event: 'message', listener: (info: PepResponse) => void): this
+	on(event: 'message', listener: (info: PepResponse) => void): this
 	/** Add a listener for all error messages from the server. */
-	on (event: 'error', listener: (err: PepError) => void): this
+	on(event: 'error', listener: (err: PepError) => void): this
 	/** Add a listener for close event of the websocket connection. */
-	on (event: 'close', listener: () => void): this
+	on(event: 'close', listener: () => void): this
 	// emit (event: 'message', info: PepResponse): boolean
 	// emit (event: 'error', error: PepError): boolean
-	emit (event: 'message', res: PepResponse): boolean
+	emit(event: 'message', res: PepResponse): boolean
 }
 
 /** [[PepResponse]] with additional Javascript representation. */
 export interface PepResponseJS extends PepResponse {
 	/** Javascript representation of the response [[body]]. */
-	js: Object
+	js: Record<string, unknown>
 }
 
 /**
@@ -345,12 +344,12 @@ export interface PepTalkJS {
 	 *  @param depth Optional maximum depth of nested elements to retrieve.
 	 *  @returns Resolves to an Javascript representation of the requested value.
 	 */
-	getJS (path: string, depth?: number): Promise<PepResponseJS>
+	getJS(path: string, depth?: number): Promise<PepResponseJS>
 }
 
 interface PendingRequestInternal extends PendingRequest {
-	resolve (res: PepResponse): void
-	reject (reason?: any): void
+	resolve(res: PepResponse): void
+	reject(reason?: any): void
 }
 
 interface Leftover {
@@ -362,32 +361,33 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	private ws: Promise<websocket | null> = Promise.resolve(null)
 	readonly hostname: string
 	readonly port: number
-	timeout: number = 3000
-	counter: number = 1
+	timeout = 3000
+	counter = 1
 	pendingRequests: { [id: number]: PendingRequestInternal } = {}
 
 	private leftovers: Leftover | null = null
 
-	constructor (hostname: string, port?: number) {
+	constructor(hostname: string, port?: number) {
 		super()
 		this.hostname = hostname
 		this.port = port ? port : 8595
 	}
 
-	private processMessage (m: string): void {
+	private processMessage(m: string): void {
 		let split = m.trim().split('\r\n')
 		if (split.length === 0) return
-		let re = /\{(\d+)\}/g
-		let last = split[split.length - 1]
+		const re = /\{(\d+)\}/g
+		const last = split[split.length - 1]
 		let reres = re.exec(last)
 		let leftovers: Leftover | null = null
 		// console.log('SBF >>>', split)
 		while (reres !== null) {
-			let lastBytes = Buffer.byteLength(last, 'utf8')
-			if (lastBytes - (reres.index + reres[0].length + (+reres[1])) < 0) {
+			const lastBytes = Buffer.byteLength(last, 'utf8')
+			if (lastBytes - (reres.index + reres[0].length + +reres[1]) < 0) {
 				leftovers = {
 					previous: last,
-					remaining: +reres[1] - lastBytes + reres[0].length + reres.index }
+					remaining: +reres[1] - lastBytes + reres[0].length + reres.index,
+				}
 				split = split.slice(0, -1)
 				break
 			}
@@ -407,7 +407,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			}
 		}
 		if (split.length > 1) {
-			for (let sm of split) {
+			for (const sm of split) {
 				// console.log('smsm >>>', sm)
 				if (sm.length > 0) this.processMessage(sm)
 			}
@@ -416,32 +416,36 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		this.leftovers = leftovers ? leftovers : this.leftovers
 		if (split.length === 0) return
 		m = split[0]
-		let firstSpace = m.indexOf(' ')
+		const firstSpace = m.indexOf(' ')
 		if (firstSpace <= 0) return
-		let c = +m.slice(0, firstSpace)
+		const c = +m.slice(0, firstSpace)
 		if (isNaN(c) || m.slice(firstSpace + 1).startsWith('begin')) {
 			if (m.startsWith('* ') || m.slice(firstSpace + 1).startsWith('begin')) {
 				this.emit('message', { id: '*', body: m, status: 'ok' } as PepResponse)
 			} else {
 				try {
 					this.emit('error', new UnspecifiedError('*', `Unexpected message from server: '${m}'.`))
-				} catch (err) { /* Allow emit with no listeners. */ }
+				} catch (err) {
+					/* Allow emit with no listeners. */
+				}
 			}
 			return // probably an event
 		}
-		let pending = this.pendingRequests[c]
+		const pending = this.pendingRequests[c]
 		if (!pending) {
 			try {
 				this.emit('error', new UnspecifiedError(c, `Unmatched response for request ${c}.`))
-			} catch (err) { /* Allow emit with no listeners. */ }
+			} catch (err) {
+				/* Allow emit with no listeners. */
+			}
 			return // everything beyond here needs pending to be set
 		}
 		if (m.slice(firstSpace + 1).startsWith('ok')) {
-			let response: PepResponse = {
+			const response: PepResponse = {
 				id: pending.id,
 				sent: pending.sent,
 				status: 'ok',
-				body: this.unesc(m.slice(firstSpace + 4)).trim()
+				body: this.unesc(m.slice(firstSpace + 4)).trim(),
 			}
 			pending.resolve(response)
 			delete this.pendingRequests[c]
@@ -452,21 +456,25 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			return
 		}
 		if (m.slice(firstSpace + 1).startsWith('protocol')) {
-			let response: PepResponse = {
+			const response: PepResponse = {
 				id: pending.id,
 				sent: pending.sent,
 				status: 'ok',
-				body: this.unesc(m.slice(firstSpace + 1)).trim()
+				body: this.unesc(m.slice(firstSpace + 1)).trim(),
 			}
 			pending.resolve(response)
 			delete this.pendingRequests[c]
 			this.emit('message', response)
 			return
 		}
-		let errorIndex = m.indexOf('error')
+		const errorIndex = m.indexOf('error')
 		let error: PepError
 		if (errorIndex < 0 || errorIndex > 10) {
-			error = new UnspecifiedError(c, `Error message with unexpected format: '${m}'`, pending && pending.sent ? pending.sent : 'sent is undefined')
+			error = new UnspecifiedError(
+				c,
+				`Error message with unexpected format: '${m}'`,
+				pending && pending.sent ? pending.sent : 'sent is undefined'
+			)
 		} else {
 			let endOfErrorName = m.slice(errorIndex + 6).indexOf(' ') + errorIndex + 6
 			endOfErrorName = endOfErrorName > errorIndex + 6 ? endOfErrorName : m.length
@@ -487,17 +495,20 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 					error = new UnspecifiedError(c, m.slice(endOfErrorName + 1), pending.sent)
 					break
 				default:
-					error = new PepError(m.slice(errorIndex + 6, endOfErrorName) as PepErrorStatus,
-						c, m, pending.sent)
+					error = new PepError(m.slice(errorIndex + 6, endOfErrorName) as PepErrorStatus, c, m, pending.sent)
 					break
 			}
 		}
 		pending.reject(error)
 		delete this.pendingRequests[c]
-		try { this.emit('error', error) } catch (err) { /* Allow emit with no listeners. */ }
+		try {
+			this.emit('error', error)
+		} catch (err) {
+			/* Allow emit with no listeners. */
+		}
 	}
 
-	private failTimer (c: number, message: string): Promise<PepResponse> {
+	private failTimer(c: number, message: string): Promise<PepResponse> {
 		return new Promise((_resolve, reject) => {
 			setTimeout(() => {
 				reject(new Error(`Parallel promise to send message ${c} did not resolve in time. Message: ${message}`))
@@ -511,7 +522,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	/** Remove all plaintalk escaping from a string. */
 	private unesc = (s: string) => s.replace(/\{\d+\}/g, '')
 
-	private makeLocation (location: LocationType, sibling?: string) {
+	private makeLocation(location: LocationType, sibling?: string) {
 		if (location === LocationType.First || location === LocationType.Last) {
 			return `${location}`
 		} else {
@@ -520,18 +531,17 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			}
 			return `${location} ${this.esc(sibling)}`
 		}
-
 	}
 
-	async connect (noevents?: boolean | undefined): Promise<PepResponse> {
+	async connect(noevents?: boolean | undefined): Promise<PepResponse> {
 		this.ws = new Promise((resolve, reject) => {
 			// console.log('<<<', `ws://${this.hostname}:${this.port}/`)
-			let ws = new websocket(`ws://${this.hostname}:${this.port}/`)
+			const ws = new websocket(`ws://${this.hostname}:${this.port}/`)
 			ws.once('open', () => {
 				ws.on('message', this.processMessage.bind(this))
 				resolve(ws)
 			})
-			ws.once('error', err => {
+			ws.once('error', (err) => {
 				reject(err)
 			})
 			ws.once('close', () => {
@@ -543,12 +553,12 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		return this.send(noevents ? 'protocol peptalk noevents' : 'protocol peptalk')
 	}
 
-	async close (): Promise<PepResponse> {
+	async close(): Promise<PepResponse> {
 		return this.send('close')
 	}
 
-	async ping (): Promise<PepResponse> {
-		let pingTest = await this.get('/', 0)
+	async ping(): Promise<PepResponse> {
+		const pingTest = await this.get('/', 0)
 		if (pingTest.body.indexOf('<entry') >= 0) {
 			pingTest.body = 'PONG!'
 			return pingTest
@@ -557,68 +567,83 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 	}
 
-	async send (message: string): Promise<PepResponse> {
-		let c = this.counter++
+	async send(message: string): Promise<PepResponse> {
+		const c = this.counter++
 		return Promise.race([
 			this.failTimer(c, message),
 			new Promise((resolve: (res: PepResponse) => void, reject: (reason?: any) => void) => {
-				this.ws.then(s => {
-					if (s === null) {
-						reject(new Error('Not connected.'))
-					} else {
-						s.send(`${c} ${message}\r\n`)
-					}
-				}).catch(err => {
-					reject(new UnspecifiedError('*', `Unexpected send error from websocket: ${err.message}`, message))
-				})
+				this.ws
+					.then((s) => {
+						if (s === null) {
+							reject(new Error('Not connected.'))
+						} else {
+							s.send(`${c} ${message}\r\n`)
+						}
+					})
+					.catch((err) => {
+						reject(new UnspecifiedError('*', `Unexpected send error from websocket: ${err.message}`, message))
+					})
 				this.pendingRequests[c] = { resolve, reject, id: c, sent: message }
-			})
+			}),
 		])
 	}
 
-	async copy (sourcePath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
+	async copy(
+		sourcePath: string,
+		newPath: string,
+		location: LocationType,
+		sibling?: string | undefined
+	): Promise<PepResponse> {
 		return this.send(`copy ${this.esc(sourcePath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`)
 	}
 
-	async delete (path: string): Promise<PepResponse> {
+	async delete(path: string): Promise<PepResponse> {
 		return this.send(`delete ${this.esc(path)}`)
 	}
 
-	async ensurePath (path: string): Promise<PepResponse> {
+	async ensurePath(path: string): Promise<PepResponse> {
 		return this.send(`ensure-path ${this.esc(path)}`)
 	}
 
-	async get (path: string, depth?: number): Promise<PepResponse> {
+	async get(path: string, depth?: number): Promise<PepResponse> {
 		return this.send(`get ${this.esc(path)}${depth !== undefined ? ' ' + depth : ''}`)
 	}
 
-	async insert (path: string, xml: string, location: LocationType, sibling?: string): Promise<PepResponse> {
+	async insert(path: string, xml: string, location: LocationType, sibling?: string): Promise<PepResponse> {
 		return this.send(`insert ${this.esc(path)} ${this.makeLocation(location, sibling)} ${this.esc(xml)}`)
 	}
 
-	async move (oldPath: string, newPath: string, location: LocationType, sibling?: string | undefined): Promise<PepResponse> {
+	async move(
+		oldPath: string,
+		newPath: string,
+		location: LocationType,
+		sibling?: string | undefined
+	): Promise<PepResponse> {
 		return this.send(`move ${this.esc(oldPath)} ${this.esc(newPath)} ${this.makeLocation(location, sibling)}`)
 	}
 
-	async protocol (capability?: Capability | Capability[]): Promise<PepResponse> {
+	async protocol(capability?: Capability | Capability[]): Promise<PepResponse> {
 		if (!capability) {
 			capability = []
 		} else if (!Array.isArray(capability)) {
-			capability = [ capability ]
+			capability = [capability]
 		}
-		let list: string = capability.map(x => x.toString()).reduce((x, y) => `${x} ${y}`, '').trim()
+		const list: string = capability
+			.map((x) => x.toString())
+			.reduce((x, y) => `${x} ${y}`, '')
+			.trim()
 		return this.send(`protocol${list.length > 0 ? ' ' : ''}${list}`)
 	}
 
-	async reintialize (): Promise<PepResponse> {
+	async reintialize(): Promise<PepResponse> {
 		return this.send('reinitialize')
 	}
 
-	async replace (path: string, xml: string): Promise<PepResponse> {
+	async replace(path: string, xml: string): Promise<PepResponse> {
 		return this.send(`replace ${this.esc(path)} ${this.esc(xml)}`)
 	}
 
-	async set (path: string, textOrKey: string, attributeValue?: string): Promise<PepResponse> {
+	async set(path: string, textOrKey: string, attributeValue?: string): Promise<PepResponse> {
 		if (attributeValue) {
 			return this.send(`set attribute ${this.esc(path)} ${this.esc(textOrKey)} ${this.esc(attributeValue)}`)
 		} else {
@@ -626,22 +651,22 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 	}
 
-	async uri (path: string, type: string, base?: string): Promise<PepResponse> {
+	async uri(path: string, type: string, base?: string): Promise<PepResponse> {
 		return this.send(`uri ${this.esc(path)} ${this.esc(type)}${base ? ' ' + this.esc(base) : ''}`)
 	}
 
-	setTimeout (t: number): number {
+	setTimeout(t: number): number {
 		if (t > 0) this.timeout = t
 		return this.timeout
 	}
 
-	async getJS (path: string, depth?: number): Promise<PepResponseJS> {
-		let result: PepResponseJS = await this.get(path, depth) as PepResponseJS
+	async getJS(path: string, depth?: number): Promise<PepResponseJS> {
+		const result: PepResponseJS = (await this.get(path, depth)) as PepResponseJS
 		result.js = await Xml2JS.parseStringPromise(result.body)
 		return result
 	}
 }
 
-export function startPepTalk (hostname: string, port?: number): PepTalkClient & PepTalkJS {
+export function startPepTalk(hostname: string, port?: number): PepTalkClient & PepTalkJS {
 	return new PepTalk(hostname, port)
 }
