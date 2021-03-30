@@ -18,6 +18,7 @@ export class MSERep extends EventEmitter implements MSE {
 	private connection?: Promise<PepResponse> = undefined
 
 	private isAwaitingConnection = false
+	private reconnectTimeout?: NodeJS.Timeout = undefined
 
 	constructor(hostname: string, restPort?: number, wsPort?: number, resthost?: string) {
 		super()
@@ -26,12 +27,24 @@ export class MSERep extends EventEmitter implements MSE {
 		this.wsPort = typeof wsPort === 'number' && wsPort > 0 ? wsPort : 8595
 		this.resthost = resthost // For ngrok testing only
 		this.pep = startPepTalk(this.hostname, this.wsPort)
-		this.pep.on('close', async () => {
-			if (this.connection && !this.isAwaitingConnection) {
-				this.connection = this.pep.connect()
-			}
-		})
+		this.pep.on('close', () => this.onPepClose())
 		this.connection = this.pep.connect()
+	}
+
+	async onPepClose(): Promise<void> {
+		if (this.connection && !this.isAwaitingConnection) {
+			try {
+				await this.connection
+			} catch (error) {
+				// nothing we can do about it
+			}
+			this.connection = undefined
+			this.reconnectTimeout = setTimeout(() => {
+				if (!this.connection) {
+					this.connection = this.pep.connect()
+				}
+			}, 2000)
+		}
 	}
 
 	async checkConnection(): Promise<void> {
@@ -284,6 +297,9 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async close(): Promise<boolean> {
+		if (this.reconnectTimeout) {
+			clearTimeout(this.reconnectTimeout)
+		}
 		if (this.connection) {
 			await this.pep.close()
 			return true
