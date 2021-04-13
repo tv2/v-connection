@@ -12,18 +12,31 @@ class MSERep extends events_1.EventEmitter {
         super();
         this.connection = undefined;
         this.isAwaitingConnection = false;
+        this.reconnectTimeout = undefined;
         this.timeoutMS = 3000;
         this.hostname = hostname;
         this.restPort = typeof restPort === 'number' && restPort > 0 ? restPort : 8580;
         this.wsPort = typeof wsPort === 'number' && wsPort > 0 ? wsPort : 8595;
         this.resthost = resthost; // For ngrok testing only
         this.pep = peptalk_1.startPepTalk(this.hostname, this.wsPort);
-        this.pep.on('close', async () => {
-            if (this.connection && !this.isAwaitingConnection) {
-                this.connection = this.pep.connect();
-            }
-        });
+        this.pep.on('close', () => this.onPepClose());
         this.connection = this.pep.connect();
+    }
+    async onPepClose() {
+        if (this.connection && !this.isAwaitingConnection) {
+            try {
+                await this.connection;
+            }
+            catch (error) {
+                // nothing we can do about it
+            }
+            this.connection = undefined;
+            this.reconnectTimeout = setTimeout(() => {
+                if (!this.connection) {
+                    this.connection = this.pep.connect();
+                }
+            }, 2000);
+        }
     }
     async checkConnection() {
         try {
@@ -234,6 +247,9 @@ class MSERep extends events_1.EventEmitter {
         }
     }
     async close() {
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+        }
         if (this.connection) {
             await this.pep.close();
             return true;

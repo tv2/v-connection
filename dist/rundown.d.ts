@@ -30,6 +30,6 @@ export declare class Rundown implements VRundown {
     out(elementName: string | number): Promise<CommandResult>;
     initialize(elementName: number): Promise<CommandResult>;
     purge(): Promise<PepResponse>;
-    getElement(elementName: string | number): Promise<VElement>;
+    getElement(elementName: string | number, channel?: string): Promise<VElement>;
     isActive(): Promise<boolean>;
 }

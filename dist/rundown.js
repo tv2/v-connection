@@ -134,6 +134,14 @@ ${entries}
             };
         }
         if (typeof nameOrID === 'number') {
+            try {
+                await this.getElement(nameOrID, elementNameOrChannel);
+                throw new Error(`An external graphics element with name '${nameOrID}' already exists.`);
+            }
+            catch (err) {
+                if (err.message.startsWith('An external graphics element'))
+                    throw err;
+            }
             const vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : '';
             const { body: path } = await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
             this.channelMap[nameOrID] = {
@@ -290,14 +298,15 @@ ${entries}
         await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>');
         return { id: '*', status: 'ok' };
     }
-    async getElement(elementName) {
+    async getElement(elementName, channel) {
         await this.mse.checkConnection();
         if (typeof elementName === 'number') {
             const playlistsList = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2);
             const flatPlaylistElements = await xml_1.flattenEntry(playlistsList.js);
             const elementKey = Object.keys(flatPlaylistElements.elements).find((k) => {
-                const ref = flatPlaylistElements.elements[k].value;
-                return ref.endsWith(`/${elementName}`);
+                const elem = flatPlaylistElements.elements[k];
+                const ref = elem.value;
+                return ref.endsWith(`/${elementName}`) && (!channel || elem.viz_program === channel);
             });
             const element = typeof elementKey === 'string'
                 ? flatPlaylistElements.elements[elementKey]
