@@ -374,7 +374,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	}
 
 	private processChunk(m: string): void {
-		let split = m.trim().split('\r\n')
+		let split = m.replace(/^\r\n|\r\n$/g, '').split('\r\n')
 		if (split.length === 0) return
 		const re = /\{(\d+)\}/g
 		const last = split[split.length - 1]
