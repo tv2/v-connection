@@ -103,8 +103,8 @@ class PepTalk extends events_1.EventEmitter {
         this.hostname = hostname;
         this.port = port ? port : 8595;
     }
-    processMessage(m) {
-        let split = m.trim().split('\r\n');
+    processChunk(m) {
+        let split = m.replace(/^\r\n|\r\n$/g, '').split('\r\n');
         if (split.length === 0)
             return;
         const re = /\{(\d+)\}/g;
@@ -138,6 +138,7 @@ class PepTalk extends events_1.EventEmitter {
                 return;
             }
         }
+        this.leftovers = leftovers ? leftovers : this.leftovers;
         if (split.length > 1) {
             for (const sm of split) {
                 // console.log('smsm >>>', sm)
@@ -146,10 +147,12 @@ class PepTalk extends events_1.EventEmitter {
             }
             return;
         }
-        this.leftovers = leftovers ? leftovers : this.leftovers;
         if (split.length === 0)
             return;
         m = split[0];
+        this.processMessage(m);
+    }
+    processMessage(m) {
         const firstSpace = m.indexOf(' ');
         if (firstSpace <= 0)
             return;
@@ -266,7 +269,7 @@ class PepTalk extends events_1.EventEmitter {
             // console.log('<<<', `ws://${this.hostname}:${this.port}/`)
             const ws = new websocket(`ws://${this.hostname}:${this.port}/`);
             ws.once('open', () => {
-                ws.on('message', this.processMessage.bind(this));
+                ws.on('message', this.processChunk.bind(this));
                 resolve(ws);
             });
             ws.once('error', (err) => {

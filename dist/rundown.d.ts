@@ -11,6 +11,7 @@ export declare class Rundown implements VRundown {
     private get pep();
     private msehttp;
     private channelMap;
+    private initialChannelMapPromise;
     constructor(mseRep: MSERep, show: string, profile: string, playlist: string, description: string);
     private buildChannelMap;
     private ref;

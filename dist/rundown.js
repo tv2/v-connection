@@ -26,7 +26,7 @@ class Rundown {
         }
         this.description = description;
         this.msehttp = msehttp_1.createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort);
-        this.buildChannelMap().catch((err) => console.error(`Warning: Failed to build channel map: ${err.message}`));
+        this.initialChannelMapPromise = this.buildChannelMap().catch((err) => console.error(`Warning: Failed to build channel map: ${err.message}`));
     }
     get pep() {
         return this.mse.getPep();
@@ -63,7 +63,8 @@ class Rundown {
         return typeof vcpid === 'number' ? Object.prototype.hasOwnProperty.call(this.channelMap, vcpid) : false;
     }
     ref(id) {
-        return this.channelMap[id].refName ? this.channelMap[id].refName.replace('#', '%23') : 'ref';
+        var _a;
+        return ((_a = this.channelMap[id]) === null || _a === void 0 ? void 0 : _a.refName) ? this.channelMap[id].refName.replace('#', '%23') : 'ref';
     }
     async listTemplates() {
         await this.mse.checkConnection();
@@ -134,6 +135,12 @@ ${entries}
             };
         }
         if (typeof nameOrID === 'number') {
+            try {
+                await this.initialChannelMapPromise;
+            }
+            catch (err) {
+                console.error(`Warning: createElement: Channel map not built: ${err.message}`);
+            }
             try {
                 await this.getElement(nameOrID, elementNameOrChannel);
                 throw new Error(`An external graphics element with name '${nameOrID}' already exists.`);
@@ -317,7 +324,7 @@ ${entries}
             else {
                 element.vcpid = elementName.toString();
                 element.channel = element.viz_program;
-                element.name = this.ref(elementName);
+                element.name = elementKey && elementKey !== '0' ? elementKey.replace('#', '%23') : 'ref';
                 return element;
             }
         }
