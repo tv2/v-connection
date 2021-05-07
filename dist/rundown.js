@@ -296,13 +296,34 @@ ${entries}
             throw new msehttp_1.HTTPRequestError(`Cannot initialize external element as ID '${elementName}' is not known in this rundown.`, this.msehttp.baseURL, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
         }
     }
-    async purge() {
+    async purge(elementsToKeep) {
+        var _a;
         // let playlist = await this.mse.getPlaylist(this.playlist)
         // if (playlist.active_profile.value) {
         // 	throw new Error(`Cannot purge an active profile.`)
         // }
         await this.pep.replace(`/storage/shows/{${this.show}}/elements`, '<elements/>');
-        await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>');
+        if (elementsToKeep && elementsToKeep.length) {
+            await this.buildChannelMap();
+            const elementsSet = new Set(elementsToKeep.map((e) => {
+                return `${e.vcpid}_${e.channelName}`;
+            }));
+            for (const vcpid in this.channelMap) {
+                if (!elementsSet.has(`${vcpid}_${(_a = this.channelMap[vcpid]) === null || _a === void 0 ? void 0 : _a.channelName}`)) {
+                    try {
+                        await this.deleteElement(Number(vcpid));
+                    }
+                    catch (e) {
+                        if (!(e instanceof peptalk_1.InexistentError)) {
+                            throw e;
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>');
+        }
         return { id: '*', status: 'ok' };
     }
     async getElement(elementName, channel) {

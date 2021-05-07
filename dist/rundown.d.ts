@@ -1,4 +1,4 @@
-import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from './v-connection';
+import { VRundown, VTemplate, InternalElement, ExternalElement, VElement, ExternalElementId } from './v-connection';
 import { CommandResult } from './msehttp';
 import { PepResponse } from './peptalk';
 import { MSERep } from './mse';
@@ -30,7 +30,7 @@ export declare class Rundown implements VRundown {
     continueReverse(elementName: string | number): Promise<CommandResult>;
     out(elementName: string | number): Promise<CommandResult>;
     initialize(elementName: number): Promise<CommandResult>;
-    purge(): Promise<PepResponse>;
+    purge(elementsToKeep?: ExternalElementId[]): Promise<PepResponse>;
     getElement(elementName: string | number, channel?: string): Promise<VElement>;
     isActive(): Promise<boolean>;
 }
