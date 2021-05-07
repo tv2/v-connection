@@ -62,7 +62,20 @@ describe('PepTalk happy', () => {
 						ws.send(`${value.slice(13, 14)}\r\n`)
 						return ws.send(`${value.slice(14)}\r\n`)
 					}
-					return ws.send(`${index} ok <entry depth="${depth}" name="${name}"/>`)
+					if (bits[2] === '4' || bits[2] === '5' || bits[2] === '6') {
+						return
+					}
+					if (bits[2] === '7') {
+						const value = (id: number) => `<entry depth="${depth}" name="${name}">${id}</entry>`
+						ws.send(
+							`${+index - 3} ok {${value(4).length}}${value(4)}\r\n${+index - 2} ok {${value(5).length}}${value(
+								5
+							)}\r\n${+index - 1} ok {${value(6).length}}${value(6).slice(0, 13)}`
+						)
+						ws.send(`${value(6).slice(13)}\r\n`)
+						return ws.send(`${index} ok {${value(7).length}}${value(7)}\r\n`)
+					}
+					return ws.send(`${index} ok <entry depth="${depth}" name="${name}"/>\r\n`)
 				}
 				if (message.indexOf('copy') >= 0) {
 					let destination = message.slice(message.lastIndexOf('/') + 1)
@@ -169,6 +182,31 @@ describe('PepTalk happy', () => {
 			sent: 'get {24}/multithree/with/lines/3 7',
 			status: 'ok',
 		})
+	})
+
+	test('Multi chunk', async () => {
+		await Promise.all([
+			expect(pep.get('/multithree/with/lines/4', 7)).resolves.toMatchObject({
+				body: '<entry depth="7" name="multithree">4</entry>',
+				sent: 'get {24}/multithree/with/lines/4 7',
+				status: 'ok',
+			}),
+			expect(pep.get('/multithree/with/lines/5', 7)).resolves.toMatchObject({
+				body: '<entry depth="7" name="multithree">5</entry>',
+				sent: 'get {24}/multithree/with/lines/5 7',
+				status: 'ok',
+			}),
+			expect(pep.get('/multithree/with/lines/6', 7)).resolves.toMatchObject({
+				body: '<entry depth="7" name="multithree">6</entry>',
+				sent: 'get {24}/multithree/with/lines/6 7',
+				status: 'ok',
+			}),
+			expect(pep.get('/multithree/with/lines/7', 7)).resolves.toMatchObject({
+				body: '<entry depth="7" name="multithree">7</entry>',
+				sent: 'get {24}/multithree/with/lines/7 7',
+				status: 'ok',
+			}),
+		])
 	})
 
 	test('Copy', async () => {

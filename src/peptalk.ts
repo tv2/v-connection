@@ -373,8 +373,8 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		this.port = port ? port : 8595
 	}
 
-	private processMessage(m: string): void {
-		let split = m.trim().split('\r\n')
+	private processChunk(m: string): void {
+		let split = m.replace(/^\r\n|\r\n$/g, '').split('\r\n')
 		if (split.length === 0) return
 		const re = /\{(\d+)\}/g
 		const last = split[split.length - 1]
@@ -406,6 +406,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 				return
 			}
 		}
+		this.leftovers = leftovers ? leftovers : this.leftovers
 		if (split.length > 1) {
 			for (const sm of split) {
 				// console.log('smsm >>>', sm)
@@ -413,9 +414,12 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			}
 			return
 		}
-		this.leftovers = leftovers ? leftovers : this.leftovers
 		if (split.length === 0) return
 		m = split[0]
+		this.processMessage(m)
+	}
+
+	private processMessage(m: string): void {
 		const firstSpace = m.indexOf(' ')
 		if (firstSpace <= 0) return
 		const c = +m.slice(0, firstSpace)
@@ -538,7 +542,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			// console.log('<<<', `ws://${this.hostname}:${this.port}/`)
 			const ws = new websocket(`ws://${this.hostname}:${this.port}/`)
 			ws.once('open', () => {
-				ws.on('message', this.processMessage.bind(this))
+				ws.on('message', this.processChunk.bind(this))
 				resolve(ws)
 			})
 			ws.once('error', (err) => {
