@@ -113,6 +113,12 @@ export interface ExternalElement extends VElement {
 	name?: string
 }
 
+/** Object uniquely identifying an element loaded into an Engine */
+export interface ExternalElementId {
+	vcpid: number
+	channelName?: string
+}
+
 /**
  *  Representation of all the graphics associated with a Sofie rundown. A rundown object is
  *  created to link a [[VShow|show]] full of templates with a profile that is the target of
@@ -264,7 +270,7 @@ export interface VRundown {
 	 *  including those required for post-rundown analysis.
 	 *  @result Resolves on successful rundown purge.
 	 */
-	purge(): Promise<PepResponse>
+	purge(elementsToKeep?: ExternalElementId[]): Promise<PepResponse>
 	/**
 	 *  Is the associated MSE playlist currently active?
 	 *  @returns Resolves with the activation status of the associated MSE playlist.

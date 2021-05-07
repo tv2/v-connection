@@ -1,4 +1,4 @@
-import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from './v-connection'
+import { VRundown, VTemplate, InternalElement, ExternalElement, VElement, ExternalElementId } from './v-connection'
 import { CommandResult, createHTTPContext, HttpMSEClient, HTTPRequestError } from './msehttp'
 import { InexistentError, LocationType, PepResponse } from './peptalk'
 import { MSERep } from './mse'
@@ -350,13 +350,33 @@ ${entries}
 		}
 	}
 
-	async purge(): Promise<PepResponse> {
+	async purge(elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
 		// let playlist = await this.mse.getPlaylist(this.playlist)
 		// if (playlist.active_profile.value) {
 		// 	throw new Error(`Cannot purge an active profile.`)
 		// }
 		await this.pep.replace(`/storage/shows/{${this.show}}/elements`, '<elements/>')
-		await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>')
+		if (elementsToKeep && elementsToKeep.length) {
+			await this.buildChannelMap()
+			const elementsSet = new Set(
+				elementsToKeep.map((e) => {
+					return `${e.vcpid}_${e.channelName}`
+				})
+			)
+			for (const vcpid in this.channelMap) {
+				if (!elementsSet.has(`${vcpid}_${this.channelMap[vcpid]?.channelName}`)) {
+					try {
+						await this.deleteElement(Number(vcpid))
+					} catch (e) {
+						if (!(e instanceof InexistentError)) {
+							throw e
+						}
+					}
+				}
+			}
+		} else {
+			await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>')
+		}
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 
