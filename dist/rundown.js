@@ -26,7 +26,7 @@ class Rundown {
         }
         this.description = description;
         this.msehttp = msehttp_1.createHTTPContext(this.profile, this.mse.resthost ? this.mse.resthost : this.mse.hostname, this.mse.restPort);
-        this.buildChannelMap().catch((err) => console.error(`Warning: Failed to build channel map: ${err.message}`));
+        this.initialChannelMapPromise = this.buildChannelMap().catch((err) => console.error(`Warning: Failed to build channel map: ${err.message}`));
     }
     get pep() {
         return this.mse.getPep();
@@ -63,7 +63,8 @@ class Rundown {
         return typeof vcpid === 'number' ? Object.prototype.hasOwnProperty.call(this.channelMap, vcpid) : false;
     }
     ref(id) {
-        return this.channelMap[id].refName ? this.channelMap[id].refName.replace('#', '%23') : 'ref';
+        var _a;
+        return ((_a = this.channelMap[id]) === null || _a === void 0 ? void 0 : _a.refName) ? this.channelMap[id].refName.replace('#', '%23') : 'ref';
     }
     async listTemplates() {
         await this.mse.checkConnection();
@@ -134,6 +135,20 @@ ${entries}
             };
         }
         if (typeof nameOrID === 'number') {
+            try {
+                await this.initialChannelMapPromise;
+            }
+            catch (err) {
+                console.error(`Warning: createElement: Channel map not built: ${err.message}`);
+            }
+            try {
+                await this.getElement(nameOrID, elementNameOrChannel);
+                throw new Error(`An external graphics element with name '${nameOrID}' already exists.`);
+            }
+            catch (err) {
+                if (err.message.startsWith('An external graphics element'))
+                    throw err;
+            }
             const vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : '';
             const { body: path } = await this.pep.insert(`/storage/playlists/{${this.playlist}}/elements/`, `<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`, peptalk_1.LocationType.Last);
             this.channelMap[nameOrID] = {
@@ -281,23 +296,45 @@ ${entries}
             throw new msehttp_1.HTTPRequestError(`Cannot initialize external element as ID '${elementName}' is not known in this rundown.`, this.msehttp.baseURL, `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName)}`);
         }
     }
-    async purge() {
+    async purge(elementsToKeep) {
+        var _a;
         // let playlist = await this.mse.getPlaylist(this.playlist)
         // if (playlist.active_profile.value) {
         // 	throw new Error(`Cannot purge an active profile.`)
         // }
         await this.pep.replace(`/storage/shows/{${this.show}}/elements`, '<elements/>');
-        await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>');
+        if (elementsToKeep && elementsToKeep.length) {
+            await this.buildChannelMap();
+            const elementsSet = new Set(elementsToKeep.map((e) => {
+                return `${e.vcpid}_${e.channelName}`;
+            }));
+            for (const vcpid in this.channelMap) {
+                if (!elementsSet.has(`${vcpid}_${(_a = this.channelMap[vcpid]) === null || _a === void 0 ? void 0 : _a.channelName}`)) {
+                    try {
+                        await this.deleteElement(Number(vcpid));
+                    }
+                    catch (e) {
+                        if (!(e instanceof peptalk_1.InexistentError)) {
+                            throw e;
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>');
+        }
         return { id: '*', status: 'ok' };
     }
-    async getElement(elementName) {
+    async getElement(elementName, channel) {
         await this.mse.checkConnection();
         if (typeof elementName === 'number') {
             const playlistsList = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2);
             const flatPlaylistElements = await xml_1.flattenEntry(playlistsList.js);
             const elementKey = Object.keys(flatPlaylistElements.elements).find((k) => {
-                const ref = flatPlaylistElements.elements[k].value;
-                return ref.endsWith(`/${elementName}`);
+                const elem = flatPlaylistElements.elements[k];
+                const ref = elem.value;
+                return ref.endsWith(`/${elementName}`) && (!channel || elem.viz_program === channel);
             });
             const element = typeof elementKey === 'string'
                 ? flatPlaylistElements.elements[elementKey]
@@ -308,7 +345,7 @@ ${entries}
             else {
                 element.vcpid = elementName.toString();
                 element.channel = element.viz_program;
-                element.name = this.ref(elementName);
+                element.name = elementKey && elementKey !== '0' ? elementKey.replace('#', '%23') : 'ref';
                 return element;
             }
         }

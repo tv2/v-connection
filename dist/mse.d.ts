@@ -11,7 +11,9 @@ export declare class MSERep extends EventEmitter implements MSE {
     private pep;
     private connection?;
     private isAwaitingConnection;
+    private reconnectTimeout?;
     constructor(hostname: string, restPort?: number, wsPort?: number, resthost?: string);
+    onPepClose(): Promise<void>;
     checkConnection(): Promise<void>;
     getPep(): PepTalkClient & PepTalkJS;
     getRundowns(): Promise<VRundown[]>;

@@ -1,4 +1,4 @@
-import { VRundown, VTemplate, InternalElement, ExternalElement, VElement } from './v-connection';
+import { VRundown, VTemplate, InternalElement, ExternalElement, VElement, ExternalElementId } from './v-connection';
 import { CommandResult } from './msehttp';
 import { PepResponse } from './peptalk';
 import { MSERep } from './mse';
@@ -11,6 +11,7 @@ export declare class Rundown implements VRundown {
     private get pep();
     private msehttp;
     private channelMap;
+    private initialChannelMapPromise;
     constructor(mseRep: MSERep, show: string, profile: string, playlist: string, description: string);
     private buildChannelMap;
     private ref;
@@ -29,7 +30,7 @@ export declare class Rundown implements VRundown {
     continueReverse(elementName: string | number): Promise<CommandResult>;
     out(elementName: string | number): Promise<CommandResult>;
     initialize(elementName: number): Promise<CommandResult>;
-    purge(): Promise<PepResponse>;
-    getElement(elementName: string | number): Promise<VElement>;
+    purge(elementsToKeep?: ExternalElementId[]): Promise<PepResponse>;
+    getElement(elementName: string | number, channel?: string): Promise<VElement>;
     isActive(): Promise<boolean>;
 }
