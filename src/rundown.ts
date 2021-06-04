@@ -22,6 +22,7 @@ export class Rundown implements VRundown {
 	}
 	private msehttp: HttpMSEClient
 	private channelMap: { [vcpid: number]: ExternalElementInfo } = {}
+	private initialChannelMapPromise: Promise<any>
 
 	constructor(mseRep: MSERep, show: string, profile: string, playlist: string, description: string) {
 		this.mse = mseRep
@@ -46,7 +47,9 @@ export class Rundown implements VRundown {
 			this.mse.resthost ? this.mse.resthost : this.mse.hostname,
 			this.mse.restPort
 		)
-		this.buildChannelMap().catch((err) => console.error(`Warning: Failed to build channel map: ${err.message}`))
+		this.initialChannelMapPromise = this.buildChannelMap().catch((err) =>
+			console.error(`Warning: Failed to build channel map: ${err.message}`)
+		)
 	}
 
 	private async buildChannelMap(vcpid?: number): Promise<boolean> {
@@ -83,7 +86,7 @@ export class Rundown implements VRundown {
 	}
 
 	private ref(id: number): string {
-		return this.channelMap[id].refName ? this.channelMap[id].refName.replace('#', '%23') : 'ref'
+		return this.channelMap[id]?.refName ? this.channelMap[id].refName.replace('#', '%23') : 'ref'
 	}
 
 	async listTemplates(): Promise<string[]> {
@@ -176,6 +179,17 @@ ${entries}
 			} as InternalElement
 		}
 		if (typeof nameOrID === 'number') {
+			try {
+				await this.initialChannelMapPromise
+			} catch (err) {
+				console.error(`Warning: createElement: Channel map not built: ${err.message}`)
+			}
+			try {
+				await this.getElement(nameOrID, elementNameOrChannel)
+				throw new Error(`An external graphics element with name '${nameOrID}' already exists.`)
+			} catch (err) {
+				if (err.message.startsWith('An external graphics element')) throw err
+			}
 			const vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : ''
 			const { body: path } = await this.pep.insert(
 				`/storage/playlists/{${this.playlist}}/elements/`,
@@ -360,14 +374,15 @@ ${entries}
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 
-	async getElement(elementName: string | number): Promise<VElement> {
+	async getElement(elementName: string | number, channel?: string): Promise<VElement> {
 		await this.mse.checkConnection()
 		if (typeof elementName === 'number') {
 			const playlistsList = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2)
 			const flatPlaylistElements: FlatEntry = await flattenEntry(playlistsList.js as AtomEntry)
 			const elementKey = Object.keys(flatPlaylistElements.elements as FlatEntry).find((k) => {
-				const ref = ((flatPlaylistElements.elements as FlatEntry)[k] as FlatEntry).value as string
-				return ref.endsWith(`/${elementName}`)
+				const elem = (flatPlaylistElements.elements as FlatEntry)[k] as FlatEntry
+				const ref = elem.value as string
+				return ref.endsWith(`/${elementName}`) && (!channel || elem.viz_program === channel)
 			})
 			const element =
 				typeof elementKey === 'string'
@@ -381,7 +396,7 @@ ${entries}
 			} else {
 				element.vcpid = elementName.toString()
 				element.channel = element.viz_program
-				element.name = this.ref(elementName)
+				element.name = elementKey && elementKey !== '0' ? elementKey.replace('#', '%23') : 'ref'
 				return element as ExternalElement
 			}
 		} else {
