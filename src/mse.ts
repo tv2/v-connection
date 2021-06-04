@@ -26,9 +26,14 @@ export class MSERep extends EventEmitter implements MSE {
 		this.restPort = typeof restPort === 'number' && restPort > 0 ? restPort : 8580
 		this.wsPort = typeof wsPort === 'number' && wsPort > 0 ? wsPort : 8595
 		this.resthost = resthost // For ngrok testing only
-		this.pep = startPepTalk(this.hostname, this.wsPort)
-		this.pep.on('close', () => this.onPepClose())
-		this.connection = this.pep.connect().catch((e) => e)
+		this.pep = this.initPep()
+	}
+
+	initPep() {
+		const pep = startPepTalk(this.hostname, this.wsPort)
+		pep.on('close', () => this.onPepClose())
+		this.connection = pep.connect().catch((e) => e)
+		return pep
 	}
 
 	async onPepClose(): Promise<void> {
@@ -36,7 +41,8 @@ export class MSERep extends EventEmitter implements MSE {
 			this.connection = undefined
 			this.reconnectTimeout = setTimeout(() => {
 				this.reconnectTimeout = undefined
-				this.connection = this.pep.connect().catch((e) => e)
+				this.pep.removeAllListeners()
+				this.pep = this.initPep()
 				this.lastReconnectTime = Date.now()
 			}, Math.max(2000 - (Date.now() - this.lastReconnectTime), 0))
 		}
