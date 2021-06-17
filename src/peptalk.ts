@@ -6,6 +6,7 @@
 import { EventEmitter } from 'events'
 import * as websocket from 'ws'
 import * as Xml2JS from 'xml2js'
+import * as fs from 'fs'
 
 /**
  *  Location of a new XML element relative to an existing element.
@@ -366,14 +367,19 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 	pendingRequests: { [id: number]: PendingRequestInternal } = {}
 
 	private leftovers: Leftover | null = null
+	private timestamp: string
 
 	constructor(hostname: string, port?: number) {
 		super()
 		this.hostname = hostname
 		this.port = port ? port : 8595
+		this.timestamp = Date.now().toString()
 	}
 
 	private processChunk(m: string): void {
+		fs.appendFile(`v-connection_${this.timestamp}.log`, m + '☢', () => {
+			// nothing
+		})
 		let split = m.replace(/^\r\n|\r\n$/g, '').split('\r\n')
 		if (split.length === 0) return
 		const re = /\{(\d+)\}/g
