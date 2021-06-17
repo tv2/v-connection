@@ -8,6 +8,7 @@ exports.startPepTalk = exports.UnspecifiedError = exports.SyntaxError = exports.
 const events_1 = require("events");
 const websocket = require("ws");
 const Xml2JS = require("xml2js");
+const fs = require("fs");
 /**
  *  Location of a new XML element relative to an existing element.
  */
@@ -102,8 +103,12 @@ class PepTalk extends events_1.EventEmitter {
         this.unesc = (s) => s.replace(/\{\d+\}/g, '');
         this.hostname = hostname;
         this.port = port ? port : 8595;
+        this.timestamp = Date.now().toString();
     }
     processChunk(m) {
+        fs.appendFile(`v-connection_${this.timestamp}.log`, m + '☢', () => {
+            // nothing
+        });
         let split = m.replace(/^\r\n|\r\n$/g, '').split('\r\n');
         if (split.length === 0)
             return;

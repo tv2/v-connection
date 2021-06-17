@@ -312,6 +312,7 @@ ${entries}
                 if (!elementsSet.has(`${vcpid}_${(_a = this.channelMap[vcpid]) === null || _a === void 0 ? void 0 : _a.channelName}`)) {
                     try {
                         await this.deleteElement(Number(vcpid));
+                        console.log(`v-connection: deleted element ${vcpid}`);
                     }
                     catch (e) {
                         if (!(e instanceof peptalk_1.InexistentError)) {
@@ -322,6 +323,7 @@ ${entries}
             }
         }
         else {
+            console.log(`v-connection: purged all elements`);
             await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>');
         }
         return { id: '*', status: 'ok' };
