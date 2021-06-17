@@ -381,6 +381,7 @@ ${entries}
 				if (!elementsSet.has(`${vcpid}_${this.channelMap[vcpid]?.channelName}`)) {
 					try {
 						await this.deleteElement(Number(vcpid))
+						console.log(`v-connection: deleted element ${vcpid}`)
 					} catch (e) {
 						if (!(e instanceof InexistentError)) {
 							throw e
@@ -389,6 +390,7 @@ ${entries}
 				}
 			}
 		} else {
+			console.log(`v-connection: purged all elements`)
 			await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>')
 		}
 		return { id: '*', status: 'ok' } as PepResponse
