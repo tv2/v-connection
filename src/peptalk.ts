@@ -551,12 +551,17 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 				ws.on('message', this.processChunk.bind(this))
 				resolve(ws)
 			})
-			ws.once('error', (err) => {
+			const close = (err?: any) => {
+				ws.removeAllListeners()
+				if (!err) this.ws = Promise.resolve(null)
 				reject(err)
+				this.emit('close')
+			}
+			ws.once('error', (err) => {
+				close(err)
 			})
 			ws.once('close', () => {
-				this.ws = Promise.resolve(null)
-				this.emit('close')
+				close()
 			})
 		})
 
