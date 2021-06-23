@@ -273,16 +273,22 @@ class PepTalk extends events_1.EventEmitter {
         this.ws = new Promise((resolve, reject) => {
             // console.log('<<<', `ws://${this.hostname}:${this.port}/`)
             const ws = new websocket(`ws://${this.hostname}:${this.port}/`);
+            ws.on('message', this.processChunk.bind(this));
             ws.once('open', () => {
-                ws.on('message', this.processChunk.bind(this));
                 resolve(ws);
             });
-            ws.once('error', (err) => {
+            const close = (err) => {
+                ws.removeAllListeners();
+                if (!err)
+                    this.ws = Promise.resolve(null);
                 reject(err);
+                this.emit('close');
+            };
+            ws.once('error', (err) => {
+                close(err);
             });
             ws.once('close', () => {
-                this.ws = Promise.resolve(null);
-                this.emit('close');
+                close();
             });
         });
         return this.send(noevents ? 'protocol peptalk noevents' : 'protocol peptalk');
@@ -312,6 +318,9 @@ class PepTalk extends events_1.EventEmitter {
                     }
                     else {
                         s.send(`${c} ${message}\r\n`);
+                        fs.appendFile(`v-connection_${this.timestamp}_sent.log`, `${c} ${message}☢\r\n`, () => {
+                            // nothing
+                        });
                     }
                 })
                     .catch((err) => {
