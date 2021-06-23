@@ -547,8 +547,8 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		this.ws = new Promise((resolve, reject) => {
 			// console.log('<<<', `ws://${this.hostname}:${this.port}/`)
 			const ws = new websocket(`ws://${this.hostname}:${this.port}/`)
+			ws.on('message', this.processChunk.bind(this))
 			ws.once('open', () => {
-				ws.on('message', this.processChunk.bind(this))
 				resolve(ws)
 			})
 			const close = (err?: any) => {
@@ -593,6 +593,9 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 							reject(new Error('Not connected.'))
 						} else {
 							s.send(`${c} ${message}\r\n`)
+							fs.appendFile(`v-connection_${this.timestamp}_sent.log`, `${c} ${message}☢\r\n`, () => {
+								// nothing
+							})
 						}
 					})
 					.catch((err) => {
