@@ -7,6 +7,7 @@ import { EventEmitter } from 'events'
 import * as websocket from 'ws'
 import * as Xml2JS from 'xml2js'
 import * as fs from 'fs'
+import * as uuid from 'uuid'
 
 /**
  *  Location of a new XML element relative to an existing element.
@@ -518,10 +519,10 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 	}
 
-	private failTimer(c: number, message: string): Promise<PepResponse> {
+	private failTimer(c: number, message: string, id: string): Promise<PepResponse> {
 		return new Promise((_resolve, reject) => {
 			setTimeout(() => {
-				reject(new Error(`Parallel promise to send message ${c} did not resolve in time. Message: ${message}`))
+				reject(new Error(`Parallel promise to send message ${c} did not resolve in time. Message: ${message}, Connection id: ${id}`))
 			}, this.timeout)
 		})
 	}
@@ -564,7 +565,8 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 				close()
 			})
 		})
-
+		// @ts-ignore
+		this.ws._id = uuid.v4()
 		return this.send(noevents ? 'protocol peptalk noevents' : 'protocol peptalk')
 	}
 
@@ -584,8 +586,11 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 
 	async send(message: string): Promise<PepResponse> {
 		const c = this.counter++
+		// @ts-ignore
+		console.log(`v-connection: ${this.ws._id} sending ${c} ${message}`)
 		return Promise.race([
-			this.failTimer(c, message),
+			// @ts-ignore
+			this.failTimer(c, message, this.ws._id),
 			new Promise((resolve: (res: PepResponse) => void, reject: (reason?: any) => void) => {
 				this.ws
 					.then((s) => {
@@ -593,7 +598,8 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 							reject(new Error('Not connected.'))
 						} else {
 							s.send(`${c} ${message}\r\n`)
-							fs.appendFile(`v-connection_${this.timestamp}_sent.log`, `${c} ${message}☢\r\n`, () => {
+							// @ts-ignore
+							fs.appendFile(`v-connection_${this.timestamp}_sent.log`, `${c} ${message}☢${this.ws._id}\r\n`, () => {
 								// nothing
 							})
 						}
