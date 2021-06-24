@@ -9,6 +9,7 @@ const events_1 = require("events");
 const websocket = require("ws");
 const Xml2JS = require("xml2js");
 const fs = require("fs");
+const uuid = require("uuid");
 /**
  *  Location of a new XML element relative to an existing element.
  */
@@ -251,10 +252,10 @@ class PepTalk extends events_1.EventEmitter {
             /* Allow emit with no listeners. */
         }
     }
-    failTimer(c, message) {
+    failTimer(c, message, id) {
         return new Promise((_resolve, reject) => {
             setTimeout(() => {
-                reject(new Error(`Parallel promise to send message ${c} did not resolve in time. Message: ${message}`));
+                reject(new Error(`Parallel promise to send message ${c} did not resolve in time. Message: ${message}, Connection id: ${id}`));
             }, this.timeout);
         });
     }
@@ -291,6 +292,8 @@ class PepTalk extends events_1.EventEmitter {
                 close();
             });
         });
+        // @ts-ignore
+        this.ws._id = uuid.v4();
         return this.send(noevents ? 'protocol peptalk noevents' : 'protocol peptalk');
     }
     async close() {
@@ -308,8 +311,11 @@ class PepTalk extends events_1.EventEmitter {
     }
     async send(message) {
         const c = this.counter++;
+        // @ts-ignore
+        console.log(`v-connection: ${this.ws._id} sending ${c} ${message}`);
         return Promise.race([
-            this.failTimer(c, message),
+            // @ts-ignore
+            this.failTimer(c, message, this.ws._id),
             new Promise((resolve, reject) => {
                 this.ws
                     .then((s) => {
@@ -318,7 +324,8 @@ class PepTalk extends events_1.EventEmitter {
                     }
                     else {
                         s.send(`${c} ${message}\r\n`);
-                        fs.appendFile(`v-connection_${this.timestamp}_sent.log`, `${c} ${message}☢\r\n`, () => {
+                        // @ts-ignore
+                        fs.appendFile(`v-connection_${this.timestamp}_sent.log`, `${c} ${message}☢${this.ws._id}\r\n`, () => {
                             // nothing
                         });
                     }
