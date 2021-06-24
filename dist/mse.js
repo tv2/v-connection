@@ -23,11 +23,22 @@ class MSERep extends events_1.EventEmitter {
     initPep() {
         const pep = peptalk_1.startPepTalk(this.hostname, this.wsPort);
         pep.on('close', () => this.onPepClose());
-        this.connection = pep.connect().catch((e) => e);
+        this.connection = pep.connect();
+        this.connection.catch((_e) => {
+            // do nothing
+        });
         return pep;
     }
     async onPepClose() {
         if (!this.reconnectTimeout) {
+            if (this.connection) {
+                try {
+                    await this.connection;
+                }
+                catch (e) {
+                    // do nothing
+                }
+            }
             this.connection = undefined;
             this.reconnectTimeout = setTimeout(() => {
                 this.reconnectTimeout = undefined;
@@ -42,7 +53,7 @@ class MSERep extends events_1.EventEmitter {
             await this.connection;
         }
         else {
-            throw new Error('Attempt to connect to PepTalk server failed. Retrying.');
+            throw new Error('Attempt to connect to PepTalk server failed.');
         }
     }
     getPep() {
