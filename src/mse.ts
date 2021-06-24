@@ -32,7 +32,10 @@ export class MSERep extends EventEmitter implements MSE {
 	initPep() {
 		const pep = startPepTalk(this.hostname, this.wsPort)
 		pep.on('close', () => this.onPepClose())
-		this.connection = pep.connect().catch((e) => e)
+		this.connection = pep.connect()
+		this.connection.catch((_e) => {
+			// do nothing because we're already handling the 'close' event
+		})
 		return pep
 	}
 
@@ -52,7 +55,7 @@ export class MSERep extends EventEmitter implements MSE {
 		if (this.connection) {
 			await this.connection
 		} else {
-			throw new Error('Attempt to connect to PepTalk server failed. Retrying.')
+			throw new Error('Attempt to connect to PepTalk server failed.')
 		}
 	}
 
