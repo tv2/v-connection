@@ -1,6 +1,6 @@
 {
 	"name": "@tv2media/v-connection",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "Sofie TV Automation Vizrt Media Sequencer Engine connection library",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
