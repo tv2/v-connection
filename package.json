@@ -6,7 +6,7 @@
 	"types": "dist/index.d.ts",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/olzzon/v-connection.git"
+		"url": "git+https://github.com/tv2/v-connection.git"
 	},
 	"keywords": [
 		"broadcast",
@@ -31,7 +31,7 @@
 	],
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/olzzon/v-connection/issues"
+		"url": "https://github.com/tv2/v-connection/issues"
 	},
 	"scripts": {
 		"info": "npm-scripts-info",
