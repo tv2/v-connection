@@ -35,7 +35,7 @@ jobs:
 
       - uses: actions/upload-artifact@main
         with:
-          name: dist artifacts
+          name: Upload dist artifacts
           path: dist
 
   npm-release:
@@ -45,6 +45,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          name: Download dist artifacts
+          path: dist
       - uses: JS-DevTools/npm-publish@v1
         with:
           access: public
