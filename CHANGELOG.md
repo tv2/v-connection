@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.2](https://github.com/tv2/v-connection/compare/v4.0.1...v4.0.2) (2021-08-30)
+
+### Bug Fixes
+
+- donwload dist artifacts before publish ([7d1c645](https://github.com/tv2/v-connection/commit/7d1c6452e1670e7e5c35278a849b19f3e6f0b063))
+
 ### [4.0.1](https://github.com/tv2/v-connection/compare/v4.0.0...v4.0.1) (2021-08-30)
 
 ### Bug Fixes
