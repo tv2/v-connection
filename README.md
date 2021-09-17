@@ -40,13 +40,13 @@ This package has automated tests that run with [jest](https://jestjs.io/). Test 
 
 Add this module to your project with one of:
 
-    npm install v-connection
-    yarn add v-connection
+    npm install @tv2media/v-connection
+    yarn add @tv2media/v-connection
 
 Import into your project with one of:
 
-    const { createMSE, MSE } = require('v-connection')
-    import { createMSE, MSE } from 'v-connection'
+    const { createMSE, MSE } = require('@tv2media/v-connection')
+    import { createMSE, MSE } from '@tv2media/v-connection'
 
 Use factory `createMSE` to create a connection to a running MSE, e.g.:
 
