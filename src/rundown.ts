@@ -83,9 +83,18 @@ export class Rundown implements VRundown {
 			: false
 	}
 
-	private ref(vcpid: number, channel?: string): string {
+	private ref(vcpid: number, channel?: string, unescape = false): string {
 		const key = Rundown.makeKey(vcpid, channel)
-		return this.channelMap[key]?.refName ? this.channelMap[key].refName.replace('#', '%23') : 'ref'
+		let str = this.channelMap[key]?.refName || 'ref'
+
+		if (unescape) {
+			// Return the unescaped string
+			str = str.replace('%23', '#')
+		} else {
+			// Return the escaped string
+			str = str.replace('#', '%23')
+		}
+		return str
 	}
 
 	async listTemplates(): Promise<string[]> {
@@ -265,7 +274,8 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.pep.delete(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
-			const path = this.getExternalElementPath(elementName, channel)
+			// Note: For some reason, in contrast to the other commands, the delete command only works with the path being unescaped:
+			const path = this.getExternalElementPath(elementName, channel, true)
 			if (await this.buildChannelMap(elementName, channel)) {
 				return this.pep.delete(path)
 			} else {
@@ -440,7 +450,7 @@ ${entries}
 		return playlist.active_profile && typeof playlist.active_profile.value !== 'undefined'
 	}
 
-	private getExternalElementPath(elementName: number, channel?: string): string {
-		return `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`
+	private getExternalElementPath(elementName: number, channel?: string, unescape = false): string {
+		return `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel, unescape)}`
 	}
 }
