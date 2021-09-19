@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.0.1](https://github.com/tv2/v-connection/compare/v5.0.0...v5.0.1) (2021-09-19)
+
+### Bug Fixes
+
+- rundown.deleteElement() didn't work ([645e486](https://github.com/tv2/v-connection/commit/645e4868c1f84c7c423bf18b70f1979b7fdde967))
+
 ### [4.0.3](https://github.com/tv2/v-connection/compare/v4.0.2...v4.0.3) (2021-08-30)
 
 ### [4.0.2](https://github.com/tv2/v-connection/compare/v4.0.1...v4.0.2) (2021-08-30)
