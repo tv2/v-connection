@@ -2683,7 +2683,7 @@ img {
 			<a href="externalelementid.html" class="tsd-kind-icon">External<wbr>Element<wbr>Id</a>
 			<ul>
 				<li class=" tsd-kind-property tsd-parent-kind-interface">
-					<a href="externalelementid.html#channelname" class="tsd-kind-icon">channel<wbr>Name</a>
+					<a href="externalelementid.html#channel" class="tsd-kind-icon">channel</a>
 				</li>
 				<li class=" tsd-kind-property tsd-parent-kind-interface">
 					<a href="externalelementid.html#vcpid" class="tsd-kind-icon">vcpid</a>
@@ -2733,7 +2733,7 @@ img {
 		<section class="tsd-panel tsd-comment">
 			<div class="tsd-comment tsd-typography">
 				<div class="lead">
-					<p>Object uniquely identifying an element loaded into an Engine</p>
+					<p>Object uniquely identifying an external element loaded into an Engine</p>
 				</div>
 			</div>
 		</section>
@@ -2752,7 +2752,7 @@ img {
 					<section class="tsd-index-section ">
 						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="externalelementid.html#channelname" class="tsd-kind-icon">channel<wbr>Name</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="externalelementid.html#channel" class="tsd-kind-icon">channel</a></li>
 							<li class="tsd-kind-property tsd-parent-kind-interface"><a href="externalelementid.html#vcpid" class="tsd-kind-icon">vcpid</a></li>
 						</ul>
 					</section>
@@ -2762,14 +2762,20 @@ img {
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Properties</h2>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
-				<a name="channelname" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagOptional">Optional</span> channel<wbr>Name</h3>
-				<div class="tsd-signature tsd-kind-icon">channel<wbr>Name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
+				<a name="channel" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagOptional">Optional</span> channel</h3>
+				<div class="tsd-signature tsd-kind-icon">channel<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/tv2/v-connection/blob/b0f393a/src/v-connection.ts#L119">src/v-connection.ts:119</a></li>
+						<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/881514c/src/v-connection.ts#L123">src/v-connection.ts:123</a></li>
 					</ul>
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Optional channel specifier used to define which Viz Engines the graphics play on.
+						Note when <code>undefined</code>, the default is the <em>program</em> channel.</p>
+					</div>
+				</div>
 			</section>
 			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
 				<a name="vcpid" class="tsd-anchor"></a>
@@ -2777,9 +2783,14 @@ img {
 				<div class="tsd-signature tsd-kind-icon">vcpid<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/tv2/v-connection/blob/b0f393a/src/v-connection.ts#L118">src/v-connection.ts:118</a></li>
+						<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/881514c/src/v-connection.ts#L119">src/v-connection.ts:119</a></li>
 					</ul>
 				</aside>
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Unique identifier for the template in the external system.</p>
+					</div>
+				</div>
 			</section>
 		</section>
 		<footer class="with-border-bottom">
