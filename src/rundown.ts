@@ -83,9 +83,18 @@ export class Rundown implements VRundown {
 			: false
 	}
 
-	private ref(vcpid: number, channel?: string): string {
+	private ref(vcpid: number, channel?: string, unescape = false): string {
 		const key = Rundown.makeKey(vcpid, channel)
-		return this.channelMap[key]?.refName ? this.channelMap[key].refName.replace('#', '%23') : 'ref'
+		let str = this.channelMap[key]?.refName || 'ref'
+
+		if (unescape) {
+			// Return the unescaped string
+			str = str.replace('%23', '#')
+		} else {
+			// Return the escaped string
+			str = str.replace('#', '%23')
+		}
+		return str
 	}
 
 	async listTemplates(): Promise<string[]> {
@@ -265,13 +274,12 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.pep.delete(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			// Note: For some reason, in contrast to the other commands, the delete command only works with the path being unescaped:
+			const path = this.getExternalElementPath(elementName, channel, true)
 			if (await this.buildChannelMap(elementName, channel)) {
-				return this.pep.delete(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`)
+				return this.pep.delete(path)
 			} else {
-				throw new InexistentError(
-					-1,
-					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`
-				)
+				throw new InexistentError(-1, path)
 			}
 		}
 	}
@@ -280,13 +288,14 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.cue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			const path = this.getExternalElementPath(elementName, channel)
 			if (await this.buildChannelMap(elementName, channel)) {
-				return this.msehttp.cue(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`)
+				return this.msehttp.cue(path)
 			} else {
 				throw new HTTPRequestError(
 					`Cannot cue external element as ID '${elementName}' is not known in this rundown.`,
 					this.msehttp.baseURL,
-					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`
+					path
 				)
 			}
 		}
@@ -296,13 +305,14 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			const path = this.getExternalElementPath(elementName, channel)
 			if (await this.buildChannelMap(elementName, channel)) {
-				return this.msehttp.take(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`)
+				return this.msehttp.take(path)
 			} else {
 				throw new HTTPRequestError(
 					`Cannot take external element as ID '${elementName}' is not known in this rundown.`,
 					this.msehttp.baseURL,
-					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`
+					path
 				)
 			}
 		}
@@ -312,13 +322,14 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.continue(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			const path = this.getExternalElementPath(elementName, channel)
 			if (await this.buildChannelMap(elementName, channel)) {
-				return this.msehttp.continue(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`)
+				return this.msehttp.continue(path)
 			} else {
 				throw new HTTPRequestError(
 					`Cannot continue external element as ID '${elementName}' is not known in this rundown.`,
 					this.msehttp.baseURL,
-					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`
+					path
 				)
 			}
 		}
@@ -328,15 +339,14 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.continueReverse(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			const path = this.getExternalElementPath(elementName, channel)
 			if (await this.buildChannelMap(elementName, channel)) {
-				return this.msehttp.continueReverse(
-					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`
-				)
+				return this.msehttp.continueReverse(path)
 			} else {
 				throw new HTTPRequestError(
 					`Cannot continue reverse external element as ID '${elementName}' is not known in this rundown.`,
 					this.msehttp.baseURL,
-					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`
+					path
 				)
 			}
 		}
@@ -346,26 +356,28 @@ ${entries}
 		if (typeof elementName === 'string') {
 			return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`)
 		} else {
+			const path = this.getExternalElementPath(elementName, channel)
 			if (await this.buildChannelMap(elementName, channel)) {
-				return this.msehttp.out(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`)
+				return this.msehttp.out(path)
 			} else {
 				throw new HTTPRequestError(
 					`Cannot take out external element as ID '${elementName}' is not known in this rundown.`,
 					this.msehttp.baseURL,
-					`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`
+					path
 				)
 			}
 		}
 	}
 
 	async initialize(elementName: number, channel?: string): Promise<CommandResult> {
+		const path = this.getExternalElementPath(elementName, channel)
 		if (await this.buildChannelMap(elementName, channel)) {
-			return this.msehttp.initialize(`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`)
+			return this.msehttp.initialize(path)
 		} else {
 			throw new HTTPRequestError(
 				`Cannot initialize external element as ID '${elementName}' is not known in this rundown.`,
 				this.msehttp.baseURL,
-				`/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel)}`
+				path
 			)
 		}
 	}
@@ -436,5 +448,9 @@ ${entries}
 	async isActive(): Promise<boolean> {
 		const playlist = await this.mse.getPlaylist(this.playlist)
 		return playlist.active_profile && typeof playlist.active_profile.value !== 'undefined'
+	}
+
+	private getExternalElementPath(elementName: number, channel?: string, unescape = false): string {
+		return `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel, unescape)}`
 	}
 }
