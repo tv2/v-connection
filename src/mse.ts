@@ -29,7 +29,7 @@ export class MSERep extends EventEmitter implements MSE {
 		this.pep = this.initPep()
 	}
 
-	initPep() {
+	initPep(): PepTalkClient & PepTalkJS {
 		const pep = startPepTalk(this.hostname, this.wsPort)
 		pep.on('close', () => this.onPepClose())
 		this.connection = pep.connect().catch((e) => e)
