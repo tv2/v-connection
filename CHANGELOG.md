@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [5.1.0](https://github.com/tv2/v-connection/compare/v5.0.1...v5.1.0) (2021-09-20)
+
+### Features
+
+- keep some elements on purge ([37cacf3](https://github.com/tv2/v-connection/commit/37cacf39348f2785b5aea6ed3468e99d5b2fa5b3))
+
+### Bug Fixes
+
+- handle both possible scheduler top level node names ([5fbf986](https://github.com/tv2/v-connection/commit/5fbf986c06aa7d34ca3fd7b212a5b2bac55359df))
+- prevent a race condition on reconnect attempt ([77936cd](https://github.com/tv2/v-connection/commit/77936cdeac5dfb87218508bbc56f9800f5aac242))
+- reinitialize PepTalk client to reconnect ([fa19cdc](https://github.com/tv2/v-connection/commit/fa19cdc3baab83a51525332d83c67e05dd805183))
+- treat error same as close ([0d05dd0](https://github.com/tv2/v-connection/commit/0d05dd0bd3b874384fac49bcaf7dc7a89f6c4d4f))
+
 ### [5.0.1](https://github.com/tv2/v-connection/compare/v5.0.0...v5.0.1) (2021-09-19)
 
 ### Bug Fixes
