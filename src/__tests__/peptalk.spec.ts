@@ -10,120 +10,18 @@ import {
 	SyntaxError,
 	NotAllowedError,
 } from '../peptalk'
-import * as websocket from 'ws'
+import * as Websocket from '../__mocks__/ws'
+import { setupPeptalkMock } from '../__mocks__/peptalkMock'
 
-const testPort = 8418
-
-const extractIndex = (s: string): string => {
-	const firstSpace = s.indexOf(' ')
-	return firstSpace > 0 ? s.slice(0, firstSpace) : ''
-}
+let testPort = 1000
 
 describe('PepTalk happy', () => {
-	let server: websocket.Server
 	let pep: PepTalkClient & PepTalkJS
+	testPort++
+	setupPeptalkMock(testPort)
 
 	beforeAll(async () => {
-		server = new websocket.Server({ port: testPort })
-		server.on('connection', (ws) => {
-			ws.on('message', (message: string) => {
-				// console.log('Received', message)
-				const index = extractIndex(message)
-				if (message === '1 protocol peptalk\r\n') {
-					return ws.send('1 protocol peptalk noevents')
-				}
-				if (message.indexOf('close') >= 0) {
-					ws.send(`${index} ok bye`)
-					return ws.close()
-				}
-				if (message.indexOf('get {1}/ 0') >= 0) {
-					return ws.send(`${index} ok <entry name="pongy"/>\r\n`)
-				}
-				if (message.indexOf('anything goes here') >= 0) {
-					const response = 'responds here'
-					return ws.send(`${index} ok anything {${response.length}}${response}\r\n`)
-				}
-				if (message.indexOf('special') >= 0) {
-					const response = message.slice(message.indexOf('special') + 8).trim()
-					return ws.send(`${index} ok special ${response}\r\n`)
-				}
-				if (message.indexOf('get') >= 0) {
-					const bits = message.match(/\d+\sget\s\{\d+\}\/(\w+)\/with\/lines\/(\d)\s?(\d+)?.*/) as RegExpMatchArray
-					const depth = typeof (bits[3] as string | undefined) === 'string' ? bits[3] : '0'
-					const name = bits[1]
-					if (bits[2] === '2') {
-						const value = `<entry depth="${depth}" name="${name}">something</entry>`
-						ws.send(`${index} ok {${value.length}}${value.slice(0, 13)}\r\n`)
-						return ws.send(`${value.slice(13)}\r\n`)
-					}
-					if (bits[2] === '3') {
-						const value = `<entry depth="${depth}" name="${name}">something</entry>`
-						ws.send(`${index} ok {${value.length}}${value.slice(0, 13)}\r\n`)
-						ws.send(`${value.slice(13, 14)}\r\n`)
-						return ws.send(`${value.slice(14)}\r\n`)
-					}
-					if (bits[2] === '4' || bits[2] === '5' || bits[2] === '6') {
-						return
-					}
-					if (bits[2] === '7') {
-						const value = (id: number) => `<entry depth="${depth}" name="${name}">${id}</entry>`
-						ws.send(
-							`${+index - 3} ok {${value(4).length}}${value(4)}\r\n${+index - 2} ok {${value(5).length}}${value(
-								5
-							)}\r\n${+index - 1} ok {${value(6).length}}${value(6).slice(0, 13)}`
-						)
-						ws.send(`${value(6).slice(13)}\r\n`)
-						return ws.send(`${index} ok {${value(7).length}}${value(7)}\r\n`)
-					}
-					return ws.send(`${index} ok <entry depth="${depth}" name="${name}"/>\r\n`)
-				}
-				if (message.indexOf('copy') >= 0) {
-					let destination = message.slice(message.lastIndexOf('/') + 1)
-					destination = destination.slice(0, destination.indexOf(' '))
-					return ws.send(`${index} ok ${destination}\r\n`)
-				}
-				if (message.indexOf('delete') >= 0) {
-					// let endOfLife = message.slice(message.lastIndexOf('/') + 1).trim()
-					return ws.send(`${index} ok\r\n`)
-				}
-				if (message.indexOf('ensure-path') >= 0) {
-					return ws.send(`${index} ok\r\n`)
-				}
-				if (message.indexOf('insert') >= 0) {
-					const nameMatch = message.match(/name="(\w+)"/) as RegExpMatchArray
-					return ws.send(`${index} ok ${nameMatch[1]}#2\r\n`)
-				}
-				if (message.indexOf('move') >= 0) {
-					const destMatch = message.match(/\/move\/to\/(\w+)\s/) as RegExpMatchArray
-					return ws.send(`${index} ok ${destMatch[1]}#2`)
-				}
-				if (message.indexOf('protocol') >= 0) {
-					return ws.send(`${index} protocol noevents uri peptalk treetalk`)
-				}
-				if (message.indexOf('reinitialize') >= 0) {
-					return ws.send(`${index} ok`)
-				}
-				if (message.indexOf('replace') >= 0) {
-					const nameMatch = message.match(/name="(\w+)"/) as RegExpMatchArray
-					return ws.send(`${index} ok ${nameMatch[1]}#2\r\n`)
-				}
-				if (message.indexOf('set text') >= 0) {
-					ws.send(`${index} begin`)
-					ws.send(`* ${message.slice(message.indexOf(' ') + 1)}`)
-					return ws.send(`${index} ok\r\n`)
-				}
-				if (message.indexOf('set attribute') >= 0) {
-					ws.send(`${index} begin`)
-					ws.send(`* ${message.slice(message.indexOf(' ') + 1)}`)
-					return ws.send(`${index} ok 42\r\n`)
-				}
-				if (message.indexOf('uri ') >= 0) {
-					return ws.send(`${index} ok http://localhost:8594/element_collection/storage/my/home/in/pep`)
-				}
-				return ws.send(`${index} error unspecified`)
-			})
-		})
-
+		// This "connects" to the Mocked peptalk (virtual) server:
 		pep = startPepTalk('localhost', testPort)
 		await pep.connect()
 	})
@@ -346,43 +244,17 @@ describe('PepTalk happy', () => {
 	})
 
 	afterAll(async () => {
-		await pep.close().catch((err) => console.error('Warning: PepTalk connection already closed:', err.message))
-		return new Promise<void>((resolve, reject) => {
-			server.close((err) => {
-				if (err) return reject(err)
-				resolve()
-			})
-		})
+		await pep.close()
 	})
 })
 
 describe('PepTalk connection lifecycle', () => {
-	let server: websocket.Server
 	let pep: PepTalkClient & PepTalkJS
+	testPort++
+	setupPeptalkMock(testPort)
 
 	beforeAll(async () => {
-		server = new websocket.Server({ port: testPort })
-		server.on('connection', (ws) => {
-			ws.on('message', (message: string) => {
-				// console.log('Received', message)
-				const index = extractIndex(message)
-				if (message.indexOf('protocol peptalk\r\n') >= 0) {
-					return ws.send(`${index} protocol peptalk uri`)
-				}
-				if (message.indexOf('close') >= 0) {
-					ws.send(`${index} ok bye`)
-					return ws.close()
-				}
-				if (message.indexOf('get {1}/ 0') >= 0) {
-					return ws.send(`${index} ok <entry name="pongy"/>\r\n`)
-				}
-
-				return ws.send(`${index} error unspecified`)
-			})
-		})
-
 		pep = startPepTalk('localhost', testPort)
-		// await pep.connect()
 	})
 
 	test('Ping not connected', async () => {
@@ -391,7 +263,7 @@ describe('PepTalk connection lifecycle', () => {
 
 	test('Connect and disconnect', async () => {
 		await expect(pep.connect()).resolves.toMatchObject({
-			body: 'protocol peptalk uri',
+			body: 'protocol noevents uri peptalk treetalk',
 			sent: 'protocol peptalk',
 			status: 'ok',
 		})
@@ -405,12 +277,12 @@ describe('PepTalk connection lifecycle', () => {
 
 	test('Connect twice', async () => {
 		await expect(pep.connect()).resolves.toMatchObject({
-			body: 'protocol peptalk uri',
+			body: 'protocol noevents uri peptalk treetalk',
 			sent: 'protocol peptalk',
 			status: 'ok',
 		})
 		await expect(pep.connect()).resolves.toMatchObject({
-			body: 'protocol peptalk uri',
+			body: 'protocol noevents uri peptalk treetalk',
 			sent: 'protocol peptalk',
 			status: 'ok',
 		})
@@ -422,45 +294,16 @@ describe('PepTalk connection lifecycle', () => {
 	})
 
 	afterAll(async () => {
-		try {
-			await pep.close()
-		} catch (err) {
-			console.log('Info: Request to close a closed connection threw as expected with:', err.message)
-		}
-		return new Promise<void>((resolve, reject) => {
-			server.close((err) => {
-				if (err) return reject(err)
-				resolve()
-			})
-		})
+		await pep.close()
 	})
 })
 
 describe('PepTalk server death', () => {
-	let server: websocket.Server
 	let pep: PepTalkClient & PepTalkJS
+	testPort++
+	setupPeptalkMock(testPort)
 
 	beforeAll(async () => {
-		server = new websocket.Server({ port: testPort })
-		server.on('connection', (ws) => {
-			ws.on('message', (message: string) => {
-				// console.log('Received', message)
-				const index = extractIndex(message)
-				if (message.indexOf('protocol peptalk\r\n') >= 0) {
-					return ws.send(`${index} protocol peptalk uri`)
-				}
-				if (message.indexOf('close') >= 0) {
-					ws.send(`${index} ok bye`)
-					return ws.close()
-				}
-				if (message.indexOf('get {1}/ 0') >= 0) {
-					return ws.send(`${index} ok <entry name="pongy"/>\r\n`)
-				}
-
-				return ws.send(`${index} error unexpected`)
-			})
-		})
-
 		pep = startPepTalk('localhost', testPort)
 		await pep.connect()
 	})
@@ -489,61 +332,29 @@ describe('PepTalk server death', () => {
 
 	test('Close server and ping', async () => {
 		expect(pep.setTimeout(300)).toBe(300)
-		await new Promise<void>((resolve, reject) => {
-			server.close((err) => {
-				if (err) return reject(err)
-				resolve()
-			})
+
+		// Look up the mock server and close it:
+		const instances = Websocket.getMockInstances().filter((i) => i.connectURL === `ws://localhost:${testPort}/`)
+		expect(instances.length).toBeGreaterThanOrEqual(1)
+		instances.forEach((instance) => {
+			instance?.close()
 		})
+
 		await expect(pep.ping()).rejects.toThrow('Parallel promise to send message')
 		expect(pep.setTimeout(3000)).toBe(3000)
 	})
 
 	afterAll(async () => {
-		try {
-			await pep.close()
-		} catch (err) {
-			console.log('Info: Request to close a closed connection threw as expected with:', err.message)
-		}
-		return new Promise<void>((resolve, reject) => {
-			server.close((err) => {
-				if (err) return reject(err)
-				resolve()
-			})
-		})
+		// await pep.close()
 	})
 })
 
 describe('PepTalk with sadness', () => {
-	let server: websocket.Server
 	let pep: PepTalkClient & PepTalkJS
+	testPort++
+	setupPeptalkMock(testPort)
 
 	beforeAll(async () => {
-		server = new websocket.Server({ port: testPort })
-		server.on('connection', (ws) => {
-			ws.on('message', (message: string) => {
-				// console.log('Received', message)
-				const index = extractIndex(message)
-				if (message.indexOf('protocol peptalk\r\n') >= 0) {
-					return ws.send(`${index} protocol peptalk uri`)
-				}
-				if (message.indexOf('close') >= 0) {
-					ws.send(`${index} ok bye`)
-					return ws.close()
-				}
-				if (message.indexOf('get {1}/ 0') >= 0) {
-					return ws.send(`${index} ok <entry name="pongy"/>\r\n`)
-				}
-				if (message.indexOf('get') >= 0) {
-					const errorName = message.slice(message.lastIndexOf('/') + 1, message.lastIndexOf(' '))
-					const path = message.slice(message.indexOf('/'), message.lastIndexOf(' '))
-					return ws.send(`${index} error ${errorName} ${path}\r\n`)
-				}
-
-				return ws.send(`${index} error unspecified\r\n`)
-			})
-		})
-
 		pep = startPepTalk('localhost', testPort)
 		await pep.connect()
 	})
@@ -562,36 +373,26 @@ describe('PepTalk with sadness', () => {
 	})
 
 	test('Get inexistent', async () => {
-		await expect(pep.get('/error/inexistent', 3)).rejects.toThrow(InexistentError)
+		await expect(pep.get('/mockError/inexistent', 3)).rejects.toThrow(InexistentError)
 	})
 
 	test('Get invalid', async () => {
-		await expect(pep.get('/error/invalid', 3)).rejects.toThrow(InvalidError)
+		await expect(pep.get('/mockError/invalid', 3)).rejects.toThrow(InvalidError)
 	})
 
 	test('Get not allowed', async () => {
-		await expect(pep.get('/error/not_allowed', 3)).rejects.toThrow(NotAllowedError)
+		await expect(pep.get('/mockError/not_allowed', 3)).rejects.toThrow(NotAllowedError)
 	})
 
 	test('Get syntax', async () => {
-		await expect(pep.get('/error/syntax', 3)).rejects.toThrow(SyntaxError)
+		await expect(pep.get('/mockError/syntax', 3)).rejects.toThrow(SyntaxError)
 	})
 
 	test('Get unspecified', async () => {
-		await expect(pep.get('/error/unspecified', 3)).rejects.toThrow(UnspecifiedError)
+		await expect(pep.get('/mockError/unspecified', 3)).rejects.toThrow(UnspecifiedError)
 	})
 
 	afterAll(async () => {
-		try {
-			await pep.close()
-		} catch (err) {
-			console.log('Info: Request to close a closed connection threw as expected with:', err.message)
-		}
-		return new Promise<void>((resolve, reject) => {
-			server.close((err) => {
-				if (err) return reject(err)
-				resolve()
-			})
-		})
+		await pep.close()
 	})
 })

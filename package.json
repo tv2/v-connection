@@ -1,12 +1,12 @@
 {
-	"name": "v-connection",
-	"version": "0.0.1",
+	"name": "@tv2media/v-connection",
+	"version": "5.0.1",
 	"description": "Sofie TV Automation Vizrt Media Sequencer Engine connection library",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/olzzon/v-connection.git"
+		"url": "git+https://github.com/tv2/v-connection.git"
 	},
 	"keywords": [
 		"broadcast",
@@ -31,7 +31,7 @@
 	],
 	"license": "MIT",
 	"bugs": {
-		"url": "https://github.com/olzzon/v-connection/issues"
+		"url": "https://github.com/tv2/v-connection/issues"
 	},
 	"scripts": {
 		"info": "npm-scripts-info",
@@ -121,7 +121,7 @@
 		"request": "^2.88.2",
 		"request-promise-native": "^1.0.9",
 		"uuid": "^8.3.2",
-		"ws": "^7.4.2",
+		"ws": "^7.4.6",
 		"xml2js": "^0.4.23"
 	},
 	"devDependencies": {
@@ -152,9 +152,5 @@
 		"typedoc": "^0.20.16",
 		"typescript": "~4.0",
 		"yargs": "^16.2.0"
-	},
-	"standard-version": {
-		"message": "chore(release): %s [skip ci]",
-		"tagPrefix": ""
 	}
 }
