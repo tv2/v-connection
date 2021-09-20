@@ -17,8 +17,8 @@ export class MSERep extends EventEmitter implements MSE {
 	private pep: PepTalkClient & PepTalkJS
 	private connection?: Promise<PepResponse> = undefined
 
-	private isAwaitingConnection = false
 	private reconnectTimeout?: NodeJS.Timeout = undefined
+	private lastConnectionAttempt?: number = undefined
 
 	constructor(hostname: string, restPort?: number, wsPort?: number, resthost?: string) {
 		super()
@@ -26,41 +26,35 @@ export class MSERep extends EventEmitter implements MSE {
 		this.restPort = typeof restPort === 'number' && restPort > 0 ? restPort : 8580
 		this.wsPort = typeof wsPort === 'number' && wsPort > 0 ? wsPort : 8595
 		this.resthost = resthost // For ngrok testing only
-		this.pep = startPepTalk(this.hostname, this.wsPort)
-		this.pep.on('close', () => this.onPepClose())
-		this.connection = this.pep.connect()
+		this.pep = this.initPep()
+	}
+
+	initPep(): PepTalkClient & PepTalkJS {
+		if (this.pep) {
+			this.pep.removeAllListeners()
+		}
+		const pep = startPepTalk(this.hostname, this.wsPort)
+		pep.on('close', () => this.onPepClose())
+		this.lastConnectionAttempt = Date.now()
+		this.connection = pep.connect().catch((e) => e)
+		return pep
 	}
 
 	async onPepClose(): Promise<void> {
-		if (this.connection && !this.isAwaitingConnection) {
-			try {
-				await this.connection
-			} catch (error) {
-				// nothing we can do about it
-			}
+		if (!this.reconnectTimeout) {
 			this.connection = undefined
 			this.reconnectTimeout = setTimeout(() => {
-				if (!this.connection) {
-					this.connection = this.pep.connect()
-				}
-			}, 2000)
+				this.reconnectTimeout = undefined
+				this.pep = this.initPep()
+			}, Math.max(2000 - (Date.now() - (this.lastConnectionAttempt ?? 0)), 0))
 		}
 	}
 
 	async checkConnection(): Promise<void> {
-		try {
-			if (this.connection) {
-				this.isAwaitingConnection = true
-				await this.connection
-				this.isAwaitingConnection = false
-			} else {
-				this.connection = this.pep.connect()
-				throw new Error('Attempt to connect to PepTalk server failed. Retrying.')
-			}
-		} catch (err) {
-			this.connection = this.pep.connect()
-			this.isAwaitingConnection = false
-			throw err
+		if (this.connection) {
+			await this.connection
+		} else {
+			throw new Error('Attempt to connect to PepTalk server failed.')
 		}
 	}
 
