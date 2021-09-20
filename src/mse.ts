@@ -112,6 +112,8 @@ export class MSERep extends EventEmitter implements MSE {
 		await this.checkConnection()
 		const handlers = await this.pep.getJS('/scheduler')
 		const handlersBody = handlers.js as any
+		// Sometimes the main node is is called 'scheduler', sometimes 'entry'
+		// It doesn't seem to depend on specific version, so let's just support both
 		const vizEntries: AtomEntry[] = (handlersBody.entry || handlersBody.scheduler).handler.filter(
 			(x: any) => x.$.type === 'viz'
 		)
