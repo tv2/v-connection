@@ -18,7 +18,7 @@ export class MSERep extends EventEmitter implements MSE {
 	private connection?: Promise<PepResponse> = undefined
 
 	private reconnectTimeout?: NodeJS.Timeout = undefined
-	private lastReconnectTime = Date.now()
+	private lastConnectionAttempt?: number = undefined
 
 	constructor(hostname: string, restPort?: number, wsPort?: number, resthost?: string) {
 		super()
@@ -30,8 +30,12 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	initPep(): PepTalkClient & PepTalkJS {
+		if (this.pep) {
+			this.pep.removeAllListeners()
+		}
 		const pep = startPepTalk(this.hostname, this.wsPort)
 		pep.on('close', () => this.onPepClose())
+		this.lastConnectionAttempt = Date.now()
 		this.connection = pep.connect().catch((e) => e)
 		return pep
 	}
@@ -41,10 +45,8 @@ export class MSERep extends EventEmitter implements MSE {
 			this.connection = undefined
 			this.reconnectTimeout = setTimeout(() => {
 				this.reconnectTimeout = undefined
-				this.pep.removeAllListeners()
 				this.pep = this.initPep()
-				this.lastReconnectTime = Date.now()
-			}, Math.max(2000 - (Date.now() - this.lastReconnectTime), 0))
+			}, Math.max(2000 - (Date.now() - (this.lastConnectionAttempt ?? 0)), 0))
 		}
 	}
 
