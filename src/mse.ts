@@ -52,7 +52,7 @@ export class MSERep extends EventEmitter implements MSE {
 		if (this.connection) {
 			await this.connection
 		} else {
-			throw new Error('Attempt to connect to PepTalk server failed. Retrying.')
+			throw new Error('Attempt to connect to PepTalk server failed.')
 		}
 	}
 
