@@ -405,9 +405,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 					return
 				}
 			} else if (leftovers) {
-				this.leftovers.previous = this.leftovers.previous + leftovers.previous
-				this.leftovers.remaining = leftovers.remaining
-				leftovers = null
+				leftovers.previous = this.leftovers.previous + leftovers.previous
 			}
 		}
 		this.leftovers = leftovers ? leftovers : this.leftovers
