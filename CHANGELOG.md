@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.1.1](https://github.com/tv2/v-connection/compare/v5.1.0...v5.1.1) (2021-10-19)
+
+### Bug Fixes
+
+- don't throw away middle chunks ([62215f1](https://github.com/tv2/v-connection/commit/62215f1ea8733c0e00e65e146cae96a54528074b))
+
 ## [5.1.0](https://github.com/tv2/v-connection/compare/v5.0.1...v5.1.0) (2021-09-20)
 
 ### Features
