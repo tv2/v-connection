@@ -1,8 +1,8 @@
-import { MSE, VRundown, VizEngine, VProfile, VShow, VPlaylist } from './v-connection'
-import { startPepTalk, PepTalkClient, PepTalkJS, PepResponse, LocationType } from './peptalk'
+import { MSE, VizEngine, VPlaylist, VProfile, VRundown, VShow } from './v-connection'
+import { LocationType, PepResponse, PepTalkClient, PepTalkJS, startPepTalk } from './peptalk'
 import { CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
-import { flattenEntry, AtomEntry, FlatEntry } from './xml'
+import { AtomEntry, FlatEntry, flattenEntry } from './xml'
 import { Rundown } from './rundown'
 import * as uuid from 'uuid'
 
@@ -137,12 +137,7 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async getShow(showName: string): Promise<VShow> {
-		if (!showName.startsWith('{')) {
-			showName = '{' + showName
-		}
-		if (!showName.endsWith('}')) {
-			showName = showName + '}'
-		}
+		showName = this.wrapInBracesIfNeeded(showName)
 		if (!showName.match(uuidRe)) {
 			return Promise.reject(new Error(`Show name must be a UUID and '${showName}' is not.`))
 		}
@@ -150,6 +145,13 @@ export class MSERep extends EventEmitter implements MSE {
 		const show = await this.pep.getJS(`/storage/shows/${showName}`)
 		const flatShow = await flattenEntry(show.js as AtomEntry)
 		return flatShow as VShow
+	}
+
+	private wrapInBracesIfNeeded(value: string): string {
+		if (!value.startsWith('{') && !value.endsWith('}')) {
+			return `{${value}}`
+		}
+		return value
 	}
 
 	async listPlaylists(): Promise<string[]> {
@@ -166,12 +168,7 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async getPlaylist(playlistName: string): Promise<VPlaylist> {
-		if (!playlistName.startsWith('{')) {
-			playlistName = '{' + playlistName
-		}
-		if (!playlistName.endsWith('}')) {
-			playlistName = playlistName + '}'
-		}
+		playlistName = this.wrapInBracesIfNeeded(playlistName)
 		if (!playlistName.match(uuidRe)) {
 			return Promise.reject(new Error(`Playlist name must be a UUID and '${playlistName}' is not.`))
 		}
@@ -310,6 +307,17 @@ export class MSERep extends EventEmitter implements MSE {
 	timeout(t?: number): number {
 		if (typeof t !== 'number') return this.timeoutMS
 		return this.pep.setTimeout(t)
+	}
+
+	async setAlternativeConcept(playlistId: string, value: string): Promise<void> {
+		const ALTERNATIVE_CONCEPT = 'alternative_concept'
+
+		const environmentPath = `/storage/playlists/${this.wrapInBracesIfNeeded(playlistId)}/environment`
+		const alternativeConceptEntry = `<entry name="${ALTERNATIVE_CONCEPT}">${value}</entry>`
+
+		// Environment entry must exists!
+		await this.pep.ensurePath(environmentPath)
+		await this.pep.replace(`${environmentPath}/${ALTERNATIVE_CONCEPT}`, alternativeConceptEntry)
 	}
 }
 
