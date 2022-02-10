@@ -6,6 +6,8 @@ import { AtomEntry, FlatEntry, flattenEntry } from './xml'
 import { Rundown } from './rundown'
 import * as uuid from 'uuid'
 
+const ALTERNATIVE_CONCEPT = 'alternative_concept'
+
 const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
 
 export class MSERep extends EventEmitter implements MSE {
@@ -310,8 +312,6 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async setAlternativeConcept(playlistId: string, value: string): Promise<void> {
-		const ALTERNATIVE_CONCEPT = 'alternative_concept'
-
 		const environmentPath = `/storage/playlists/${this.wrapInBracesIfNeeded(playlistId)}/environment`
 		const alternativeConceptEntry = `<entry name="${ALTERNATIVE_CONCEPT}">${value}</entry>`
 
