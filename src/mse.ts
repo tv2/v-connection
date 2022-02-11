@@ -5,8 +5,7 @@ import { EventEmitter } from 'events'
 import { AtomEntry, FlatEntry, flattenEntry } from './xml'
 import { Rundown } from './rundown'
 import * as uuid from 'uuid'
-
-const ALTERNATIVE_CONCEPT = 'alternative_concept'
+import { wrapInBracesIfNeeded } from './util'
 
 const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
 
@@ -139,7 +138,7 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async getShow(showName: string): Promise<VShow> {
-		showName = this.wrapInBracesIfNeeded(showName)
+		showName = wrapInBracesIfNeeded(showName)
 		if (!showName.match(uuidRe)) {
 			return Promise.reject(new Error(`Show name must be a UUID and '${showName}' is not.`))
 		}
@@ -147,13 +146,6 @@ export class MSERep extends EventEmitter implements MSE {
 		const show = await this.pep.getJS(`/storage/shows/${showName}`)
 		const flatShow = await flattenEntry(show.js as AtomEntry)
 		return flatShow as VShow
-	}
-
-	private wrapInBracesIfNeeded(value: string): string {
-		if (!value.startsWith('{') && !value.endsWith('}')) {
-			return `{${value}}`
-		}
-		return value
 	}
 
 	async listPlaylists(): Promise<string[]> {
@@ -170,7 +162,7 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async getPlaylist(playlistName: string): Promise<VPlaylist> {
-		playlistName = this.wrapInBracesIfNeeded(playlistName)
+		playlistName = wrapInBracesIfNeeded(playlistName)
 		if (!playlistName.match(uuidRe)) {
 			return Promise.reject(new Error(`Playlist name must be a UUID and '${playlistName}' is not.`))
 		}
@@ -309,15 +301,6 @@ export class MSERep extends EventEmitter implements MSE {
 	timeout(t?: number): number {
 		if (typeof t !== 'number') return this.timeoutMS
 		return this.pep.setTimeout(t)
-	}
-
-	async setAlternativeConcept(playlistId: string, value: string): Promise<void> {
-		const environmentPath = `/storage/playlists/${this.wrapInBracesIfNeeded(playlistId)}/environment`
-		const alternativeConceptEntry = `<entry name="${ALTERNATIVE_CONCEPT}">${value}</entry>`
-
-		// Environment entry must exists!
-		await this.pep.ensurePath(environmentPath)
-		await this.pep.replace(`${environmentPath}/${ALTERNATIVE_CONCEPT}`, alternativeConceptEntry)
 	}
 }
 

@@ -288,6 +288,11 @@ export interface VRundown {
 	 *  @returns Resolves with the activation status of the associated MSE playlist.
 	 */
 	isActive(): Promise<boolean>
+
+	/**
+	 * Sets the value of the 'alternative_concept' entry (or creates it if it's missing) on the parsed playlist.
+	 */
+	setAlternativeConcept(concept: string): Promise<void>
 }
 
 /**
@@ -482,9 +487,4 @@ export interface MSE extends EventEmitter {
 	on(event: 'connected', listener: () => void): this
 	/** Add a listener for all error messages from the server. */
 	on(event: 'disconnected', listener: (err?: Error) => void): this
-
-	/**
-	 * Sets the value of the 'alternative_concept' entry (or creates it if it's missing) on the parsed playlist.
-	 */
-	setAlternativeConcept(playlistID: string, concept: string): Promise<void>
 }
