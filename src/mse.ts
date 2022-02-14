@@ -7,6 +7,7 @@ import { Rundown } from './rundown'
 import * as uuid from 'uuid'
 
 const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
+export const creatorName = 'Sofie'
 
 export class MSERep extends EventEmitter implements MSE {
 	readonly hostname: string
@@ -80,7 +81,6 @@ export class MSERep extends EventEmitter implements MSE {
 				(k) =>
 					new Rundown(
 						this,
-						((flatList[k] as FlatEntry).sofie_show as FlatEntry).value as string,
 						(flatList[k] as FlatEntry).profile as string,
 						k,
 						(flatList[k] as FlatEntry).description as string
@@ -90,16 +90,7 @@ export class MSERep extends EventEmitter implements MSE {
 
 	async getRundown(playlistID: string): Promise<VRundown> {
 		const playlist = await this.getPlaylist(playlistID)
-		if (!playlist.sofie_show) {
-			throw new Error('Cannnot retrieve a rundown witnout a sofie show property.')
-		}
-		return new Rundown(
-			this,
-			(playlist.sofie_show as FlatEntry).value as string,
-			playlist.profile,
-			playlistID,
-			playlist.description as string
-		)
+		return new Rundown(this, playlist.profile, playlistID, playlist.description as string)
 	}
 
 	async getEngines(): Promise<VizEngine[]> {
@@ -136,18 +127,18 @@ export class MSERep extends EventEmitter implements MSE {
 		return Object.keys(flatList).filter((x: string) => x !== 'name')
 	}
 
-	async getShow(showName: string): Promise<VShow> {
-		if (!showName.startsWith('{')) {
-			showName = '{' + showName
+	async getShow(showId: string): Promise<VShow> {
+		if (!showId.startsWith('{')) {
+			showId = '{' + showId
 		}
-		if (!showName.endsWith('}')) {
-			showName = showName + '}'
+		if (!showId.endsWith('}')) {
+			showId = showId + '}'
 		}
-		if (!showName.match(uuidRe)) {
-			return Promise.reject(new Error(`Show name must be a UUID and '${showName}' is not.`))
+		if (!showId.match(uuidRe)) {
+			return Promise.reject(new Error(`Show id must be a UUID and '${showId}' is not.`))
 		}
 		await this.checkConnection()
-		const show = await this.pep.getJS(`/storage/shows/${showName}`)
+		const show = await this.pep.getJS(`/storage/shows/${showId}`)
 		const flatShow = await flattenEntry(show.js as AtomEntry)
 		return flatShow as VShow
 	}
@@ -185,24 +176,10 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	// Rundown basics task
-	async createRundown(
-		showID: string,
-		profileName: string,
-		playlistID?: string,
-		description?: string
-	): Promise<VRundown> {
+	async createRundown(profileName: string, playlistID?: string, description?: string): Promise<VRundown> {
 		let playlistExists = false
-		showID = showID.toUpperCase()
 		const date = new Date()
 		description = description ? description : `Sofie Rundown ${date.toISOString()}`
-		try {
-			await this.checkConnection()
-			await this.pep.get(`/storage/shows/{${showID}}`, 1)
-		} catch (err) {
-			throw new Error(
-				`The request to create a rundown for a show with ID '${showID}' failed. Error is: ${err.message}.`
-			)
-		}
 		try {
 			await this.pep.get(`/config/profiles/${profileName}`, 1)
 		} catch (err) {
@@ -254,12 +231,11 @@ export class MSERep extends EventEmitter implements MSE {
     <entry name="meta"/>
     <entry name="settings"/>
     <entry name="ncs_cursor"/>
-		<entry name="sofie_show">/storage/shows/{${showID}}</entry>
 </playlist>`,
 				LocationType.Last
 			)
 		}
-		return new Rundown(this, showID, profileName, playlistID as string, description)
+		return new Rundown(this, profileName, playlistID as string, description)
 	}
 
 	// Rundown basics task

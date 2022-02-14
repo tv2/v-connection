@@ -1,7 +1,18 @@
-import { VRundown, VTemplate, InternalElement, ExternalElement, VElement, ExternalElementId } from './v-connection'
+import {
+	VRundown,
+	VTemplate,
+	InternalElement,
+	ExternalElement,
+	VElement,
+	ExternalElementId,
+	ElementId,
+	isExternalElement,
+	InternalElementId,
+	isInternalElement,
+} from './v-connection'
 import { CommandResult, createHTTPContext, HttpMSEClient, HTTPRequestError } from './msehttp'
 import { InexistentError, LocationType, PepResponse } from './peptalk'
-import { MSERep } from './mse'
+import { MSERep, creatorName } from './mse'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 import * as uuid from 'uuid'
 
@@ -12,7 +23,6 @@ interface ExternalElementInfo {
 }
 
 export class Rundown implements VRundown {
-	readonly show: string
 	readonly playlist: string
 	readonly profile: string
 	readonly description: string
@@ -25,15 +35,8 @@ export class Rundown implements VRundown {
 	private channelMap: { [id: string]: ExternalElementInfo } = {}
 	private initialChannelMapPromise: Promise<any>
 
-	constructor(mseRep: MSERep, show: string, profile: string, playlist: string, description: string) {
+	constructor(mseRep: MSERep, profile: string, playlist: string, description: string) {
 		this.mse = mseRep
-		this.show = show.startsWith('/storage/shows/') ? show.slice(15) : show
-		if (this.show.startsWith('{')) {
-			this.show = this.show.slice(1)
-		}
-		if (this.show.endsWith('}')) {
-			this.show = this.show.slice(0, -1)
-		}
 		this.profile = profile.startsWith('/config/profiles/') ? profile.slice(17) : profile
 		this.playlist = playlist
 		if (this.playlist.startsWith('{')) {
@@ -53,22 +56,22 @@ export class Rundown implements VRundown {
 		)
 	}
 
-	private static makeKey(vcpid: number, channel?: string) {
-		return `${vcpid}_${channel || ''}`
+	private static makeKey(elementId: ExternalElementId) {
+		return `${elementId.vcpid}_${elementId.channel ?? ''}`
 	}
 
-	private async buildChannelMap(vcpid?: number, channel?: string): Promise<boolean> {
-		if (typeof vcpid === 'number') {
-			if (Object.prototype.hasOwnProperty.call(this.channelMap, Rundown.makeKey(vcpid, channel))) {
+	private async buildChannelMap(elementId?: ExternalElementId): Promise<boolean> {
+		if (elementId) {
+			if (Object.prototype.hasOwnProperty.call(this.channelMap, Rundown.makeKey(elementId))) {
 				return true
 			}
 		}
 		await this.mse.checkConnection()
-		const elements = vcpid ? [{ vcpid, channel }] : await this.listElements()
+		const elements = elementId ? [elementId] : await this.listExternalElements()
 		for (const e of elements) {
 			if (typeof e !== 'string') {
-				const element = await this.getElement(e.vcpid, e.channel)
-				this.channelMap[Rundown.makeKey(e.vcpid, e.channel)] = {
+				const element = await this.getElement(e)
+				this.channelMap[Rundown.makeKey(e)] = {
 					vcpid: e.vcpid,
 					channel: element.channel,
 					refName:
@@ -78,13 +81,11 @@ export class Rundown implements VRundown {
 				}
 			}
 		}
-		return typeof vcpid === 'number'
-			? Object.prototype.hasOwnProperty.call(this.channelMap, Rundown.makeKey(vcpid, channel))
-			: false
+		return elementId ? Object.prototype.hasOwnProperty.call(this.channelMap, Rundown.makeKey(elementId)) : false
 	}
 
-	private ref(vcpid: number, channel?: string, unescape = false): string {
-		const key = Rundown.makeKey(vcpid, channel)
+	private ref(elementId: ExternalElementId, unescape = false): string {
+		const key = Rundown.makeKey(elementId)
 		let str = this.channelMap[key]?.refName || 'ref'
 
 		if (unescape) {
@@ -97,16 +98,16 @@ export class Rundown implements VRundown {
 		return str
 	}
 
-	async listTemplates(): Promise<string[]> {
+	async listTemplates(showId: string): Promise<string[]> {
 		await this.mse.checkConnection()
-		const templateList = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates`, 1)
+		const templateList = await this.pep.getJS(`/storage/shows/{${showId}}/mastertemplates`, 1)
 		const flatTemplates = await flattenEntry(templateList.js as AtomEntry)
 		return Object.keys(flatTemplates).filter((x) => x !== 'name')
 	}
 
-	async getTemplate(templateName: string): Promise<VTemplate> {
+	async getTemplate(templateName: string, showId: string): Promise<VTemplate> {
 		await this.mse.checkConnection()
-		const template = await this.pep.getJS(`/storage/shows/{${this.show}}/mastertemplates/${templateName}`)
+		const template = await this.pep.getJS(`/storage/shows/{${showId}}/mastertemplates/${templateName}`)
 		let flatTemplate = await flattenEntry(template.js as AtomEntry)
 		if (Object.keys(flatTemplate).length === 1) {
 			flatTemplate = flatTemplate[Object.keys(flatTemplate)[0]] as FlatEntry
@@ -115,116 +116,133 @@ export class Rundown implements VRundown {
 	}
 
 	async createElement(
+		elementId: InternalElementId,
 		templateName: string,
-		elementName: string,
 		textFields: string[],
 		channel?: string
 	): Promise<InternalElement>
-	async createElement(vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>
+	async createElement(elementId: ExternalElementId): Promise<ExternalElement>
 	async createElement(
-		nameOrID: string | number,
-		elementNameOrChannel?: string,
-		aliasOrTextFields?: string[] | string,
+		elementId: ElementId,
+		templateName?: string,
+		textFields?: string[],
 		channel?: string
 	): Promise<VElement> {
 		// TODO ensure that a playlist is created with sub-element "elements"
-		if (typeof nameOrID === 'string') {
-			try {
-				if (elementNameOrChannel) {
-					await this.getElement(elementNameOrChannel)
-				}
-				throw new Error(`An internal graphics element with name '${elementNameOrChannel}' already exists.`)
-			} catch (err) {
-				if (err.message.startsWith('An internal graphics element')) throw err
-			}
-			const template = await this.getTemplate(nameOrID)
-			// console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
-			let fielddef
-			if (
-				Object.prototype.hasOwnProperty.call(template, 'model_xml') &&
-				typeof template.model_xml === 'object' &&
-				Object.prototype.hasOwnProperty.call(template.model_xml, 'model') &&
-				typeof template.model_xml.model === 'object'
-			) {
-				fielddef = (template as any).model_xml.model.schema[0].fielddef
-			} else {
-				throw new Error(
-					`Could not retrieve field definitions for tempalte '${nameOrID}'. Not creating element '${elementNameOrChannel}'.`
-				)
-			}
-			let fieldNames: string[] = fielddef ? fielddef.map((x: any): string => x.$.name) : []
-			let entries = ''
-			const data: { [name: string]: string } = {}
-			if (Array.isArray(aliasOrTextFields)) {
-				if (aliasOrTextFields.length > fieldNames.length) {
-					throw new Error(
-						`For template '${nameOrID}' with ${fieldNames.length} field(s), ${aliasOrTextFields.length} fields have been provided.`
-					)
-				}
-				fieldNames = fieldNames.sort()
-				for (let x = 0; x < fieldNames.length; x++) {
-					entries += `    <entry name="${fieldNames[x]}">${aliasOrTextFields[x] ? aliasOrTextFields[x] : ''}</entry>\n`
-					data[fieldNames[x]] = aliasOrTextFields[x] ? aliasOrTextFields[x] : ''
-				}
-			}
-			const vizProgram = channel ? ` viz_program="${channel}"` : ''
-			await this.pep.insert(
-				`/storage/shows/{${this.show}}/elements/${elementNameOrChannel}`,
-				`<element name="${elementNameOrChannel}" guid="${uuid.v4()}" updated="${new Date().toISOString()}" creator="Sofie" ${vizProgram}>
-  <ref name="master_template">/storage/shows/{${this.show}}/mastertemplates/${nameOrID}</ref>
-  <entry name="default_alternatives"/>
-  <entry name="data">
-${entries}
-  </entry>
-</element>`,
-				LocationType.Last
-			)
-			return {
-				name: elementNameOrChannel,
-				template: nameOrID,
-				data,
-				channel,
-			} as InternalElement
+		if (isInternalElement(elementId)) {
+			return this.createInternalElement(elementId, templateName as string, textFields as string[], channel)
+		} else {
+			return this.createExternalElement(elementId)
 		}
-		if (typeof nameOrID === 'number') {
-			try {
-				await this.initialChannelMapPromise
-			} catch (err) {
-				console.error(`Warning: createElement: Channel map not built: ${err.message}`)
-			}
-			try {
-				await this.getElement(nameOrID, elementNameOrChannel)
-				throw new Error(`An external graphics element with name '${nameOrID}' already exists.`)
-			} catch (err) {
-				if (err.message.startsWith('An external graphics element')) throw err
-			}
-			const vizProgram = elementNameOrChannel ? ` viz_program="${elementNameOrChannel}"` : ''
-			const { body: path } = await this.pep.insert(
-				`/storage/playlists/{${this.playlist}}/elements/`,
-				`<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${nameOrID}</ref>`,
-				LocationType.Last
-			)
-			this.channelMap[Rundown.makeKey(nameOrID, elementNameOrChannel)] = {
-				vcpid: nameOrID,
-				channel: elementNameOrChannel,
-				refName: path ? path.slice(path.lastIndexOf('/') + 1) : 'ref',
-			}
-			return {
-				vcpid: nameOrID.toString(),
-				channel: elementNameOrChannel,
-			} as ExternalElement
-		}
-		throw new Error('Create element called with neither a string or numerical reference.')
 	}
 
-	async listElements(): Promise<Array<string | ExternalElementId>> {
+	async createInternalElement(
+		elementId: InternalElementId,
+		templateName: string,
+		textFields: string[],
+		channel?: string
+	): Promise<InternalElement> {
+		try {
+			await this.getElement(elementId)
+			throw new Error(`An internal graphics element with name '${elementId.name}' already exists.`)
+		} catch (err) {
+			if (err.message.startsWith('An internal graphics element')) throw err
+		}
+		const template = await this.getTemplate(templateName, elementId.showId)
+		// console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
+		let fielddef
+		if (
+			Object.prototype.hasOwnProperty.call(template, 'model_xml') &&
+			typeof template.model_xml === 'object' &&
+			Object.prototype.hasOwnProperty.call(template.model_xml, 'model') &&
+			typeof template.model_xml.model === 'object'
+		) {
+			fielddef = (template as any).model_xml.model.schema[0].fielddef
+		} else {
+			throw new Error(
+				`Could not retrieve field definitions for tempalte '${templateName}'. Not creating element '${elementId.name}'.`
+			)
+		}
+		let fieldNames: string[] = fielddef ? fielddef.map((x: any): string => x.$.name) : []
+		let entries = ''
+		const data: { [name: string]: string } = {}
+		if (textFields.length > fieldNames.length) {
+			throw new Error(
+				`For template '${templateName}' with ${fieldNames.length} field(s), ${textFields.length} fields have been provided.`
+			)
+		}
+		fieldNames = fieldNames.sort()
+		for (let x = 0; x < fieldNames.length; x++) {
+			entries += `    <entry name="${fieldNames[x]}">${textFields[x] ? textFields[x] : ''}</entry>\n`
+			data[fieldNames[x]] = textFields[x] ? textFields[x] : ''
+		}
+		const vizProgram = channel ? ` viz_program="${channel}"` : ''
+		await this.pep.insert(
+			`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`,
+			`<element name="${
+				elementId.name
+			}" guid="${uuid.v4()}" updated="${new Date().toISOString()}" creator="${creatorName}" ${vizProgram}>
+<ref name="master_template">/storage/shows/{${elementId.showId}}/mastertemplates/${templateName}</ref>
+<entry name="default_alternatives"/>
+<entry name="data">
+${entries}
+</entry>
+</element>`,
+			LocationType.Last
+		)
+		return {
+			name: elementId.name,
+			template: templateName,
+			data,
+			channel,
+		}
+	}
+
+	async createExternalElement(elementId: ExternalElementId): Promise<ExternalElement> {
+		try {
+			await this.initialChannelMapPromise
+		} catch (err) {
+			console.error(`Warning: createElement: Channel map not built: ${err.message}`)
+		}
+		try {
+			await this.getElement(elementId)
+			throw new Error(`An external graphics element with name '${elementId.vcpid}' already exists.`)
+		} catch (err) {
+			if (err.message.startsWith('An external graphics element')) throw err
+		}
+		const vizProgram = elementId.channel ? ` viz_program="${elementId.channel}"` : ''
+		const { body: path } = await this.pep.insert(
+			`/storage/playlists/{${this.playlist}}/elements/`,
+			`<ref available="0.00" loaded="0.00" take_count="0"${vizProgram}>/external/pilotdb/elements/${elementId.vcpid}</ref>`,
+			LocationType.Last
+		)
+		this.channelMap[Rundown.makeKey(elementId)] = {
+			vcpid: elementId.vcpid,
+			channel: elementId.channel,
+			refName: path ? path.slice(path.lastIndexOf('/') + 1) : 'ref',
+		}
+		return {
+			vcpid: elementId.vcpid.toString(),
+			channel: elementId.channel,
+		}
+	}
+
+	async listInternalElements(showId: string): Promise<InternalElementId[]> {
 		await this.mse.checkConnection()
-		const [showElementsList, playlistElementsList] = await Promise.all([
-			this.pep.getJS(`/storage/shows/{${this.show}}/elements`, 1),
-			this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2),
-		])
+		const showElementsList = await this.pep.getJS(`/storage/shows/{${showId}}/elements`, 1)
 		const flatShowElements = await flattenEntry(showElementsList.js as AtomEntry)
-		const elementNames: Array<string | ExternalElementId> = Object.keys(flatShowElements).filter((x) => x !== 'name')
+		const elementNames: Array<InternalElementId> = Object.keys(flatShowElements)
+			.filter((x) => x !== 'name')
+			.map((element) => ({
+				name: element,
+				showId,
+			}))
+		return elementNames
+	}
+
+	async listExternalElements(): Promise<Array<ExternalElementId>> {
+		await this.mse.checkConnection()
+		const playlistElementsList = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2)
 		const flatPlaylistElements: FlatEntry = await flattenEntry(playlistElementsList.js as AtomEntry)
 		const elementsRefs = flatPlaylistElements.elements
 			? Object.keys(flatPlaylistElements.elements as FlatEntry).map((k) => {
@@ -234,24 +252,25 @@ ${entries}
 					return { vcpid: +ref.slice(lastSlash + 1), channel: entry.viz_program as string | undefined }
 			  })
 			: []
-		return elementNames.concat(elementsRefs)
+		return elementsRefs
 	}
 
-	async activate(twice?: boolean, initShow = true, initPlaylist = true): Promise<CommandResult> {
+	async initializeShow(showId: string): Promise<CommandResult> {
+		return this.msehttp.initializeShow(showId)
+	}
+	async cleanupShow(showId: string): Promise<CommandResult> {
+		return this.msehttp.cleanupShow(showId)
+	}
+
+	async activate(twice?: boolean, initPlaylist = true): Promise<CommandResult> {
 		let result: CommandResult = {
 			// Returned when initShow = false and initPlaylist = false
 			path: '/',
 			status: 200,
 			response: 'No commands to run.',
 		}
-		if (twice && initShow) {
-			result = await this.msehttp.initializeShow(this.show)
-		}
 		if (twice && initPlaylist) {
 			result = await this.msehttp.initializePlaylist(this.playlist)
-		}
-		if (initShow) {
-			result = await this.msehttp.initializeShow(this.show)
 		}
 		if (initPlaylist) {
 			result = await this.msehttp.initializePlaylist(this.playlist)
@@ -259,24 +278,17 @@ ${entries}
 		return result
 	}
 
-	async deactivate(cleanupShow = true): Promise<CommandResult> {
-		if (cleanupShow) {
-			await this.msehttp.cleanupShow(this.show)
-		}
+	async deactivate(): Promise<CommandResult> {
 		return this.msehttp.cleanupPlaylist(this.playlist)
 	}
 
-	cleanup(): Promise<CommandResult> {
-		return this.msehttp.cleanupShow(this.show)
-	}
-
-	async deleteElement(elementName: string | number, channel?: string): Promise<PepResponse> {
-		if (typeof elementName === 'string') {
-			return this.pep.delete(`/storage/shows/{${this.show}}/elements/${elementName}`)
+	async deleteElement(elementId: ElementId): Promise<PepResponse> {
+		if (isInternalElement(elementId)) {
+			return this.pep.delete(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
 		} else {
 			// Note: For some reason, in contrast to the other commands, the delete command only works with the path being unescaped:
-			const path = this.getExternalElementPath(elementName, channel, true)
-			if (await this.buildChannelMap(elementName, channel)) {
+			const path = this.getExternalElementPath(elementId, true)
+			if (await this.buildChannelMap(elementId)) {
 				return this.pep.delete(path)
 			} else {
 				throw new InexistentError(-1, path)
@@ -284,16 +296,16 @@ ${entries}
 		}
 	}
 
-	async cue(elementName: string | number, channel?: string): Promise<CommandResult> {
-		if (typeof elementName === 'string') {
-			return this.msehttp.cue(`/storage/shows/{${this.show}}/elements/${elementName}`)
+	async cue(elementId: ElementId): Promise<CommandResult> {
+		if (isInternalElement(elementId)) {
+			return this.msehttp.cue(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
 		} else {
-			const path = this.getExternalElementPath(elementName, channel)
-			if (await this.buildChannelMap(elementName, channel)) {
+			const path = this.getExternalElementPath(elementId)
+			if (await this.buildChannelMap(elementId)) {
 				return this.msehttp.cue(path)
 			} else {
 				throw new HTTPRequestError(
-					`Cannot cue external element as ID '${elementName}' is not known in this rundown.`,
+					`Cannot cue external element as ID '${elementId.vcpid}' is not known in this rundown.`,
 					this.msehttp.baseURL,
 					path
 				)
@@ -301,16 +313,16 @@ ${entries}
 		}
 	}
 
-	async take(elementName: string | number, channel?: string): Promise<CommandResult> {
-		if (typeof elementName === 'string') {
-			return this.msehttp.take(`/storage/shows/{${this.show}}/elements/${elementName}`)
+	async take(elementId: ElementId): Promise<CommandResult> {
+		if (isInternalElement(elementId)) {
+			return this.msehttp.take(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
 		} else {
-			const path = this.getExternalElementPath(elementName, channel)
-			if (await this.buildChannelMap(elementName, channel)) {
+			const path = this.getExternalElementPath(elementId)
+			if (await this.buildChannelMap(elementId)) {
 				return this.msehttp.take(path)
 			} else {
 				throw new HTTPRequestError(
-					`Cannot take external element as ID '${elementName}' is not known in this rundown.`,
+					`Cannot take external element as ID '${elementId.vcpid}' is not known in this rundown.`,
 					this.msehttp.baseURL,
 					path
 				)
@@ -318,16 +330,16 @@ ${entries}
 		}
 	}
 
-	async continue(elementName: string | number, channel?: string): Promise<CommandResult> {
-		if (typeof elementName === 'string') {
-			return this.msehttp.continue(`/storage/shows/{${this.show}}/elements/${elementName}`)
+	async continue(elementId: ElementId): Promise<CommandResult> {
+		if (isInternalElement(elementId)) {
+			return this.msehttp.continue(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
 		} else {
-			const path = this.getExternalElementPath(elementName, channel)
-			if (await this.buildChannelMap(elementName, channel)) {
+			const path = this.getExternalElementPath(elementId)
+			if (await this.buildChannelMap(elementId)) {
 				return this.msehttp.continue(path)
 			} else {
 				throw new HTTPRequestError(
-					`Cannot continue external element as ID '${elementName}' is not known in this rundown.`,
+					`Cannot continue external element as ID '${elementId.vcpid}' is not known in this rundown.`,
 					this.msehttp.baseURL,
 					path
 				)
@@ -335,16 +347,16 @@ ${entries}
 		}
 	}
 
-	async continueReverse(elementName: string | number, channel?: string): Promise<CommandResult> {
-		if (typeof elementName === 'string') {
-			return this.msehttp.continueReverse(`/storage/shows/{${this.show}}/elements/${elementName}`)
+	async continueReverse(elementId: ElementId): Promise<CommandResult> {
+		if (isInternalElement(elementId)) {
+			return this.msehttp.continueReverse(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
 		} else {
-			const path = this.getExternalElementPath(elementName, channel)
-			if (await this.buildChannelMap(elementName, channel)) {
+			const path = this.getExternalElementPath(elementId)
+			if (await this.buildChannelMap(elementId)) {
 				return this.msehttp.continueReverse(path)
 			} else {
 				throw new HTTPRequestError(
-					`Cannot continue reverse external element as ID '${elementName}' is not known in this rundown.`,
+					`Cannot continue reverse external element as ID '${elementId.vcpid}' is not known in this rundown.`,
 					this.msehttp.baseURL,
 					path
 				)
@@ -352,16 +364,16 @@ ${entries}
 		}
 	}
 
-	async out(elementName: string | number, channel?: string): Promise<CommandResult> {
-		if (typeof elementName === 'string') {
-			return this.msehttp.out(`/storage/shows/{${this.show}}/elements/${elementName}`)
+	async out(elementId: ElementId): Promise<CommandResult> {
+		if (isInternalElement(elementId)) {
+			return this.msehttp.out(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
 		} else {
-			const path = this.getExternalElementPath(elementName, channel)
-			if (await this.buildChannelMap(elementName, channel)) {
+			const path = this.getExternalElementPath(elementId)
+			if (await this.buildChannelMap(elementId)) {
 				return this.msehttp.out(path)
 			} else {
 				throw new HTTPRequestError(
-					`Cannot take out external element as ID '${elementName}' is not known in this rundown.`,
+					`Cannot take out external element as ID '${elementId.vcpid}' is not known in this rundown.`,
 					this.msehttp.baseURL,
 					path
 				)
@@ -369,36 +381,45 @@ ${entries}
 		}
 	}
 
-	async initialize(elementName: number, channel?: string): Promise<CommandResult> {
-		const path = this.getExternalElementPath(elementName, channel)
-		if (await this.buildChannelMap(elementName, channel)) {
+	async initialize(elementId: ExternalElementId): Promise<CommandResult> {
+		const path = this.getExternalElementPath(elementId)
+		if (await this.buildChannelMap(elementId)) {
 			return this.msehttp.initialize(path)
 		} else {
 			throw new HTTPRequestError(
-				`Cannot initialize external element as ID '${elementName}' is not known in this rundown.`,
+				`Cannot initialize external element as ID '${elementId.vcpid}' is not known in this rundown.`,
 				this.msehttp.baseURL,
 				path
 			)
 		}
 	}
 
-	async purge(elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
+	async purge(showIds: string[], elementsToKeep?: ElementId[]): Promise<PepResponse> {
 		// let playlist = await this.mse.getPlaylist(this.playlist)
 		// if (playlist.active_profile.value) {
 		// 	throw new Error(`Cannot purge an active profile.`)
 		// }
-		await this.pep.replace(`/storage/shows/{${this.show}}/elements`, '<elements/>')
+		for (const showId of showIds) {
+			// @todo: don't purge elementsToKeep or elements not created by us
+			await this.pep.replace(`/storage/shows/{${showId}}/elements`, '<elements/>')
+		}
 		if (elementsToKeep && elementsToKeep.length) {
+			const externalElementsToKeep: ExternalElementId[] = []
+			for (const element of elementsToKeep) {
+				if (isExternalElement(element)) {
+					externalElementsToKeep.push(element)
+				}
+			}
 			await this.buildChannelMap()
 			const elementsSet = new Set(
-				elementsToKeep.map((e) => {
-					return Rundown.makeKey(e.vcpid, e.channel)
+				externalElementsToKeep.map((e) => {
+					return Rundown.makeKey(e)
 				})
 			)
 			for (const key in this.channelMap) {
 				if (!elementsSet.has(key)) {
 					try {
-						await this.deleteElement(this.channelMap[key].vcpid, this.channelMap[key].channel)
+						await this.deleteElement(this.channelMap[key])
 					} catch (e) {
 						if (!(e instanceof InexistentError)) {
 							throw e
@@ -412,15 +433,15 @@ ${entries}
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 
-	async getElement(elementName: string | number, channel?: string): Promise<VElement> {
+	async getElement(elementId: ElementId): Promise<VElement> {
 		await this.mse.checkConnection()
-		if (typeof elementName === 'number') {
+		if (isExternalElement(elementId)) {
 			const playlistsList = await this.pep.getJS(`/storage/playlists/{${this.playlist}}/elements`, 2)
 			const flatPlaylistElements: FlatEntry = await flattenEntry(playlistsList.js as AtomEntry)
 			const elementKey = Object.keys(flatPlaylistElements.elements as FlatEntry).find((k) => {
 				const elem = (flatPlaylistElements.elements as FlatEntry)[k] as FlatEntry
 				const ref = elem.value as string
-				return ref.endsWith(`/${elementName}`) && (!channel || elem.viz_program === channel)
+				return ref.endsWith(`/${elementId.vcpid}`) && (!elementId.channel || elem.viz_program === elementId.channel)
 			})
 			const element =
 				typeof elementKey === 'string'
@@ -429,18 +450,18 @@ ${entries}
 			if (!element) {
 				throw new InexistentError(
 					typeof playlistsList.id === 'number' ? playlistsList.id : 0,
-					`/storage/playlists/{${this.playlist}}/elements#${elementName}`
+					`/storage/playlists/{${this.playlist}}/elements#${elementId.vcpid}`
 				)
 			} else {
-				element.vcpid = elementName.toString()
+				element.vcpid = elementId.vcpid.toString()
 				element.channel = element.viz_program
 				element.name = elementKey && elementKey !== '0' ? elementKey.replace('#', '%23') : 'ref'
 				return element as ExternalElement
 			}
 		} else {
-			const element = await this.pep.getJS(`/storage/shows/{${this.show}}/elements/${elementName}`)
-			const flatElement: FlatEntry = (await flattenEntry(element.js as AtomEntry))[elementName] as FlatEntry
-			flatElement.name = elementName
+			const element = await this.pep.getJS(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
+			const flatElement: FlatEntry = (await flattenEntry(element.js as AtomEntry))[elementId.name] as FlatEntry
+			flatElement.name = elementId.name
 			return flatElement as InternalElement
 		}
 	}
@@ -450,7 +471,7 @@ ${entries}
 		return playlist.active_profile && typeof playlist.active_profile.value !== 'undefined'
 	}
 
-	private getExternalElementPath(elementName: number, channel?: string, unescape = false): string {
-		return `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel, unescape)}`
+	private getExternalElementPath(elementId: ExternalElementId, unescape = false): string {
+		return `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementId, unescape)}`
 	}
 }
