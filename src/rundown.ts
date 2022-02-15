@@ -1,15 +1,18 @@
-import { VRundown, VTemplate, InternalElement, ExternalElement, VElement, ExternalElementId } from './v-connection'
+import { ExternalElement, ExternalElementId, InternalElement, VElement, VRundown, VTemplate } from './v-connection'
 import { CommandResult, createHTTPContext, HttpMSEClient, HTTPRequestError } from './msehttp'
 import { InexistentError, LocationType, PepResponse } from './peptalk'
 import { MSERep } from './mse'
-import { flattenEntry, AtomEntry, FlatEntry } from './xml'
+import { AtomEntry, FlatEntry, flattenEntry } from './xml'
 import * as uuid from 'uuid'
+import { wrapInBracesIfNeeded } from './util'
 
 interface ExternalElementInfo {
 	vcpid: number
 	channel?: string
 	refName: string
 }
+
+const ALTERNATIVE_CONCEPT = 'alternative_concept'
 
 export class Rundown implements VRundown {
 	readonly show: string
@@ -452,5 +455,14 @@ ${entries}
 
 	private getExternalElementPath(elementName: number, channel?: string, unescape = false): string {
 		return `/storage/playlists/{${this.playlist}}/elements/${this.ref(elementName, channel, unescape)}`
+	}
+
+	async setAlternativeConcept(value: string): Promise<void> {
+		const environmentPath = `/storage/playlists/${wrapInBracesIfNeeded(this.playlist)}/environment`
+		const alternativeConceptEntry = `<entry name="${ALTERNATIVE_CONCEPT}">${value}</entry>`
+
+		// Environment entry must exists!
+		await this.pep.ensurePath(environmentPath)
+		await this.pep.replace(`${environmentPath}/${ALTERNATIVE_CONCEPT}`, alternativeConceptEntry)
 	}
 }

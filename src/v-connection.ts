@@ -288,6 +288,11 @@ export interface VRundown {
 	 *  @returns Resolves with the activation status of the associated MSE playlist.
 	 */
 	isActive(): Promise<boolean>
+
+	/**
+	 * Sets the value of the 'alternative_concept' entry (or creates it if it's missing) on the parsed playlist.
+	 */
+	setAlternativeConcept(concept: string): Promise<void>
 }
 
 /**

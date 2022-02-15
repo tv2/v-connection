@@ -141,7 +141,7 @@ describe('Transform a non-entry', () => {
 		expect(flat).toBeTruthy()
 	})
 
-	test('For a few tempaltes', async () => {
+	test('For a few templates', async () => {
 		const fromXML = await Xml2JS.parseStringPromise(tempEntry)
 		// console.log(JSON.stringify(fromXML, null, 2))
 		const flat = await flattenEntry(fromXML)
