@@ -144,7 +144,7 @@ export class Rundown implements VRundown {
 	): Promise<InternalElement> {
 		try {
 			await this.getElement(elementId)
-			throw new Error(`An internal graphics element with name '${elementId.name}' already exists.`)
+			throw new Error(`An internal graphics element with name '${elementId.instanceName}' already exists.`)
 		} catch (err) {
 			if (err.message.startsWith('An internal graphics element')) throw err
 		}
@@ -160,7 +160,7 @@ export class Rundown implements VRundown {
 			fielddef = (template as any).model_xml.model.schema[0].fielddef
 		} else {
 			throw new Error(
-				`Could not retrieve field definitions for tempalte '${templateName}'. Not creating element '${elementId.name}'.`
+				`Could not retrieve field definitions for tempalte '${templateName}'. Not creating element '${elementId.instanceName}'.`
 			)
 		}
 		let fieldNames: string[] = fielddef ? fielddef.map((x: any): string => x.$.name) : []
@@ -178,9 +178,9 @@ export class Rundown implements VRundown {
 		}
 		const vizProgram = channel ? ` viz_program="${channel}"` : ''
 		await this.pep.insert(
-			`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`,
+			`/storage/shows/{${elementId.showId}}/elements/${elementId.instanceName}`,
 			`<element name="${
-				elementId.name
+				elementId.instanceName
 			}" guid="${uuid.v4()}" updated="${new Date().toISOString()}" creator="${creatorName}" ${vizProgram}>
 <ref name="master_template">/storage/shows/{${elementId.showId}}/mastertemplates/${templateName}</ref>
 <entry name="default_alternatives"/>
@@ -191,7 +191,7 @@ ${entries}
 			LocationType.Last
 		)
 		return {
-			name: elementId.name,
+			name: elementId.instanceName,
 			template: templateName,
 			data,
 			channel,
@@ -234,7 +234,7 @@ ${entries}
 		const elementNames: Array<InternalElementId> = Object.keys(flatShowElements)
 			.filter((x) => x !== 'name')
 			.map((element) => ({
-				name: element,
+				instanceName: element,
 				showId,
 			}))
 		return elementNames
@@ -284,7 +284,7 @@ ${entries}
 
 	async deleteElement(elementId: ElementId): Promise<PepResponse> {
 		if (isInternalElement(elementId)) {
-			return this.pep.delete(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
+			return this.pep.delete(`/storage/shows/{${elementId.showId}}/elements/${elementId.instanceName}`)
 		} else {
 			// Note: For some reason, in contrast to the other commands, the delete command only works with the path being unescaped:
 			const path = this.getExternalElementPath(elementId, true)
@@ -298,7 +298,7 @@ ${entries}
 
 	async cue(elementId: ElementId): Promise<CommandResult> {
 		if (isInternalElement(elementId)) {
-			return this.msehttp.cue(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
+			return this.msehttp.cue(`/storage/shows/{${elementId.showId}}/elements/${elementId.instanceName}`)
 		} else {
 			const path = this.getExternalElementPath(elementId)
 			if (await this.buildChannelMap(elementId)) {
@@ -315,7 +315,7 @@ ${entries}
 
 	async take(elementId: ElementId): Promise<CommandResult> {
 		if (isInternalElement(elementId)) {
-			return this.msehttp.take(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
+			return this.msehttp.take(`/storage/shows/{${elementId.showId}}/elements/${elementId.instanceName}`)
 		} else {
 			const path = this.getExternalElementPath(elementId)
 			if (await this.buildChannelMap(elementId)) {
@@ -332,7 +332,7 @@ ${entries}
 
 	async continue(elementId: ElementId): Promise<CommandResult> {
 		if (isInternalElement(elementId)) {
-			return this.msehttp.continue(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
+			return this.msehttp.continue(`/storage/shows/{${elementId.showId}}/elements/${elementId.instanceName}`)
 		} else {
 			const path = this.getExternalElementPath(elementId)
 			if (await this.buildChannelMap(elementId)) {
@@ -349,7 +349,7 @@ ${entries}
 
 	async continueReverse(elementId: ElementId): Promise<CommandResult> {
 		if (isInternalElement(elementId)) {
-			return this.msehttp.continueReverse(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
+			return this.msehttp.continueReverse(`/storage/shows/{${elementId.showId}}/elements/${elementId.instanceName}`)
 		} else {
 			const path = this.getExternalElementPath(elementId)
 			if (await this.buildChannelMap(elementId)) {
@@ -366,7 +366,7 @@ ${entries}
 
 	async out(elementId: ElementId): Promise<CommandResult> {
 		if (isInternalElement(elementId)) {
-			return this.msehttp.out(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
+			return this.msehttp.out(`/storage/shows/{${elementId.showId}}/elements/${elementId.instanceName}`)
 		} else {
 			const path = this.getExternalElementPath(elementId)
 			if (await this.buildChannelMap(elementId)) {
@@ -459,9 +459,9 @@ ${entries}
 				return element as ExternalElement
 			}
 		} else {
-			const element = await this.pep.getJS(`/storage/shows/{${elementId.showId}}/elements/${elementId.name}`)
-			const flatElement: FlatEntry = (await flattenEntry(element.js as AtomEntry))[elementId.name] as FlatEntry
-			flatElement.name = elementId.name
+			const element = await this.pep.getJS(`/storage/shows/{${elementId.showId}}/elements/${elementId.instanceName}`)
+			const flatElement: FlatEntry = (await flattenEntry(element.js as AtomEntry))[elementId.instanceName] as FlatEntry
+			flatElement.name = elementId.instanceName
 			return flatElement as InternalElement
 		}
 	}

@@ -116,7 +116,7 @@ export interface ExternalElement extends VElement {
 /** Object uniquely identifying an internal element loaded into an Engine */
 export interface InternalElementId {
 	/** Unique identifier for the template in its show */
-	name: string
+	instanceName: string
 	/** Show in which the element exists */
 	showId: string
 }
@@ -134,7 +134,7 @@ export interface ExternalElementId {
 export type ElementId = InternalElementId | ExternalElementId
 
 export function isInternalElement(elementId: ElementId): elementId is InternalElementId {
-	return (elementId as InternalElementId).name !== undefined
+	return (elementId as InternalElementId).instanceName !== undefined
 }
 
 export function isExternalElement(elementId: ElementId): elementId is ExternalElementId {
