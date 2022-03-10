@@ -1,10 +1,11 @@
-import { MSE, VRundown, VizEngine, VProfile, VShow, VPlaylist } from './v-connection'
-import { startPepTalk, PepTalkClient, PepTalkJS, PepResponse, LocationType } from './peptalk'
+import { MSE, VizEngine, VPlaylist, VProfile, VRundown, VShow } from './v-connection'
+import { LocationType, PepResponse, PepTalkClient, PepTalkJS, startPepTalk } from './peptalk'
 import { CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
-import { flattenEntry, AtomEntry, FlatEntry } from './xml'
+import { AtomEntry, FlatEntry, flattenEntry } from './xml'
 import { Rundown } from './rundown'
 import * as uuid from 'uuid'
+import { wrapInBracesIfNeeded } from './util'
 
 const UUID_RE = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
 export const CREATOR_NAME = 'Sofie'
@@ -128,12 +129,7 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async getShow(showId: string): Promise<VShow> {
-		if (!showId.startsWith('{')) {
-			showId = '{' + showId
-		}
-		if (!showId.endsWith('}')) {
-			showId = showId + '}'
-		}
+		showId = wrapInBracesIfNeeded(showId)
 		if (!showId.match(UUID_RE)) {
 			return Promise.reject(new Error(`Show id must be a UUID and '${showId}' is not.`))
 		}
@@ -157,12 +153,7 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async getPlaylist(playlistName: string): Promise<VPlaylist> {
-		if (!playlistName.startsWith('{')) {
-			playlistName = '{' + playlistName
-		}
-		if (!playlistName.endsWith('}')) {
-			playlistName = playlistName + '}'
-		}
+		playlistName = wrapInBracesIfNeeded(playlistName)
 		if (!playlistName.match(UUID_RE)) {
 			return Promise.reject(new Error(`Playlist name must be a UUID and '${playlistName}' is not.`))
 		}
