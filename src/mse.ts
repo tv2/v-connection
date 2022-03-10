@@ -6,8 +6,8 @@ import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 import { Rundown } from './rundown'
 import * as uuid from 'uuid'
 
-const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
-export const creatorName = 'Sofie'
+const UUID_RE = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
+export const CREATOR_NAME = 'Sofie'
 
 export class MSERep extends EventEmitter implements MSE {
 	readonly hostname: string
@@ -134,7 +134,7 @@ export class MSERep extends EventEmitter implements MSE {
 		if (!showId.endsWith('}')) {
 			showId = showId + '}'
 		}
-		if (!showId.match(uuidRe)) {
+		if (!showId.match(UUID_RE)) {
 			return Promise.reject(new Error(`Show id must be a UUID and '${showId}' is not.`))
 		}
 		await this.checkConnection()
@@ -163,7 +163,7 @@ export class MSERep extends EventEmitter implements MSE {
 		if (!playlistName.endsWith('}')) {
 			playlistName = playlistName + '}'
 		}
-		if (!playlistName.match(uuidRe)) {
+		if (!playlistName.match(UUID_RE)) {
 			return Promise.reject(new Error(`Playlist name must be a UUID and '${playlistName}' is not.`))
 		}
 		await this.checkConnection()
@@ -204,7 +204,7 @@ export class MSERep extends EventEmitter implements MSE {
 			}
 		}
 		if (!playlistExists) {
-			playlistID = playlistID && playlistID.match(uuidRe) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
+			playlistID = playlistID && playlistID.match(UUID_RE) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
 			const modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1)
 				.toString()
 				.padStart(2, '0')}.${date.getFullYear()} ${date

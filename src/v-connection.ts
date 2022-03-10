@@ -121,6 +121,11 @@ export interface InternalElementId {
 	showId: string
 }
 
+export interface InternalElementIdWithCreator extends InternalElementId {
+	/** Who created the element */
+	creator?: string
+}
+
 /** Object uniquely identifying an external element loaded into an Engine */
 export interface ExternalElementId {
 	/** Unique identifier for the template in the external system. */
@@ -295,11 +300,25 @@ export interface VRundown {
 	 */
 	cleanupShow(showId: string): Promise<CommandResult>
 	/**
-	 *  Clear up all graphical elements and state associated with a rundown,
+	 *  Clear up all Internal Elements and state associated with given shows,
 	 *  including those required for post-rundown analysis.
+	 *  @param showIds Names (UUIDs) of the shows to purge.
+	 *	@param onlyCreatedByUs Restricted to removing only elements that have a matching creator attribute
+	 *  @param elementsToKeep Elements to omit from deleting.
 	 *  @result Resolves on successful rundown purge.
 	 */
-	purge(showIds: string[], elementsToKeep?: ElementId[]): Promise<PepResponse>
+	purgeInternalElements(
+		showIds: string[],
+		onlyCreatedByUs?: boolean,
+		elementsToKeep?: InternalElementId[]
+	): Promise<PepResponse>
+	/**
+	 *  Clear up all External Elements and state associated with a rundown,
+	 *  including those required for post-rundown analysis.
+	 *  @param elementsToKeep Elements to omit from deleting.
+	 *  @result Resolves on successful rundown purge.
+	 */
+	purgeExternalElements(elementsToKeep?: ExternalElementId[]): Promise<PepResponse>
 	/**
 	 *  Is the associated MSE playlist currently active?
 	 *  @returns Resolves with the activation status of the associated MSE playlist.

@@ -9,10 +9,11 @@ import {
 	isExternalElement,
 	InternalElementId,
 	isInternalElement,
+	InternalElementIdWithCreator,
 } from './v-connection'
 import { CommandResult, createHTTPContext, HttpMSEClient, HTTPRequestError } from './msehttp'
 import { InexistentError, LocationType, PepResponse } from './peptalk'
-import { MSERep, creatorName } from './mse'
+import { CREATOR_NAME, MSERep } from './mse'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 import * as uuid from 'uuid'
 
@@ -56,8 +57,12 @@ export class Rundown implements VRundown {
 		)
 	}
 
-	private static makeKey(elementId: ExternalElementId) {
-		return `${elementId.vcpid}_${elementId.channel ?? ''}`
+	private static makeKey(elementId: ElementId) {
+		if (isExternalElement(elementId)) {
+			return `${elementId.vcpid}_${elementId.channel ?? ''}`
+		} else {
+			return `${elementId.showId}_${elementId.instanceName}`
+		}
 	}
 
 	private async buildChannelMap(elementId?: ExternalElementId): Promise<boolean> {
@@ -181,7 +186,7 @@ export class Rundown implements VRundown {
 			`/storage/shows/{${elementId.showId}}/elements/${elementId.instanceName}`,
 			`<element name="${
 				elementId.instanceName
-			}" guid="${uuid.v4()}" updated="${new Date().toISOString()}" creator="${creatorName}" ${vizProgram}>
+			}" guid="${uuid.v4()}" updated="${new Date().toISOString()}" creator="${CREATOR_NAME}" ${vizProgram}>
 <ref name="master_template">/storage/shows/{${elementId.showId}}/mastertemplates/${templateName}</ref>
 <entry name="default_alternatives"/>
 <entry name="data">
@@ -227,15 +232,16 @@ ${entries}
 		}
 	}
 
-	async listInternalElements(showId: string): Promise<InternalElementId[]> {
+	async listInternalElements(showId: string): Promise<InternalElementIdWithCreator[]> {
 		await this.mse.checkConnection()
 		const showElementsList = await this.pep.getJS(`/storage/shows/{${showId}}/elements`, 1)
 		const flatShowElements = await flattenEntry(showElementsList.js as AtomEntry)
-		const elementNames: Array<InternalElementId> = Object.keys(flatShowElements)
+		const elementNames: Array<InternalElementIdWithCreator> = Object.keys(flatShowElements)
 			.filter((x) => x !== 'name')
 			.map((element) => ({
 				instanceName: element,
 				showId,
+				creator: (flatShowElements[element] as FlatEntry).creator as string | undefined,
 			}))
 		return elementNames
 	}
@@ -394,25 +400,46 @@ ${entries}
 		}
 	}
 
-	async purge(showIds: string[], elementsToKeep?: ElementId[]): Promise<PepResponse> {
+	async purgeInternalElements(
+		showIds: string[],
+		onlyCreatedByUs?: boolean,
+		elementsToKeep?: InternalElementId[]
+	): Promise<PepResponse> {
+		const elementsToKeepSet = new Set(
+			elementsToKeep?.map((e) => {
+				return Rundown.makeKey(e)
+			})
+		)
+		for (const showId of showIds) {
+			if (!onlyCreatedByUs && !elementsToKeep?.length) {
+				await this.pep.replace(`/storage/shows/{${showId}}/elements`, '<elements/>')
+			} else {
+				const elements = await this.listInternalElements(showId)
+				await Promise.all(
+					elements.map(async (element) => {
+						if (
+							(!onlyCreatedByUs || element.creator === CREATOR_NAME) &&
+							!elementsToKeepSet.has(Rundown.makeKey(element))
+						) {
+							return this.deleteElement(element)
+						}
+						return Promise.resolve()
+					})
+				)
+			}
+		}
+		return { id: '*', status: 'ok' } as PepResponse
+	}
+
+	async purgeExternalElements(elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
 		// let playlist = await this.mse.getPlaylist(this.playlist)
 		// if (playlist.active_profile.value) {
 		// 	throw new Error(`Cannot purge an active profile.`)
 		// }
-		for (const showId of showIds) {
-			// @todo: don't purge elementsToKeep or elements not created by us
-			await this.pep.replace(`/storage/shows/{${showId}}/elements`, '<elements/>')
-		}
 		if (elementsToKeep && elementsToKeep.length) {
-			const externalElementsToKeep: ExternalElementId[] = []
-			for (const element of elementsToKeep) {
-				if (isExternalElement(element)) {
-					externalElementsToKeep.push(element)
-				}
-			}
 			await this.buildChannelMap()
 			const elementsSet = new Set(
-				externalElementsToKeep.map((e) => {
+				elementsToKeep.map((e) => {
 					return Rundown.makeKey(e)
 				})
 			)
