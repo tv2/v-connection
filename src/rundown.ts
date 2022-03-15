@@ -16,7 +16,7 @@ import { InexistentError, LocationType, PepResponse } from './peptalk'
 import { CREATOR_NAME, MSERep } from './mse'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 import * as uuid from 'uuid'
-import { wrapInBracesIfNeeded } from './util'
+import { has, wrapInBracesIfNeeded } from './util'
 
 interface ExternalElementInfo {
 	vcpid: number
@@ -36,7 +36,7 @@ export class Rundown implements VRundown {
 		return this.mse.getPep()
 	}
 	private msehttp: HttpMSEClient
-	private channelMap: { [id: string]: ExternalElementInfo } = {}
+	private channelMap: Record<string, ExternalElementInfo> = {}
 	private initialChannelMapPromise: Promise<any>
 
 	constructor(mseRep: MSERep, profile: string, playlist: string, description: string) {
@@ -61,18 +61,14 @@ export class Rundown implements VRundown {
 	}
 
 	private static makeKey(elementId: ElementId) {
-		if (isExternalElement(elementId)) {
-			return `${elementId.vcpid}_${elementId.channel ?? ''}`
-		} else {
-			return `${elementId.showId}_${elementId.instanceName}`
-		}
+		return isExternalElement(elementId)
+			? `${elementId.vcpid}_${elementId.channel ?? ''}`
+			: `${elementId.showId}_${elementId.instanceName}`
 	}
 
 	private async buildChannelMap(elementId?: ExternalElementId): Promise<boolean> {
-		if (elementId) {
-			if (Object.prototype.hasOwnProperty.call(this.channelMap, Rundown.makeKey(elementId))) {
-				return true
-			}
+		if (elementId && has(this.channelMap, Rundown.makeKey(elementId))) {
+			return true
 		}
 		await this.mse.checkConnection()
 		const elements = elementId ? [elementId] : await this.listExternalElements()
@@ -82,14 +78,11 @@ export class Rundown implements VRundown {
 				this.channelMap[Rundown.makeKey(e)] = {
 					vcpid: e.vcpid,
 					channel: element.channel,
-					refName:
-						Object.prototype.hasOwnProperty.call(element, 'name') && typeof element.name === 'string'
-							? element.name
-							: 'ref',
+					refName: has(element, 'name') && typeof element.name === 'string' ? element.name : 'ref',
 				}
 			}
 		}
-		return elementId ? Object.prototype.hasOwnProperty.call(this.channelMap, Rundown.makeKey(elementId)) : false
+		return elementId ? has(this.channelMap, Rundown.makeKey(elementId)) : false
 	}
 
 	private ref(elementId: ExternalElementId, unescape = false): string {
@@ -138,33 +131,34 @@ export class Rundown implements VRundown {
 	): Promise<VElement> {
 		// TODO ensure that a playlist is created with sub-element "elements"
 		if (isInternalElement(elementId)) {
+			this.assertInternalElementDoesNotExist(elementId)
 			return this.createInternalElement(elementId, templateName as string, textFields as string[], channel)
 		} else {
+			this.checkChannelMapWasBuilt()
+			this.assertExternalElementDoesNotExist(elementId)
 			return this.createExternalElement(elementId)
 		}
 	}
 
-	async createInternalElement(
-		elementId: InternalElementId,
-		templateName: string,
-		textFields: string[],
-		channel?: string
-	): Promise<InternalElement> {
+	private async assertInternalElementDoesNotExist(elementId: InternalElementId) {
 		try {
 			await this.getElement(elementId)
 			throw new Error(`An internal graphics element with name '${elementId.instanceName}' already exists.`)
 		} catch (err) {
 			if (err.message.startsWith('An internal graphics element')) throw err
 		}
+	}
+
+	private async createInternalElement(
+		elementId: InternalElementId,
+		templateName: string,
+		textFields: string[],
+		channel?: string
+	): Promise<InternalElement> {
 		const template = await this.getTemplate(templateName, elementId.showId)
 		// console.dir((template[nameOrID] as any).model_xml.model.schema[0].fielddef, { depth: 10 })
 		let fielddef
-		if (
-			Object.prototype.hasOwnProperty.call(template, 'model_xml') &&
-			typeof template.model_xml === 'object' &&
-			Object.prototype.hasOwnProperty.call(template.model_xml, 'model') &&
-			typeof template.model_xml.model === 'object'
-		) {
+		if (this.hasModel(template)) {
 			fielddef = (template as any).model_xml.model.schema[0].fielddef
 		} else {
 			throw new Error(
@@ -206,18 +200,33 @@ ${entries}
 		}
 	}
 
-	async createExternalElement(elementId: ExternalElementId): Promise<ExternalElement> {
-		try {
-			await this.initialChannelMapPromise
-		} catch (err) {
-			console.error(`Warning: createElement: Channel map not built: ${err.message}`)
-		}
+	private hasModel(template: VTemplate) {
+		return (
+			has(template, 'model_xml') &&
+			typeof template.model_xml === 'object' &&
+			has(template.model_xml, 'model') &&
+			typeof template.model_xml.model === 'object'
+		)
+	}
+
+	private async assertExternalElementDoesNotExist(elementId: ExternalElementId) {
 		try {
 			await this.getElement(elementId)
 			throw new Error(`An external graphics element with name '${elementId.vcpid}' already exists.`)
 		} catch (err) {
 			if (err.message.startsWith('An external graphics element')) throw err
 		}
+	}
+
+	private async checkChannelMapWasBuilt() {
+		try {
+			await this.initialChannelMapPromise
+		} catch (err) {
+			console.error(`Warning: createElement: Channel map not built: ${err.message}`)
+		}
+	}
+
+	private async createExternalElement(elementId: ExternalElementId): Promise<ExternalElement> {
 		const vizProgram = elementId.channel ? ` viz_program="${elementId.channel}"` : ''
 		const { body: path } = await this.pep.insert(
 			`/storage/playlists/{${this.playlist}}/elements/`,
@@ -416,20 +425,20 @@ ${entries}
 		for (const showId of showIds) {
 			if (!onlyCreatedByUs && !elementsToKeep?.length) {
 				await this.pep.replace(`/storage/shows/{${showId}}/elements`, '<elements/>')
-			} else {
-				const elements = await this.listInternalElements(showId)
-				await Promise.all(
-					elements.map(async (element) => {
-						if (
-							(!onlyCreatedByUs || element.creator === CREATOR_NAME) &&
-							!elementsToKeepSet.has(Rundown.makeKey(element))
-						) {
-							return this.deleteElement(element)
-						}
-						return Promise.resolve()
-					})
-				)
+				continue
 			}
+			const elements = await this.listInternalElements(showId)
+			await Promise.all(
+				elements.map(async (element) => {
+					if (
+						(!onlyCreatedByUs || element.creator === CREATOR_NAME) &&
+						!elementsToKeepSet.has(Rundown.makeKey(element))
+					) {
+						return this.deleteElement(element)
+					}
+					return Promise.resolve()
+				})
+			)
 		}
 		return { id: '*', status: 'ok' } as PepResponse
 	}
@@ -447,13 +456,12 @@ ${entries}
 				})
 			)
 			for (const key in this.channelMap) {
-				if (!elementsSet.has(key)) {
-					try {
-						await this.deleteElement(this.channelMap[key])
-					} catch (e) {
-						if (!(e instanceof InexistentError)) {
-							throw e
-						}
+				if (elementsSet.has(key)) continue
+				try {
+					await this.deleteElement(this.channelMap[key])
+				} catch (e) {
+					if (!(e instanceof InexistentError)) {
+						throw e
 					}
 				}
 			}
