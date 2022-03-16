@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.0.0](https://github.com/tv2/v-connection/compare/v5.1.2...v6.0.0) (2022-03-16)
+
+### ⚠ BREAKING CHANGES
+
+- support internal elements in multiple shows
+
+### Features
+
+- SOF-752 purge internal elements ([2317f79](https://github.com/tv2/v-connection/commit/2317f79dd532aff28fc790ca093d6eeae90ad79c))
+- support internal elements in multiple shows ([fd0e4de](https://github.com/tv2/v-connection/commit/fd0e4de9fd8d2c4255c4afd5eb8d59fa09534df1))
+
 ### [5.1.1](https://github.com/tv2/v-connection/compare/v5.1.0...v5.1.1) (2021-10-19)
 
 ### Bug Fixes
