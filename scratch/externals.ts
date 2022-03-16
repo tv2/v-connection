@@ -32,9 +32,9 @@ async function run() {
 		throw new Error('A VCPID integer identifier for each Pilot element is required.')
 	}
 	const mse = createMSE(args.host, args.httpport, args.port, args.httphost.length > 0 ? args.httphost : undefined)
-	const rundown = await mse.createRundown(args.showID, args.profile)
+	const rundown = await mse.createRundown(args.profile)
 	const elementRefs = args._.map((x) => +x)
-	await Promise.all(elementRefs.slice(0, 2).map((er) => rundown.createElement(er, args.channel)))
+	await Promise.all(elementRefs.slice(0, 2).map((er) => rundown.createElement({ vcpid: er, channel: args.channel })))
 	// await wait(1000)
 	await rundown.activate()
 
@@ -43,24 +43,25 @@ async function run() {
 	// while (true) {
 	for (let i = 0; i < elementRefs.length; i++) {
 		console.log('Starting to process element', elementRefs[i])
+		const elementId = { vcpid: elementRefs[i], channel: args.channel }
 		if (i >= 2) {
-			console.log(await rundown.createElement(elementRefs[i], args.channel))
+			console.log(await rundown.createElement(elementId))
 		}
-		console.log(await rundown.initialize(elementRefs[i]))
+		console.log(await rundown.initialize(elementId))
 		// await rundown.activate()
 		for (let x = 0; x < 5; x++) {
 			console.log(x)
 			await wait(1000)
 		}
 		console.log('take', elementRefs[i])
-		console.log(await rundown.getElement(elementRefs[i]))
-		await rundown.take(elementRefs[i])
+		console.log(await rundown.getElement(elementId))
+		await rundown.take(elementId)
 		for (let x = 0; x < 5; x++) {
 			console.log(x)
 			await wait(1000)
 		}
 		console.log('out', elementRefs[i])
-		await rundown.out(elementRefs[i])
+		await rundown.out(elementId)
 	}
 	// }
 	if (args['delete']) {

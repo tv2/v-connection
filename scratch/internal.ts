@@ -31,16 +31,18 @@ async function run() {
 	const mse = createMSE(args.host, args.httpport, args.port, args.httphost.length > 0 ? args.httphost : undefined)
 	const rundown = await mse.createRundown(args.showID, args.profile)
 	const d = new Date()
-	const elementName = `CLI_TEST_${d.toISOString()}`
-	const element = await rundown.createElement(args.template, elementName, args._ ? (args._ as string[]) : [])
+	const showId = args.showID
+	const instanceName = `CLI_TEST_${d.toISOString()}`
+	const elementId = { instanceName, showId }
+	const element = await rundown.createElement(elementId, args.template, args._ ? (args._ as string[]) : [])
 	console.dir(element, { depth: 20 })
 	// await rundown.cue(elementName)
-	await rundown.take(elementName)
+	await rundown.take(elementId)
 	await wait(args.timing)
-	console.log(`Taking element ${elementName} out.`)
-	await rundown.out(elementName)
+	console.log(`Taking element ${instanceName} out.`)
+	await rundown.out(elementId)
 	if (args['delete']) {
-		await rundown.deleteElement(elementName)
+		await rundown.deleteElement(elementId)
 		await mse.deleteRundown(rundown)
 	}
 	await mse.close()
