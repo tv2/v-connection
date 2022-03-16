@@ -2685,6 +2685,12 @@ img {
 		<li class=" tsd-kind-interface">
 			<a href="internalelement.html" class="tsd-kind-icon">Internal<wbr>Element</a>
 		</li>
+		<li class=" tsd-kind-interface">
+			<a href="internalelementid.html" class="tsd-kind-icon">Internal<wbr>Element<wbr>Id</a>
+		</li>
+		<li class=" tsd-kind-interface">
+			<a href="internalelementidwithcreator.html" class="tsd-kind-icon">Internal<wbr>Element<wbr>IdWith<wbr>Creator</a>
+		</li>
 		<li class="current tsd-kind-interface">
 			<a href="mse.html" class="tsd-kind-icon">MSE</a>
 			<ul>
@@ -2819,8 +2825,17 @@ img {
 		<li class=" tsd-kind-interface">
 			<a href="vizengine.html" class="tsd-kind-icon">Viz<wbr>Engine</a>
 		</li>
+		<li class=" tsd-kind-type-alias">
+			<a href="../modules.html#elementid" class="tsd-kind-icon">Element<wbr>Id</a>
+		</li>
 		<li class=" tsd-kind-function">
 			<a href="../modules.html#createmse" class="tsd-kind-icon">createMSE</a>
+		</li>
+		<li class=" tsd-kind-function">
+			<a href="../modules.html#isexternalelement" class="tsd-kind-icon">is<wbr>External<wbr>Element</a>
+		</li>
+		<li class=" tsd-kind-function">
+			<a href="../modules.html#isinternalelement" class="tsd-kind-icon">is<wbr>Internal<wbr>Element</a>
 		</li>
 	</ul>
 </nav>
@@ -2911,7 +2926,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">hostname<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L373">src/v-connection.ts:373</a></li>
+						<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L414">src/v-connection.ts:414</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2926,7 +2941,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">rest<wbr>Port<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L375">src/v-connection.ts:375</a></li>
+						<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L416">src/v-connection.ts:416</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -2941,7 +2956,7 @@ img {
 				<div class="tsd-signature tsd-kind-icon">ws<wbr>Port<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L377">src/v-connection.ts:377</a></li>
+						<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L418">src/v-connection.ts:418</a></li>
 					</ul>
 				</aside>
 				<div class="tsd-comment tsd-typography">
@@ -3007,7 +3022,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L478">src/v-connection.ts:478</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L518">src/v-connection.ts:518</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3030,7 +3045,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L454">src/v-connection.ts:454</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L494">src/v-connection.ts:494</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3064,13 +3079,13 @@ img {
 				<a name="createrundown" class="tsd-anchor"></a>
 				<h3>create<wbr>Rundown</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-					<li class="tsd-signature tsd-kind-icon">create<wbr>Rundown<span class="tsd-signature-symbol">(</span>showID<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, profile<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, playlistID<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, description<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="vrundown.html" class="tsd-signature-type" data-tsd-kind="Interface">VRundown</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">create<wbr>Rundown<span class="tsd-signature-symbol">(</span>profile<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, playlistID<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span>, description<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="vrundown.html" class="tsd-signature-type" data-tsd-kind="Interface">VRundown</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L438">src/v-connection.ts:438</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L478">src/v-connection.ts:478</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3080,12 +3095,6 @@ img {
 						</div>
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
-							<li>
-								<h5>showID: <span class="tsd-signature-type">string</span></h5>
-								<div class="tsd-comment tsd-typography">
-									<p>Identifier of the show to create.</p>
-								</div>
-							</li>
 							<li>
 								<h5>profile: <span class="tsd-signature-type">string</span></h5>
 							</li>
@@ -3119,7 +3128,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L462">src/v-connection.ts:462</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L502">src/v-connection.ts:502</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3153,7 +3162,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L445">src/v-connection.ts:445</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L485">src/v-connection.ts:485</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3229,7 +3238,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L394">src/v-connection.ts:394</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L435">src/v-connection.ts:435</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3269,7 +3278,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L427">src/v-connection.ts:427</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L468">src/v-connection.ts:468</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3301,7 +3310,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L405">src/v-connection.ts:405</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L446">src/v-connection.ts:446</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3333,7 +3342,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L389">src/v-connection.ts:389</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L430">src/v-connection.ts:430</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3366,7 +3375,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L382">src/v-connection.ts:382</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L423">src/v-connection.ts:423</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3383,13 +3392,13 @@ img {
 				<a name="getshow" class="tsd-anchor"></a>
 				<h3>get<wbr>Show</h3>
 				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-interface">
-					<li class="tsd-signature tsd-kind-icon">get<wbr>Show<span class="tsd-signature-symbol">(</span>showName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="vshow.html" class="tsd-signature-type" data-tsd-kind="Interface">VShow</a><span class="tsd-signature-symbol">&gt;</span></li>
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Show<span class="tsd-signature-symbol">(</span>showId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="vshow.html" class="tsd-signature-type" data-tsd-kind="Interface">VShow</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 				<ul class="tsd-descriptions">
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L416">src/v-connection.ts:416</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L457">src/v-connection.ts:457</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3400,7 +3409,7 @@ img {
 						<h4 class="tsd-parameters-title">Parameters</h4>
 						<ul class="tsd-parameters">
 							<li>
-								<h5>showName: <span class="tsd-signature-type">string</span></h5>
+								<h5>showId: <span class="tsd-signature-type">string</span></h5>
 								<div class="tsd-comment tsd-typography">
 									<p>Name of the show to query, a UUID.</p>
 								</div>
@@ -3421,7 +3430,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L421">src/v-connection.ts:421</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L462">src/v-connection.ts:462</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3444,7 +3453,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L399">src/v-connection.ts:399</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L440">src/v-connection.ts:440</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3467,7 +3476,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L410">src/v-connection.ts:410</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L451">src/v-connection.ts:451</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3581,7 +3590,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L482">src/v-connection.ts:482</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L522">src/v-connection.ts:522</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3615,7 +3624,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L484">src/v-connection.ts:484</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L524">src/v-connection.ts:524</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3708,7 +3717,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L467">src/v-connection.ts:467</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L507">src/v-connection.ts:507</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -3932,7 +3941,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/v-connection.ts#L473">src/v-connection.ts:473</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L513">src/v-connection.ts:513</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">

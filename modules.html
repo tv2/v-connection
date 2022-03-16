@@ -2686,6 +2686,12 @@ img {
 			<a href="interfaces/internalelement.html" class="tsd-kind-icon">Internal<wbr>Element</a>
 		</li>
 		<li class=" tsd-kind-interface">
+			<a href="interfaces/internalelementid.html" class="tsd-kind-icon">Internal<wbr>Element<wbr>Id</a>
+		</li>
+		<li class=" tsd-kind-interface">
+			<a href="interfaces/internalelementidwithcreator.html" class="tsd-kind-icon">Internal<wbr>Element<wbr>IdWith<wbr>Creator</a>
+		</li>
+		<li class=" tsd-kind-interface">
 			<a href="interfaces/mse.html" class="tsd-kind-icon">MSE</a>
 		</li>
 		<li class=" tsd-kind-interface">
@@ -2715,8 +2721,17 @@ img {
 		<li class=" tsd-kind-interface">
 			<a href="interfaces/vizengine.html" class="tsd-kind-icon">Viz<wbr>Engine</a>
 		</li>
+		<li class=" tsd-kind-type-alias">
+			<a href="modules.html#elementid" class="tsd-kind-icon">Element<wbr>Id</a>
+		</li>
 		<li class=" tsd-kind-function">
 			<a href="modules.html#createmse" class="tsd-kind-icon">createMSE</a>
+		</li>
+		<li class=" tsd-kind-function">
+			<a href="modules.html#isexternalelement" class="tsd-kind-icon">is<wbr>External<wbr>Element</a>
+		</li>
+		<li class=" tsd-kind-function">
+			<a href="modules.html#isinternalelement" class="tsd-kind-icon">is<wbr>Internal<wbr>Element</a>
 		</li>
 	</ul>
 </nav>
@@ -2814,6 +2829,8 @@ img {
 							<li class="tsd-kind-interface"><a href="interfaces/externalelement.html" class="tsd-kind-icon">External<wbr>Element</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/externalelementid.html" class="tsd-kind-icon">External<wbr>Element<wbr>Id</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/internalelement.html" class="tsd-kind-icon">Internal<wbr>Element</a></li>
+							<li class="tsd-kind-interface"><a href="interfaces/internalelementid.html" class="tsd-kind-icon">Internal<wbr>Element<wbr>Id</a></li>
+							<li class="tsd-kind-interface"><a href="interfaces/internalelementidwithcreator.html" class="tsd-kind-icon">Internal<wbr>Element<wbr>IdWith<wbr>Creator</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/mse.html" class="tsd-kind-icon">MSE</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/velement.html" class="tsd-kind-icon">VElement</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/vexecutiongroup.html" class="tsd-kind-icon">VExecution<wbr>Group</a></li>
@@ -2827,12 +2844,33 @@ img {
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
+						<h3>Type aliases</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-type-alias"><a href="modules.html#elementid" class="tsd-kind-icon">Element<wbr>Id</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
 						<h3>Functions</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-function"><a href="modules.html#createmse" class="tsd-kind-icon">createMSE</a></li>
+							<li class="tsd-kind-function"><a href="modules.html#isexternalelement" class="tsd-kind-icon">is<wbr>External<wbr>Element</a></li>
+							<li class="tsd-kind-function"><a href="modules.html#isinternalelement" class="tsd-kind-icon">is<wbr>Internal<wbr>Element</a></li>
 						</ul>
 					</section>
 				</div>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Type aliases</h2>
+			<section class="tsd-panel tsd-member tsd-kind-type-alias">
+				<a name="elementid" class="tsd-anchor"></a>
+				<h3>Element<wbr>Id</h3>
+				<div class="tsd-signature tsd-kind-icon">Element<wbr>Id<span class="tsd-signature-symbol">:</span> <a href="interfaces/internalelementid.html" class="tsd-signature-type" data-tsd-kind="Interface">InternalElementId</a><span class="tsd-signature-symbol"> | </span><a href="interfaces/externalelementid.html" class="tsd-signature-type" data-tsd-kind="Interface">ExternalElementId</a></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L139">src/v-connection.ts:139</a></li>
+					</ul>
+				</aside>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
@@ -2847,7 +2885,7 @@ img {
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/olzzon/v-connection/blob/6711691/src/mse.ts#L328">src/mse.ts:328</a></li>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/mse.ts#L295">src/mse.ts:295</a></li>
 							</ul>
 						</aside>
 						<div class="tsd-comment tsd-typography">
@@ -2888,6 +2926,52 @@ img {
 						</ul>
 						<h4 class="tsd-returns-title">Returns <a href="interfaces/mse.html" class="tsd-signature-type" data-tsd-kind="Interface">MSE</a></h4>
 						<p>New MSE that will start to initialize a connection based on the parameters.</p>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-function">
+				<a name="isexternalelement" class="tsd-anchor"></a>
+				<h3>is<wbr>External<wbr>Element</h3>
+				<ul class="tsd-signatures tsd-kind-function">
+					<li class="tsd-signature tsd-kind-icon">is<wbr>External<wbr>Element<span class="tsd-signature-symbol">(</span>elementId<span class="tsd-signature-symbol">: </span><a href="modules.html#elementid" class="tsd-signature-type" data-tsd-kind="Type alias">ElementId</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">elementId</span><span class="tsd-signature-symbol"> is </span><a href="interfaces/externalelementid.html" class="tsd-signature-type" data-tsd-kind="Interface">ExternalElementId</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L145">src/v-connection.ts:145</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>elementId: <a href="modules.html#elementid" class="tsd-signature-type" data-tsd-kind="Type alias">ElementId</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">elementId</span><span class="tsd-signature-symbol"> is </span><a href="interfaces/externalelementid.html" class="tsd-signature-type" data-tsd-kind="Interface">ExternalElementId</a></h4>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-function">
+				<a name="isinternalelement" class="tsd-anchor"></a>
+				<h3>is<wbr>Internal<wbr>Element</h3>
+				<ul class="tsd-signatures tsd-kind-function">
+					<li class="tsd-signature tsd-kind-icon">is<wbr>Internal<wbr>Element<span class="tsd-signature-symbol">(</span>elementId<span class="tsd-signature-symbol">: </span><a href="modules.html#elementid" class="tsd-signature-type" data-tsd-kind="Type alias">ElementId</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">elementId</span><span class="tsd-signature-symbol"> is </span><a href="interfaces/internalelementid.html" class="tsd-signature-type" data-tsd-kind="Interface">InternalElementId</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/tv2/v-connection/blob/0e6dd62/src/v-connection.ts#L141">src/v-connection.ts:141</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>elementId: <a href="modules.html#elementid" class="tsd-signature-type" data-tsd-kind="Type alias">ElementId</a></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">elementId</span><span class="tsd-signature-symbol"> is </span><a href="interfaces/internalelementid.html" class="tsd-signature-type" data-tsd-kind="Interface">InternalElementId</a></h4>
 					</li>
 				</ul>
 			</section>
