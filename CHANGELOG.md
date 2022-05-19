@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.0.1](https://github.com/tv2/v-connection/compare/v6.0.0...v6.0.1) (2022-05-19)
+
 ## [6.0.0](https://github.com/tv2/v-connection/compare/v5.1.2...v6.0.0) (2022-03-16)
 
 ### ⚠ BREAKING CHANGES
