@@ -1,3 +1,9 @@
 {
-	"extends": "./node_modules/@sofie-automation/code-standard-preset/eslint/main"
+	"extends": "./node_modules/@sofie-automation/code-standard-preset/eslint/main",
+	"prettier/prettier": [
+		"error",
+		{
+			"endOfLine": "auto"
+		}
+	]
 }
