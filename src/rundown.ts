@@ -131,11 +131,11 @@ export class Rundown implements VRundown {
 	): Promise<VElement> {
 		// TODO ensure that a playlist is created with sub-element "elements"
 		if (isInternalElement(elementId)) {
-			this.assertInternalElementDoesNotExist(elementId)
+			await this.assertInternalElementDoesNotExist(elementId)
 			return this.createInternalElement(elementId, templateName as string, textFields as string[], channel)
 		} else {
-			this.checkChannelMapWasBuilt()
-			this.assertExternalElementDoesNotExist(elementId)
+			await this.checkChannelMapWasBuilt()
+			await this.assertExternalElementDoesNotExist(elementId)
 			return this.createExternalElement(elementId)
 		}
 	}
