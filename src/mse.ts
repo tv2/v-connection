@@ -130,7 +130,7 @@ export class MSERep extends EventEmitter implements MSE {
 
 	async getShow(showId: string): Promise<VShow> {
 		showId = wrapInBracesIfNeeded(showId)
-		if (!showId.match(UUID_RE)) {
+		if (!UUID_RE.exec(showId)) {
 			return Promise.reject(new Error(`Show id must be a UUID and '${showId}' is not.`))
 		}
 		await this.checkConnection()
@@ -154,7 +154,7 @@ export class MSERep extends EventEmitter implements MSE {
 
 	async getPlaylist(playlistName: string): Promise<VPlaylist> {
 		playlistName = wrapInBracesIfNeeded(playlistName)
-		if (!playlistName.match(UUID_RE)) {
+		if (!UUID_RE.exec(playlistName)) {
 			return Promise.reject(new Error(`Playlist name must be a UUID and '${playlistName}' is not.`))
 		}
 		await this.checkConnection()
@@ -195,7 +195,7 @@ export class MSERep extends EventEmitter implements MSE {
 			}
 		}
 		if (!playlistExists) {
-			playlistID = playlistID && playlistID.match(UUID_RE) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
+			playlistID = playlistID && UUID_RE.exec(playlistID) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
 			const modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1)
 				.toString()
 				.padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date
