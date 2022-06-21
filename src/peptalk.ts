@@ -514,7 +514,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 	}
 
-	private failTimer(c: number, message: string): Promise<PepResponse> {
+	private async failTimer(c: number, message: string): Promise<PepResponse> {
 		return new Promise((_resolve, reject) => {
 			setTimeout(() => {
 				reject(new Error(`Parallel promise to send message ${c} did not resolve in time. Message: ${message}`))

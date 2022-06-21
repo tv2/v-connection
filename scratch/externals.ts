@@ -34,7 +34,9 @@ async function run() {
 	const mse = createMSE(args.host, args.httpport, args.port, args.httphost.length > 0 ? args.httphost : undefined)
 	const rundown = await mse.createRundown(args.profile)
 	const elementRefs = args._.map((x) => +x)
-	await Promise.all(elementRefs.slice(0, 2).map((er) => rundown.createElement({ vcpid: er, channel: args.channel })))
+	await Promise.all(
+		elementRefs.slice(0, 2).map(async (er) => rundown.createElement({ vcpid: er, channel: args.channel }))
+	)
 	// await wait(1000)
 	await rundown.activate()
 

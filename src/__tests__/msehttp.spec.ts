@@ -8,7 +8,7 @@ import { URL } from 'url'
 
 const testPort = 4317
 
-const wait = (t: number) =>
+const wait = async (t: number) =>
 	new Promise<void>((resolve) => {
 		setTimeout(resolve, t)
 	})

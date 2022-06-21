@@ -42,7 +42,7 @@ export class MSERep extends EventEmitter implements MSE {
 		return pep
 	}
 
-	async onPepClose(): Promise<void> {
+	onPepClose(): void {
 		if (!this.reconnectTimeout) {
 			this.connection = undefined
 			this.reconnectTimeout = setTimeout(() => {
@@ -103,7 +103,7 @@ export class MSERep extends EventEmitter implements MSE {
 		const vizEntries: AtomEntry[] = (handlersBody.entry || handlersBody.scheduler).handler.filter(
 			(x: any) => x.$.type === 'viz'
 		)
-		const viz = await Promise.all(vizEntries.map((x) => flattenEntry(x)))
+		const viz = await Promise.all(vizEntries.map(async (x) => flattenEntry(x)))
 		return viz as VizEngine[]
 	}
 
@@ -238,12 +238,12 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	// Advanced feature
-	createProfile(_profileName: string, _profileDetailsTbc: unknown): Promise<VProfile> {
+	async createProfile(_profileName: string, _profileDetailsTbc: unknown): Promise<VProfile> {
 		return Promise.reject(new Error('Not implemented. Creating profiles is a future feature.'))
 	}
 
 	// Advanced feature
-	deleteProfile(_profileName: string): Promise<boolean> {
+	async deleteProfile(_profileName: string): Promise<boolean> {
 		return Promise.reject(new Error('Not implemented. Deleting profiles ia a future feature.'))
 	}
 
