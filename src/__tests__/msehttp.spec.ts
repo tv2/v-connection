@@ -202,39 +202,45 @@ describe('MSE HTTP library when happy', () => {
 	})
 
 	test('Not found', async () => {
+		let error: any | undefined
 		try {
 			await msehttp.command('notfound', '/invisibility/cloak')
 		} catch (err) {
-			expect(err.path).toBe(`http://localhost:${testPort}/profiles/SOFIE/notfound`)
-			expect(err.status).toBe(404)
-			expect(err.body).toBe('/invisibility/cloak')
-			expect(err.response).toBe('Not Found')
-			expect(err.message).toMatch(/Not Found/)
+			error = err
 		}
+		expect(error.path).toBe(`http://localhost:${testPort}/profiles/SOFIE/notfound`)
+		expect(error.status).toBe(404)
+		expect(error.body).toBe('/invisibility/cloak')
+		expect(error.response).toBe('Not Found')
+		expect(error.message).toMatch(/Not Found/)
 	})
 
 	test('Bad request', async () => {
+		let error: any | undefined
 		try {
 			await msehttp.command('badrequest', '/invisibility/cloak')
 		} catch (err) {
-			expect(err.path).toBe(`http://localhost:${testPort}/profiles/SOFIE/badrequest`)
-			expect(err.status).toBe(400)
-			expect(err.body).toBe('/invisibility/cloak')
-			expect(err.response).toBe('Bad Request')
-			expect(err.message).toMatch(/Bad Request/)
+			error = err
 		}
+		expect(error.path).toBe(`http://localhost:${testPort}/profiles/SOFIE/badrequest`)
+		expect(error.status).toBe(400)
+		expect(error.body).toBe('/invisibility/cloak')
+		expect(error.response).toBe('Bad Request')
+		expect(error.message).toMatch(/Bad Request/)
 	})
 
 	test('Server error', async () => {
+		let error: any | undefined
 		try {
 			await msehttp.command('servererror', '/invisibility/cloak')
 		} catch (err) {
-			expect(err.path).toBe(`http://localhost:${testPort}/profiles/SOFIE/servererror`)
-			expect(err.status).toBe(500)
-			expect(err.body).toBe('/invisibility/cloak')
-			expect(err.response).toBe('Internal Server Error')
-			expect(err.message).toMatch(/Internal Server Error/)
+			error = err
 		}
+		expect(error.path).toBe(`http://localhost:${testPort}/profiles/SOFIE/servererror`)
+		expect(error.status).toBe(500)
+		expect(error.body).toBe('/invisibility/cloak')
+		expect(error.response).toBe('Internal Server Error')
+		expect(error.message).toMatch(/Internal Server Error/)
 	})
 
 	test('Unsuppoted element initialize', async () => {

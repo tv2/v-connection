@@ -251,7 +251,7 @@ export class MSERep extends EventEmitter implements MSE {
 		try {
 			const res = await this.pep.ping()
 			return { path: 'ping', status: 200, response: res.body }
-		} catch (err) {
+		} catch (err: any) {
 			err.path = 'ping'
 			err.status = 418
 			err.response = err.message
