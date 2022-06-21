@@ -198,13 +198,10 @@ export class MSERep extends EventEmitter implements MSE {
 			playlistID = playlistID && playlistID.match(UUID_RE) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
 			const modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1)
 				.toString()
-				.padStart(2, '0')}.${date.getFullYear()} ${date
-				.getHours()
+				.padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date
+				.getMinutes()
 				.toString()
-				.padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date
-				.getSeconds()
-				.toString()
-				.padStart(2, '0')}`
+				.padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
 			await this.pep.insert(
 				`/storage/playlists/{${playlistID}}`,
 				`<playlist description="${description}" modified="${modifiedDate}" profile="/config/profiles/${profileName}" name="{${playlistID}}">
