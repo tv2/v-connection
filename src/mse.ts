@@ -1,5 +1,5 @@
 import { MSE, VizEngine, VPlaylist, VProfile, VRundown, VShow } from './v-connection'
-import { LocationType, PepResponse, PepTalkClient, PepTalkJS, startPepTalk } from './peptalk'
+import { getPepErrorMessage, LocationType, PepResponse, PepTalkClient, PepTalkJS, startPepTalk } from './peptalk'
 import { CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
 import { AtomEntry, FlatEntry, flattenEntry } from './xml'
@@ -175,7 +175,7 @@ export class MSERep extends EventEmitter implements MSE {
 			await this.pep.get(`/config/profiles/${profileName}`, 1)
 		} catch (err) {
 			throw new Error(
-				`The profile with name '${profileName}' for a new rundown does not exist. Error is: ${err.message}.`
+				`The profile with name '${profileName}' for a new rundown does not exist. Error is: ${getPepErrorMessage(err)}.`
 			)
 		}
 		if (playlistID) {
@@ -188,7 +188,7 @@ export class MSERep extends EventEmitter implements MSE {
 				}
 				playlistExists = true
 			} catch (err) {
-				if (err.message.startsWith('Referenced playlist exists but')) {
+				if (getPepErrorMessage(err).startsWith('Referenced playlist exists but')) {
 					throw err
 				}
 				playlistExists = false
@@ -254,7 +254,7 @@ export class MSERep extends EventEmitter implements MSE {
 		} catch (err: any) {
 			err.path = 'ping'
 			err.status = 418
-			err.response = err.message
+			err.response = getPepErrorMessage(err)
 			throw err as IHTTPRequestError
 		}
 	}

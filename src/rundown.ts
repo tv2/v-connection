@@ -12,7 +12,7 @@ import {
 	InternalElementIdWithCreator,
 } from './v-connection'
 import { CommandResult, createHTTPContext, HttpMSEClient, HTTPRequestError } from './msehttp'
-import { InexistentError, LocationType, PepResponse } from './peptalk'
+import { getPepErrorMessage, InexistentError, LocationType, PepResponse } from './peptalk'
 import { CREATOR_NAME, MSERep } from './mse'
 import { flattenEntry, AtomEntry, FlatEntry } from './xml'
 import * as uuid from 'uuid'
@@ -145,7 +145,7 @@ export class Rundown implements VRundown {
 			await this.getElement(elementId)
 			throw new Error(`An internal graphics element with name '${elementId.instanceName}' already exists.`)
 		} catch (err) {
-			if (err.message.startsWith('An internal graphics element')) throw err
+			if (getPepErrorMessage(err).startsWith('An internal graphics element')) throw err
 		}
 	}
 
@@ -214,7 +214,7 @@ ${entries}
 			await this.getElement(elementId)
 			throw new Error(`An external graphics element with name '${elementId.vcpid}' already exists.`)
 		} catch (err) {
-			if (err.message.startsWith('An external graphics element')) throw err
+			if (getPepErrorMessage(err).startsWith('An external graphics element')) throw err
 		}
 	}
 
@@ -222,7 +222,7 @@ ${entries}
 		try {
 			await this.initialChannelMapPromise
 		} catch (err) {
-			console.error(`Warning: createElement: Channel map not built: ${err.message}`)
+			console.error(`Warning: createElement: Channel map not built: ${getPepErrorMessage(err)}`)
 		}
 	}
 

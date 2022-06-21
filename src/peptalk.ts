@@ -681,3 +681,8 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 export function startPepTalk(hostname: string, port?: number): PepTalkClient & PepTalkJS {
 	return new PepTalk(hostname, port)
 }
+
+/** Converts an error thrown by peptalk into a string */
+export function getPepErrorMessage(err: unknown): string {
+	return (typeof err === 'object' && ((err as any).message || err?.toString())) || `${err}`
+}
