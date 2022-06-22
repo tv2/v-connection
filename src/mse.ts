@@ -1,5 +1,5 @@
 import { MSE, VizEngine, VPlaylist, VProfile, VRundown, VShow } from './v-connection'
-import { LocationType, PepResponse, PepTalkClient, PepTalkJS, startPepTalk } from './peptalk'
+import { getPepErrorMessage, LocationType, PepResponse, PepTalkClient, PepTalkJS, startPepTalk } from './peptalk'
 import { CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
 import { AtomEntry, FlatEntry, flattenEntry } from './xml'
@@ -42,7 +42,7 @@ export class MSERep extends EventEmitter implements MSE {
 		return pep
 	}
 
-	async onPepClose(): Promise<void> {
+	onPepClose(): void {
 		if (!this.reconnectTimeout) {
 			this.connection = undefined
 			this.reconnectTimeout = setTimeout(() => {
@@ -103,7 +103,7 @@ export class MSERep extends EventEmitter implements MSE {
 		const vizEntries: AtomEntry[] = (handlersBody.entry || handlersBody.scheduler).handler.filter(
 			(x: any) => x.$.type === 'viz'
 		)
-		const viz = await Promise.all(vizEntries.map((x) => flattenEntry(x)))
+		const viz = await Promise.all(vizEntries.map(async (x) => flattenEntry(x)))
 		return viz as VizEngine[]
 	}
 
@@ -130,7 +130,7 @@ export class MSERep extends EventEmitter implements MSE {
 
 	async getShow(showId: string): Promise<VShow> {
 		showId = wrapInBracesIfNeeded(showId)
-		if (!showId.match(UUID_RE)) {
+		if (!UUID_RE.exec(showId)) {
 			return Promise.reject(new Error(`Show id must be a UUID and '${showId}' is not.`))
 		}
 		await this.checkConnection()
@@ -154,7 +154,7 @@ export class MSERep extends EventEmitter implements MSE {
 
 	async getPlaylist(playlistName: string): Promise<VPlaylist> {
 		playlistName = wrapInBracesIfNeeded(playlistName)
-		if (!playlistName.match(UUID_RE)) {
+		if (!UUID_RE.exec(playlistName)) {
 			return Promise.reject(new Error(`Playlist name must be a UUID and '${playlistName}' is not.`))
 		}
 		await this.checkConnection()
@@ -175,7 +175,7 @@ export class MSERep extends EventEmitter implements MSE {
 			await this.pep.get(`/config/profiles/${profileName}`, 1)
 		} catch (err) {
 			throw new Error(
-				`The profile with name '${profileName}' for a new rundown does not exist. Error is: ${err.message}.`
+				`The profile with name '${profileName}' for a new rundown does not exist. Error is: ${getPepErrorMessage(err)}.`
 			)
 		}
 		if (playlistID) {
@@ -188,23 +188,20 @@ export class MSERep extends EventEmitter implements MSE {
 				}
 				playlistExists = true
 			} catch (err) {
-				if (err.message.startsWith('Referenced playlist exists but')) {
+				if (getPepErrorMessage(err).startsWith('Referenced playlist exists but')) {
 					throw err
 				}
 				playlistExists = false
 			}
 		}
 		if (!playlistExists) {
-			playlistID = playlistID && playlistID.match(UUID_RE) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
+			playlistID = playlistID && UUID_RE.exec(playlistID) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
 			const modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1)
 				.toString()
-				.padStart(2, '0')}.${date.getFullYear()} ${date
-				.getHours()
+				.padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date
+				.getMinutes()
 				.toString()
-				.padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date
-				.getSeconds()
-				.toString()
-				.padStart(2, '0')}`
+				.padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
 			await this.pep.insert(
 				`/storage/playlists/{${playlistID}}`,
 				`<playlist description="${description}" modified="${modifiedDate}" profile="/config/profiles/${profileName}" name="{${playlistID}}">
@@ -241,12 +238,12 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	// Advanced feature
-	createProfile(_profileName: string, _profileDetailsTbc: unknown): Promise<VProfile> {
+	async createProfile(_profileName: string, _profileDetailsTbc: unknown): Promise<VProfile> {
 		return Promise.reject(new Error('Not implemented. Creating profiles is a future feature.'))
 	}
 
 	// Advanced feature
-	deleteProfile(_profileName: string): Promise<boolean> {
+	async deleteProfile(_profileName: string): Promise<boolean> {
 		return Promise.reject(new Error('Not implemented. Deleting profiles ia a future feature.'))
 	}
 
@@ -254,10 +251,10 @@ export class MSERep extends EventEmitter implements MSE {
 		try {
 			const res = await this.pep.ping()
 			return { path: 'ping', status: 200, response: res.body }
-		} catch (err) {
+		} catch (err: any) {
 			err.path = 'ping'
 			err.status = 418
-			err.response = err.message
+			err.response = getPepErrorMessage(err)
 			throw err as IHTTPRequestError
 		}
 	}

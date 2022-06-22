@@ -260,39 +260,39 @@ class MSEHTTP implements HttpMSEClient {
 		}
 	}
 
-	cue(ref: string): Promise<CommandResult> {
+	async cue(ref: string): Promise<CommandResult> {
 		return this.command('cue', ref)
 	}
 
-	take(ref: string): Promise<CommandResult> {
+	async take(ref: string): Promise<CommandResult> {
 		return this.command('take', ref)
 	}
 
-	out(ref: string): Promise<CommandResult> {
+	async out(ref: string): Promise<CommandResult> {
 		return this.command('out', ref)
 	}
 
-	continue(ref: string): Promise<CommandResult> {
+	async continue(ref: string): Promise<CommandResult> {
 		return this.command('continue', ref)
 	}
 
-	continueReverse(ref: string): Promise<CommandResult> {
+	async continueReverse(ref: string): Promise<CommandResult> {
 		return this.command('continue_reverse', ref)
 	}
 
-	initializePlaylist(playlistID: string): Promise<CommandResult> {
+	async initializePlaylist(playlistID: string): Promise<CommandResult> {
 		return this.command('initialize', `/storage/playlists/{${playlistID}}`)
 	}
 
-	initializeShow(showID: string): Promise<CommandResult> {
+	async initializeShow(showID: string): Promise<CommandResult> {
 		return this.command('initialize', `/storage/shows/{${showID}}`)
 	}
 
-	cleanupPlaylist(playlistID: string): Promise<CommandResult> {
+	async cleanupPlaylist(playlistID: string): Promise<CommandResult> {
 		return this.command('cleanup', `/storage/playlists/{${playlistID}}`)
 	}
 
-	cleanupShow(showID: string): Promise<CommandResult> {
+	async cleanupShow(showID: string): Promise<CommandResult> {
 		return this.command('cleanup', `/storage/shows/{${showID}}`)
 	}
 
