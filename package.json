@@ -34,6 +34,7 @@
 		"url": "https://github.com/tv2/v-connection/issues"
 	},
 	"scripts": {
+		"prepare": "husky install",
 		"info": "npm-scripts-info",
 		"cleancache": "yarn cache clean atem-connection atem-state casparcg-connection casparcg-state superfly-timeline",
 		"unlink:all": "yarn unlink atem-connection & yarn unlink atem-state & yarn unlink casparcg-connection & yarn unlink casparcg-state & yarn unlink superfly-timeline",
@@ -98,11 +99,6 @@
 		"node": ">=10.10"
 	},
 	"prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
-	"husky": {
-		"hooks": {
-			"pre-commit": "lint-staged"
-		}
-	},
 	"lint-staged": {
 		"*.{css,json,md,scss}": [
 			"prettier --write"
