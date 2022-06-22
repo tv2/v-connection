@@ -55,7 +55,7 @@
 		"send-coverage": "yarn testci && codecov",
 		"docs": "yarn docs:html && open-cli docs/index.html",
 		"docs:test": "yarn docs:html",
-		"docs:html": "typedoc src/index.ts --excludePrivate --theme minimal --out docs",
+		"docs:html": "typedoc src/index.ts --excludePrivate --out docs",
 		"docs:json": "typedoc --json docs/typedoc.json src/index.ts",
 		"docs:publish": "yarn docs:html && gh-pages -d docs",
 		"changelog": "standard-version",
