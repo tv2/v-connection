@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.0.2](https://github.com/tv2/v-connection/compare/v6.0.1...v6.0.2) (2022-06-22)
+
+### Bug Fixes
+
+- convert peptalk error message explicit into a string ([b43513b](https://github.com/tv2/v-connection/commit/b43513b7ad4e5f1ea4bd2d449905504b3d80fa50))
+- Functions that return promises must be async ([f737e12](https://github.com/tv2/v-connection/commit/f737e123aa5de2b3426258574d0203b04e75009b))
+- SOF-941 add missing awaits ([7fb1106](https://github.com/tv2/v-connection/commit/7fb110683f9f5f570e97a446752b69ea3d41abc7))
+- solved errors from eslint/prettier VS Code extension. ([489c0ea](https://github.com/tv2/v-connection/commit/489c0eaee84ed37524d33792e062208c326950a8))
+
 ### [6.0.1](https://github.com/tv2/v-connection/compare/v6.0.0...v6.0.1) (2022-05-19)
 
 ## [6.0.0](https://github.com/tv2/v-connection/compare/v5.1.2...v6.0.0) (2022-03-16)
