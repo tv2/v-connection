@@ -280,6 +280,21 @@ ${entries}
 		return this.msehttp.cleanupShow(showId)
 	}
 
+	async cleanupAllShows(): Promise<CommandResult[]> {
+		const showIds: string[] = await this.findAllShowIds()
+		await this.purgeInternalElements(showIds, true)
+		return Promise.all(showIds.map(async (showId) => this.cleanupShow(showId)))
+	}
+
+	private async findAllShowIds(): Promise<string[]> {
+		await this.mse.checkConnection()
+		const shows = await this.pep.getJS(`/storage/shows`, 1)
+		const flatEntry: FlatEntry = await flattenEntry(shows.js as AtomEntry)
+		return Object.keys(flatEntry)
+			.map((entry) => entry)
+			.filter((entry) => entry.startsWith('{'))
+	}
+
 	async activate(twice?: boolean, initPlaylist = true): Promise<CommandResult> {
 		let result: CommandResult = {
 			// Returned when initShow = false and initPlaylist = false
