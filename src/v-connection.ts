@@ -169,7 +169,7 @@ export interface VRundown {
 	listTemplates(showId: string): Promise<string[]>
 	/**
 	 *  Read details of a specific [[VTemplate|template]].
-	 *  @param templateName Name of the emplate to retrieve the details for,
+	 *  @param templateName Name of the template to retrieve the details for,
 	 *                      e.g. `bund`.
 	 *  @param showId     Name of the show to retrieve the template from.
 	 *  @returns Resolves to the details of the named template.
@@ -299,6 +299,9 @@ export interface VRundown {
 	 *  @returns Resolves on a successful request to cleanup.
 	 */
 	cleanupShow(showId: string): Promise<CommandResult>
+
+	cleanupAllShows(): Promise<CommandResult[]>
+
 	/**
 	 *  Clear up all Internal Elements and state associated with given shows,
 	 *  including those required for post-rundown analysis.
