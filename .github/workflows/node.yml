@@ -51,6 +51,9 @@ jobs:
           name: dist artifacts
           path: dist
 
+      - name: yarn install
+        run: yarn install
+
       - uses: JS-DevTools/npm-publish@v1
         with:
           access: public
