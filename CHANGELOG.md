@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [6.1.0](https://github.com/tv2/v-connection/compare/v6.0.3...v6.1.0) (2022-10-27)
+
+### Features
+
+- SOF-1140 allow creating elements that have more fields than mastertemplate supports ([466c722](https://github.com/tv2/v-connection/commit/466c7228efdda63e8229931dc4e507f4c85c5c51))
+
 ### [6.0.3](https://github.com/tv2/v-connection/compare/v6.0.1...v6.0.3) (2022-10-14)
 
 ### Bug Fixes
