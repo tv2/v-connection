@@ -56,7 +56,7 @@ export class Rundown implements VRundown {
 			this.mse.restPort
 		)
 		this.initialChannelMapPromise = this.buildChannelMap().catch((err) =>
-			console.error(`Warning: Failed to build channel map: ${err.message}`)
+			this.mse.emit('warning', `Failed to build channel map: ${err.message}`)
 		)
 	}
 
@@ -162,21 +162,22 @@ export class Rundown implements VRundown {
 			fielddef = (template as any).model_xml.model.schema[0].fielddef
 		} else {
 			throw new Error(
-				`Could not retrieve field definitions for tempalte '${templateName}'. Not creating element '${elementId.instanceName}'.`
+				`Could not retrieve field definitions for template '${templateName}'. Not creating element '${elementId.instanceName}'.`
 			)
 		}
 		let fieldNames: string[] = fielddef ? fielddef.map((x: any): string => x.$.name) : []
 		let entries = ''
 		const data: { [name: string]: string } = {}
 		if (textFields.length > fieldNames.length) {
-			throw new Error(
+			this.mse.emit(
+				'warning',
 				`For template '${templateName}' with ${fieldNames.length} field(s), ${textFields.length} fields have been provided.`
 			)
 		}
 		fieldNames = fieldNames.sort()
 		for (let x = 0; x < fieldNames.length; x++) {
-			entries += `    <entry name="${fieldNames[x]}">${textFields[x] ? textFields[x] : ''}</entry>\n`
-			data[fieldNames[x]] = textFields[x] ? textFields[x] : ''
+			entries += `    <entry name="${fieldNames[x]}">${textFields[x] ?? ''}</entry>\n`
+			data[fieldNames[x]] = textFields[x] ?? ''
 		}
 		const vizProgram = channel ? ` viz_program="${channel}"` : ''
 		await this.pep.insert(
@@ -222,7 +223,7 @@ ${entries}
 		try {
 			await this.initialChannelMapPromise
 		} catch (err) {
-			console.error(`Warning: createElement: Channel map not built: ${getPepErrorMessage(err)}`)
+			this.mse.emit('warning', `createElement: Channel map not built: ${getPepErrorMessage(err)}`)
 		}
 	}
 

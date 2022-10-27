@@ -523,6 +523,7 @@ export interface MSE extends EventEmitter {
 	// Add methods here for MSE configuration
 	/** Add a listener for all non-error messages and events from the server. */
 	on(event: 'connected', listener: () => void): this
+	on(event: 'warning', listener: (message: string) => void): this
 	/** Add a listener for all error messages from the server. */
 	on(event: 'disconnected', listener: (err?: Error) => void): this
 }
