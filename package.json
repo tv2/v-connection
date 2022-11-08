@@ -43,7 +43,7 @@
 		"build": "rimraf dist && yarn build:main",
 		"buildtest": "yarn build && jest",
 		"build:main": "tsc -p tsconfig.build.json",
-		"lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist --ignore-pattern docs",
 		"lint-fix": "yarn lint --fix",
 		"unitci": "jest",
 		"unit": "jest",
@@ -96,7 +96,7 @@
 		"watch-server": "Run HTTP server and restart when changes are made."
 	},
 	"engines": {
-		"node": ">=10.10"
+		"node": "^16.17"
 	},
 	"prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
 	"lint-staged": {
