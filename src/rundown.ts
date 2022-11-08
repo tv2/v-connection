@@ -281,19 +281,47 @@ ${entries}
 		return this.msehttp.cleanupShow(showId)
 	}
 
-	async cleanupAllShows(): Promise<CommandResult[]> {
-		const showIds: string[] = await this.findAllShowIds()
-		await this.purgeInternalElements(showIds, true)
+	async cleanupAllSofieShows(): Promise<CommandResult[]> {
+		const showIds: string[] = await this.findAllSofieShowIds()
+		await this.purgeInternalElements(showIds, false)
 		return Promise.all(showIds.map(async (showId) => this.cleanupShow(showId)))
 	}
 
-	private async findAllShowIds(): Promise<string[]> {
+	private async findAllSofieShowIds(): Promise<string[]> {
 		await this.mse.checkConnection()
-		const shows = await this.pep.getJS(`/storage/shows`, 1)
-		const flatEntry: FlatEntry = await flattenEntry(shows.js as AtomEntry)
-		return Object.keys(flatEntry)
-			.map((entry) => entry)
-			.filter((entry) => entry.startsWith('{'))
+		const pepResponseJS = await this.pep.getJS(`/storage/shows`, 1)
+		const shows: FlatEntry = await flattenEntry(pepResponseJS.js as AtomEntry)
+
+		const settledResultShowIds: PromiseSettledResult<string>[] = await Promise.allSettled(
+			Object.keys(shows).map(this.isSofieShow.bind(this))
+		)
+		return this.mapToStringArray(settledResultShowIds).map(this.stripCurlyBrackets.bind(this))
+	}
+
+	private async isSofieShow(showId: string): Promise<string> {
+		const pepResponseJS = await this.pep.getJS(`/storage/shows/${showId}/elements`, 1)
+		const flatEntry: FlatEntry = await flattenEntry(pepResponseJS.js as AtomEntry)
+		const elementsParentNode = flatEntry['elements'] as FlatEntry
+		if (!elementsParentNode) {
+			return Promise.reject()
+		}
+		const elements: FlatEntry[] = Object.values(elementsParentNode) as FlatEntry[]
+		return elements.find((element: FlatEntry) => element['creator'] === 'Sofie')
+			? Promise.resolve(showId)
+			: Promise.reject()
+	}
+
+	private mapToStringArray(settledResultShowIds: PromiseSettledResult<string>[]): string[] {
+		return settledResultShowIds.reduce((showIds: string[], promise: PromiseSettledResult<string>) => {
+			if (promise.status === 'fulfilled') {
+				return [...showIds, promise.value]
+			}
+			return showIds
+		}, [] as string[])
+	}
+
+	private stripCurlyBrackets(value: string): string {
+		return value.replace('{', '').replace('}', '')
 	}
 
 	async activate(twice?: boolean, initPlaylist = true): Promise<CommandResult> {
