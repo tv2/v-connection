@@ -295,7 +295,7 @@ ${entries}
 		const settledResultShowIds: PromiseSettledResult<string>[] = await Promise.allSettled(
 			Object.keys(shows).map(this.isSofieShow.bind(this))
 		)
-		return this.mapToStringArray(settledResultShowIds).map(this.stripCurlyBrackets.bind(this))
+		return this.reduceSettledResultToShowIds(settledResultShowIds).map(this.stripCurlyBrackets.bind(this))
 	}
 
 	private async isSofieShow(showId: string): Promise<string> {
@@ -305,7 +305,7 @@ ${entries}
 			: Promise.reject()
 	}
 
-	private mapToStringArray(settledResultShowIds: PromiseSettledResult<string>[]): string[] {
+	private reduceSettledResultToShowIds(settledResultShowIds: PromiseSettledResult<string>[]): string[] {
 		return settledResultShowIds.reduce((showIds: string[], promise: PromiseSettledResult<string>) => {
 			if (promise.status === 'fulfilled') {
 				return [...showIds, promise.value]
