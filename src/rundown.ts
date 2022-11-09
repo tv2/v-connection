@@ -1,20 +1,20 @@
 import {
+	ElementId,
+	ExternalElement,
+	ExternalElementId,
+	InternalElement,
+	InternalElementId,
+	InternalElementIdWithCreator,
+	isExternalElement,
+	isInternalElement,
+	VElement,
 	VRundown,
 	VTemplate,
-	InternalElement,
-	ExternalElement,
-	VElement,
-	ExternalElementId,
-	ElementId,
-	isExternalElement,
-	InternalElementId,
-	isInternalElement,
-	InternalElementIdWithCreator,
 } from './v-connection'
 import { CommandResult, createHTTPContext, HttpMSEClient, HTTPRequestError } from './msehttp'
 import { getPepErrorMessage, InexistentError, LocationType, PepResponse } from './peptalk'
 import { CREATOR_NAME, MSERep } from './mse'
-import { flattenEntry, AtomEntry, FlatEntry } from './xml'
+import { AtomEntry, FlatEntry, flattenEntry } from './xml'
 import * as uuid from 'uuid'
 import { has, wrapInBracesIfNeeded } from './util'
 
@@ -247,16 +247,16 @@ ${entries}
 
 	async listInternalElements(showId: string): Promise<InternalElementIdWithCreator[]> {
 		await this.mse.checkConnection()
-		const showElementsList = await this.pep.getJS(`/storage/shows/{${showId}}/elements`, 1)
-		const flatShowElements = await flattenEntry(showElementsList.js as AtomEntry)
-		const elementNames: Array<InternalElementIdWithCreator> = Object.keys(flatShowElements)
+		const pepResponseJS = await this.pep.getJS(`/storage/shows/${wrapInBracesIfNeeded(showId)}/elements`, 1)
+		const flatEntry: FlatEntry = await flattenEntry(pepResponseJS.js as AtomEntry)
+		const elementsParentNode = flatEntry['elements'] as FlatEntry
+		return Object.keys(elementsParentNode)
 			.filter((x) => x !== 'name')
-			.map((element) => ({
-				instanceName: element,
+			.map((elementName) => ({
+				instanceName: elementName,
 				showId,
-				creator: (flatShowElements[element] as FlatEntry).creator as string | undefined,
+				creator: (elementsParentNode[elementName] as FlatEntry).creator as string | undefined,
 			}))
-		return elementNames
 	}
 
 	async listExternalElements(): Promise<Array<ExternalElementId>> {
@@ -299,14 +299,8 @@ ${entries}
 	}
 
 	private async isSofieShow(showId: string): Promise<string> {
-		const pepResponseJS = await this.pep.getJS(`/storage/shows/${showId}/elements`, 1)
-		const flatEntry: FlatEntry = await flattenEntry(pepResponseJS.js as AtomEntry)
-		const elementsParentNode = flatEntry['elements'] as FlatEntry
-		if (!elementsParentNode) {
-			return Promise.reject()
-		}
-		const elements: FlatEntry[] = Object.values(elementsParentNode) as FlatEntry[]
-		return elements.find((element: FlatEntry) => element['creator'] === 'Sofie')
+		const elements: InternalElementIdWithCreator[] = await this.listInternalElements(showId)
+		return elements.find((element: InternalElementIdWithCreator) => element.creator === CREATOR_NAME)
 			? Promise.resolve(showId)
 			: Promise.reject()
 	}
