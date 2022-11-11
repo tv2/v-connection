@@ -96,7 +96,7 @@
 		"watch-server": "Run HTTP server and restart when changes are made."
 	},
 	"engines": {
-		"node": "^16.17"
+		"node": "^16.14"
 	},
 	"prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
 	"lint-staged": {
