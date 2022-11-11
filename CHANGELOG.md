@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.0.0](https://github.com/tv2/v-connection/compare/v6.1.0...v7.0.0) (2022-11-11)
+
+### ⚠ BREAKING CHANGES
+
+- SOF-1081 Only clean Shows that belongs to Sofie
+
+### Features
+
+- SOF-1081 Only clean Shows that belongs to Sofie ([b5889e3](https://github.com/tv2/v-connection/commit/b5889e34d776e36a064820b3ae66ced62c8aa126))
+
+### Bug Fixes
+
+- SOF-1081 Refactor duplicated logic away ([b6737fb](https://github.com/tv2/v-connection/commit/b6737fb64237313692453d0120d08299a44f9fc7))
+- SOF-1081 Refactor for more precise naming ([d50e174](https://github.com/tv2/v-connection/commit/d50e174bf5452a80467255f9ed9f602c825869f5))
+
 ## [6.1.0](https://github.com/tv2/v-connection/compare/v6.0.3...v6.1.0) (2022-10-27)
 
 ### Features
