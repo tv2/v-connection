@@ -300,7 +300,7 @@ export interface VRundown {
 	 */
 	cleanupShow(showId: string): Promise<CommandResult>
 
-	cleanupAllShows(): Promise<CommandResult[]>
+	cleanupAllSofieShows(): Promise<CommandResult[]>
 
 	/**
 	 *  Clear up all Internal Elements and state associated with given shows,
