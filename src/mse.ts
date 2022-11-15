@@ -2,7 +2,7 @@ import { MSE, VizEngine, VPlaylist, VProfile, VRundown, VShow } from './v-connec
 import { getPepErrorMessage, LocationType, PepResponse, PepTalkClient, PepTalkJS, startPepTalk } from './peptalk'
 import { CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
-import { AtomEntry, FlatEntry, flattenEntry } from './xml'
+import { AtomEntry, FlatEntry, flattenEntry, toFlatMap } from './xml'
 import { Rundown } from './rundown'
 import * as uuid from 'uuid'
 import { wrapInBracesIfNeeded } from './util'
@@ -126,6 +126,26 @@ export class MSERep extends EventEmitter implements MSE {
 		const showList = await this.pep.getJS('/storage/shows', 1)
 		const flatList = await flattenEntry(showList.js as AtomEntry)
 		return Object.keys(flatList).filter((x: string) => x !== 'name')
+	}
+
+	async listShowsFromDirectory(): Promise<Map<string, string>> {
+		await this.checkConnection()
+		const showList = await this.pep.getJS('/directory/shows')
+		const flatMap = await toFlatMap(showList.js as AtomEntry)
+		this.extractShowIdsFromPaths(flatMap)
+		return flatMap
+	}
+
+	private extractShowIdsFromPaths(flatMap: Map<string, string>) {
+		for (const [key, value] of flatMap) {
+			const showId = value.match(/{(.+)}/)
+			if (!showId) {
+				// probably some faulty ref
+				flatMap.delete(key)
+			} else {
+				flatMap.set(key, showId[1])
+			}
+		}
 	}
 
 	async getShow(showId: string): Promise<VShow> {
@@ -292,24 +312,3 @@ export class MSERep extends EventEmitter implements MSE {
 export function createMSE(hostname: string, restPort?: number, wsPort?: number, resthost?: string): MSE {
 	return new MSERep(hostname, restPort, wsPort, resthost)
 }
-
-// let sleep = (t: number) => new Promise((resolve, _reject) => {
-// 	setTimeout(resolve, t)
-// })
-//
-// async function run () {
-// 	let mse = createMSE('mse_ws.ngrok.io', 80, 80, 'mse_http.ngrok.io')
-// 	let rundown = await mse.createRundown('66E45216-9476-4BDC-9556-C3DB487ED9DF', 'SOFIE')
-// 	await rundown.createElement(2552305, 'FULL1')
-// 	try { await rundown.activate() } catch (err) { /* */ }
-// 	await sleep(5000)
-// 	console.log('Taking now')
-// 	rundown.take(2552305)
-// 	await rundown.createElement(2565133, 'FULL1')
-// 	await sleep(3000)
-// 	rundown.take(2565133)
-// 	await mse.close()
-// 	// console.log('After close.')
-// }
-//
-// run().catch(console.error)

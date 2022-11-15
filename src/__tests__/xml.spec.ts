@@ -1,4 +1,4 @@
-import { flattenEntry, entry2XML, buildXML } from '../xml'
+import { flattenEntry, entry2XML, buildXML, toFlatMap } from '../xml'
 import * as Xml2JS from 'xml2js'
 
 const testXML = `<entry mode="enabled" status="uninitialized" type="viz" name="Viz A">
@@ -147,5 +147,55 @@ describe('Transform a non-entry', () => {
 		const flat = await flattenEntry(fromXML)
 		// console.log(JSON.stringify(flat, null, 2))
 		expect(flat).toBeTruthy()
+	})
+})
+
+const directoryEntry = `<entry name="shows">
+    <ref name="some_show.show">/storage/shows/{UUID1}</ref>
+    <entry name="SOFIE">
+      <ref name="some_show2.show">/storage/shows/{UUID2}</ref>
+      <entry name="deep">
+        <ref name="some show3.show">/storage/shows/{UUID3}</ref>
+        <ref name="some_show4.show">/storage/shows/{UUID4}</ref>
+      </entry>
+      <entry name="deep2">
+        <ref name="some_show5.show">/storage/shows/{UUID5}</ref>
+      </entry>
+    </entry>
+    <ref name="some_show6.show">/storage/shows/{UUID6}</ref>
+	</entry>`
+
+const emptyDirectoryEntry = `<entry name="shows" />`
+
+const nestedEmptyDirectoryEntries = `<entry name="shows">
+    <entry name="SOFIE">
+      <entry name="deep">
+      </entry>
+    </entry>
+    <ref name="some_show.show">/storage/shows/{UUID1}</ref>
+	</entry>`
+
+describe('toFlatMap', () => {
+	test('Builds a flat map', async () => {
+		const fromXML = await Xml2JS.parseStringPromise(directoryEntry)
+		const flat = await toFlatMap(fromXML)
+		expect(flat.size).toBe(6)
+		expect(flat.get('some_show.show')).toBe('/storage/shows/{UUID1}')
+		expect(flat.get('SOFIE/some_show2.show')).toBe('/storage/shows/{UUID2}')
+		expect(flat.get('SOFIE/deep/some show3.show')).toBe('/storage/shows/{UUID3}')
+		expect(flat.get('SOFIE/deep/some_show4.show')).toBe('/storage/shows/{UUID4}')
+		expect(flat.get('SOFIE/deep2/some_show5.show')).toBe('/storage/shows/{UUID5}')
+		expect(flat.get('some_show6.show')).toBe('/storage/shows/{UUID6}')
+	})
+	test('Supports empty entry', async () => {
+		const fromXML = await Xml2JS.parseStringPromise(emptyDirectoryEntry)
+		const flat = await toFlatMap(fromXML)
+		expect(flat.size).toBe(0)
+	})
+	test('Supports nested empty entries', async () => {
+		const fromXML = await Xml2JS.parseStringPromise(nestedEmptyDirectoryEntries)
+		const flat = await toFlatMap(fromXML)
+		expect(flat.size).toBe(1)
+		expect(flat.get('some_show.show')).toBe('/storage/shows/{UUID1}')
 	})
 })

@@ -171,3 +171,28 @@ export function buildXML(x: AtomEntry): string {
 	const builder = new Xml2JS.Builder({ headless: true })
 	return builder.buildObject({ entry: x })
 }
+
+/**
+ *  Build a Map containing paths and their contents
+ *  @param x Source atom pub entry.
+ *  @return a Map where keys are paths, and values are the contents of the entries
+ */
+export async function toFlatMap(x: AtomEntry): Promise<Map<string, string>> {
+	const result = new Map<string, string>()
+	const flatEntry = await flattenEntry(x)
+	toFlatMapInternal(flatEntry, result, '')
+	return result
+}
+
+function toFlatMapInternal(x: FlatEntry, map: Map<string, string>, path: string) {
+	for (const key in x) {
+		if (key === 'name' || x[key] === undefined) continue
+		if (key === 'value' && typeof x['value'] === 'string') {
+			map.set(path, x['value'])
+			return
+		}
+		if (typeof x[key] === 'object') {
+			toFlatMapInternal(x[key] as FlatEntry, map, `${path}${path && '/'}${key}`)
+		}
+	}
+}
