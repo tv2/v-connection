@@ -136,7 +136,7 @@ export class MSERep extends EventEmitter implements MSE {
 		return flatMap
 	}
 
-	private extractShowIdsFromPaths(flatMap: Map<string, string>) {
+	private extractShowIdsFromPaths(flatMap: Map<string, string>): void {
 		for (const [key, value] of flatMap) {
 			const showId = value.match(/{(.+)}/)
 			if (!showId) {
