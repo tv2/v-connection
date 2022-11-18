@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.1.0](https://github.com/tv2/v-connection/compare/v7.0.2...v7.1.0) (2022-11-18)
+
+### Features
+
+- add method to list shows in the MSE's directory ([76b253f](https://github.com/tv2/v-connection/commit/76b253fffc6b57b17f36d79d2452281a4f01d258))
+
 ### [7.0.2](https://github.com/tv2/v-connection/compare/v7.0.1...v7.0.2) (2022-11-11)
 
 ### [7.0.1](https://github.com/tv2/v-connection/compare/v7.0.0...v7.0.1) (2022-11-11)
