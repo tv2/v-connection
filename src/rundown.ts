@@ -1,20 +1,20 @@
 import {
+	ElementId,
+	ExternalElement,
+	ExternalElementId,
+	InternalElement,
+	InternalElementId,
+	InternalElementIdWithCreator,
+	isExternalElement,
+	isInternalElement,
+	VElement,
 	VRundown,
 	VTemplate,
-	InternalElement,
-	ExternalElement,
-	VElement,
-	ExternalElementId,
-	ElementId,
-	isExternalElement,
-	InternalElementId,
-	isInternalElement,
-	InternalElementIdWithCreator,
 } from './v-connection'
 import { CommandResult, createHTTPContext, HttpMSEClient, HTTPRequestError } from './msehttp'
 import { getPepErrorMessage, InexistentError, LocationType, PepResponse } from './peptalk'
 import { CREATOR_NAME, MSERep } from './mse'
-import { flattenEntry, AtomEntry, FlatEntry } from './xml'
+import { AtomEntry, FlatEntry, flattenEntry } from './xml'
 import * as uuid from 'uuid'
 import { has, wrapInBracesIfNeeded } from './util'
 
@@ -247,16 +247,16 @@ ${entries}
 
 	async listInternalElements(showId: string): Promise<InternalElementIdWithCreator[]> {
 		await this.mse.checkConnection()
-		const showElementsList = await this.pep.getJS(`/storage/shows/{${showId}}/elements`, 1)
-		const flatShowElements = await flattenEntry(showElementsList.js as AtomEntry)
-		const elementNames: Array<InternalElementIdWithCreator> = Object.keys(flatShowElements)
+		const pepResponseJS = await this.pep.getJS(`/storage/shows/${wrapInBracesIfNeeded(showId)}/elements`, 1)
+		const flatEntry: FlatEntry = await flattenEntry(pepResponseJS.js as AtomEntry)
+		const elementsParentNode = flatEntry['elements'] as FlatEntry
+		return Object.keys(elementsParentNode)
 			.filter((x) => x !== 'name')
-			.map((element) => ({
-				instanceName: element,
+			.map((elementName) => ({
+				instanceName: elementName,
 				showId,
-				creator: (flatShowElements[element] as FlatEntry).creator as string | undefined,
+				creator: (elementsParentNode[elementName] as FlatEntry).creator as string | undefined,
 			}))
-		return elementNames
 	}
 
 	async listExternalElements(): Promise<Array<ExternalElementId>> {
@@ -281,19 +281,41 @@ ${entries}
 		return this.msehttp.cleanupShow(showId)
 	}
 
-	async cleanupAllShows(): Promise<CommandResult[]> {
-		const showIds: string[] = await this.findAllShowIds()
-		await this.purgeInternalElements(showIds, true)
+	async cleanupAllSofieShows(): Promise<CommandResult[]> {
+		const showIds: string[] = await this.findAllSofieShowIds()
+		await this.purgeInternalElements(showIds, false)
 		return Promise.all(showIds.map(async (showId) => this.cleanupShow(showId)))
 	}
 
-	private async findAllShowIds(): Promise<string[]> {
+	private async findAllSofieShowIds(): Promise<string[]> {
 		await this.mse.checkConnection()
-		const shows = await this.pep.getJS(`/storage/shows`, 1)
-		const flatEntry: FlatEntry = await flattenEntry(shows.js as AtomEntry)
-		return Object.keys(flatEntry)
-			.map((entry) => entry)
-			.filter((entry) => entry.startsWith('{'))
+		const pepResponseJS = await this.pep.getJS(`/storage/shows`, 1)
+		const shows: FlatEntry = await flattenEntry(pepResponseJS.js as AtomEntry)
+
+		const settledResultShowIds: PromiseSettledResult<string>[] = await Promise.allSettled(
+			Object.keys(shows).map(this.isSofieShow.bind(this))
+		)
+		return this.reduceSettledResultToShowIds(settledResultShowIds).map(this.stripCurlyBrackets.bind(this))
+	}
+
+	private async isSofieShow(showId: string): Promise<string> {
+		const elements: InternalElementIdWithCreator[] = await this.listInternalElements(showId)
+		return elements.find((element: InternalElementIdWithCreator) => element.creator === CREATOR_NAME)
+			? Promise.resolve(showId)
+			: Promise.reject()
+	}
+
+	private reduceSettledResultToShowIds(settledResultShowIds: PromiseSettledResult<string>[]): string[] {
+		return settledResultShowIds.reduce((showIds: string[], promise: PromiseSettledResult<string>) => {
+			if (promise.status === 'fulfilled') {
+				return [...showIds, promise.value]
+			}
+			return showIds
+		}, [] as string[])
+	}
+
+	private stripCurlyBrackets(value: string): string {
+		return value.replace('{', '').replace('}', '')
 	}
 
 	async activate(twice?: boolean, initPlaylist = true): Promise<CommandResult> {

@@ -300,7 +300,7 @@ export interface VRundown {
 	 */
 	cleanupShow(showId: string): Promise<CommandResult>
 
-	cleanupAllShows(): Promise<CommandResult[]>
+	cleanupAllSofieShows(): Promise<CommandResult[]>
 
 	/**
 	 *  Clear up all Internal Elements and state associated with given shows,
@@ -452,6 +452,12 @@ export interface MSE extends EventEmitter {
 	 *  @returns List of all the shows stored for this MSE.
 	 */
 	listShows(): Promise<string[]>
+	/**
+	 *  List the shows in the MSE's directory.
+	 *  @returns A map of all the shows in the directory (paths relative to /directory/shows/), and their unique IDs.
+	 *           Example entry: ['overlay-shows/sample-show.show', '66E45216-9476-4BDC-9556-C3DB487ED9DF']
+	 */
+	listShowsFromDirectory(): Promise<Map<string, string>>
 	/**
 	 *  Retrieve details of a specific show as stored at this MSE.
 	 *  @param showId Name of the show to query, a UUID.

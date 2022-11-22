@@ -1,6 +1,6 @@
 {
 	"name": "@tv2media/v-connection",
-	"version": "6.1.0",
+	"version": "7.1.0",
 	"description": "Sofie TV Automation Vizrt Media Sequencer Engine connection library",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -96,7 +96,7 @@
 		"watch-server": "Run HTTP server and restart when changes are made."
 	},
 	"engines": {
-		"node": ">=10.10"
+		"node": ">=14.19"
 	},
 	"prettier": "@sofie-automation/code-standard-preset/.prettierrc.json",
 	"lint-staged": {
