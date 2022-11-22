@@ -43,7 +43,7 @@
 		"build": "rimraf dist && yarn build:main",
 		"buildtest": "yarn build && jest",
 		"build:main": "tsc -p tsconfig.build.json",
-		"lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist",
+		"lint": "eslint . --ext .ts --ext .js --ext .tsx --ext .jsx --ignore-pattern dist --ignore-pattern docs",
 		"lint-fix": "yarn lint --fix",
 		"unitci": "jest",
 		"unit": "jest",
