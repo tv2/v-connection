@@ -1,5 +1,13 @@
 import { MSE, VizEngine, VPlaylist, VProfile, VRundown, VShow } from './v-connection'
-import { getPepErrorMessage, LocationType, PepResponse, PepTalkClient, PepTalkJS, startPepTalk } from './peptalk'
+import {
+	getPepErrorMessage,
+	LocationType,
+	PepResponse,
+	PepResponseJS,
+	PepTalkClient,
+	PepTalkJS,
+	startPepTalk,
+} from './peptalk'
 import { CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
 import { AtomEntry, FlatEntry, flattenEntry, toFlatMap } from './xml'
@@ -186,6 +194,7 @@ export class MSERep extends EventEmitter implements MSE {
 
 		if (!(await this.doesPlaylistExist(playlistID, profileName))) {
 			await this.createNewPlaylist(playlistID, description, profileName)
+			await this.createPlaylistDirectoryReferenceIfMissing(playlistID)
 		}
 		return new Rundown(this, profileName, playlistID, description)
 	}
@@ -237,6 +246,33 @@ export class MSERep extends EventEmitter implements MSE {
     <entry name="settings"/>
     <entry name="ncs_cursor"/>
 </playlist>`,
+			LocationType.Last
+		)
+	}
+
+	private async createPlaylistDirectoryReferenceIfMissing(playlistID: string): Promise<void> {
+		if (await this.doesPlaylistDirectoryReferenceExists(playlistID)) {
+			return
+		}
+		await this.insertDirectoryPlaylistReference(playlistID)
+	}
+
+	private async doesPlaylistDirectoryReferenceExists(playlistID: string): Promise<boolean> {
+		await this.checkConnection()
+		const pepResponseJS: PepResponseJS = await this.pep.getJS('/directory/playlists/')
+		const directoryPlaylistRefs: FlatEntry = await flattenEntry(pepResponseJS.js as AtomEntry)
+		return Object.keys(directoryPlaylistRefs)
+			.filter((key) => key.startsWith('ref'))
+			.map((key) => (directoryPlaylistRefs[key] as FlatEntry).value as string)
+			.some((refValue) => !!refValue && refValue.includes(wrapInBracesIfNeeded(playlistID)))
+	}
+
+	private async insertDirectoryPlaylistReference(playlistID: string) {
+		await this.pep.insert(
+			`/directory/playlists/`,
+			`<ref author="${CREATOR_NAME}" description="${playlistID}">/storage/playlists/${wrapInBracesIfNeeded(
+				playlistID
+			)}</ref>`,
 			LocationType.Last
 		)
 	}
