@@ -179,18 +179,18 @@ export class MSERep extends EventEmitter implements MSE {
 
 	// Rundown basics task
 	async createRundown(profileName: string, playlistID?: string, description?: string): Promise<VRundown> {
-		await this.assertProfileExistsForName(profileName)
+		await this.assertProfileExists(profileName)
 
 		description = description ? description : `Sofie Rundown ${new Date().toISOString()}`
 		playlistID = playlistID ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
 
-		if (!(await this.doPlaylistExistForPlaylistId(playlistID, profileName))) {
+		if (!(await this.doesPlaylistExist(playlistID, profileName))) {
 			await this.createNewPlaylist(playlistID, description, profileName)
 		}
 		return new Rundown(this, profileName, playlistID, description)
 	}
 
-	private async assertProfileExistsForName(profileName: string): Promise<void> {
+	private async assertProfileExists(profileName: string): Promise<void> {
 		try {
 			await this.pep.get(`/config/profiles/${profileName}`, 1)
 		} catch (err) {
@@ -200,7 +200,7 @@ export class MSERep extends EventEmitter implements MSE {
 		}
 	}
 
-	private async doPlaylistExistForPlaylistId(playlistID: string, profileName: string): Promise<boolean> {
+	private async doesPlaylistExist(playlistID: string, profileName: string): Promise<boolean> {
 		try {
 			const playlist = await this.getPlaylist(playlistID.toUpperCase())
 			if (!playlist.profile.endsWith(`/${profileName}`)) {
