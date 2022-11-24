@@ -210,18 +210,14 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	private async doesPlaylistExist(playlistID: string, profileName: string): Promise<boolean> {
-		try {
-			const playlist = await this.getPlaylist(playlistID.toUpperCase())
-			if (!playlist.profile.endsWith(`/${profileName}`)) {
-				throw new Error(
-					`Referenced playlist exists but references profile '${playlist.profile}' rather than the given '${profileName}'.`
-				)
-			}
-		} catch (err) {
-			if (getPepErrorMessage(err).startsWith('Referenced playlist exists but')) {
-				throw err
-			}
+		const playlist = await this.getPlaylist(playlistID.toUpperCase())
+		if (!playlist) {
 			return false
+		}
+		if (!playlist.profile.endsWith(`/${profileName}`)) {
+			throw new Error(
+				`Referenced playlist exists but references profile '${playlist.profile}' rather than the given '${profileName}'.`
+			)
 		}
 		return true
 	}
