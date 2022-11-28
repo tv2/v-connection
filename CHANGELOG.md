@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.2.0](https://github.com/tv2/v-connection/compare/v7.1.0...v7.2.0) (2022-11-28)
+
+### Features
+
+- SOF-1094 PlaylistID is no longer required to be a UUID. If no playlistID is provided it stills defaults to using UUIDs ([c85d06c](https://github.com/tv2/v-connection/commit/c85d06cc7d7d4b83fb6c353581bdb8dce5c88506))
+
+### Bug Fixes
+
+- SOF-1094 Minor name refactor ([2f2b2ff](https://github.com/tv2/v-connection/commit/2f2b2ff5a7fc99bc5ee0bf2559c86f9e2949e39f))
+
 ## [7.1.0](https://github.com/tv2/v-connection/compare/v7.0.2...v7.1.0) (2022-11-18)
 
 ### Features
