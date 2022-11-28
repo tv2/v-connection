@@ -1,5 +1,13 @@
 import { MSE, VizEngine, VPlaylist, VProfile, VRundown, VShow } from './v-connection'
-import { getPepErrorMessage, LocationType, PepResponse, PepTalkClient, PepTalkJS, startPepTalk } from './peptalk'
+import {
+	getPepErrorMessage,
+	LocationType,
+	PepResponse,
+	PepResponseJS,
+	PepTalkClient,
+	PepTalkJS,
+	startPepTalk,
+} from './peptalk'
 import { CommandResult, IHTTPRequestError } from './msehttp'
 import { EventEmitter } from 'events'
 import { AtomEntry, FlatEntry, flattenEntry, toFlatMap } from './xml'
@@ -7,7 +15,6 @@ import { Rundown } from './rundown'
 import * as uuid from 'uuid'
 import { wrapInBracesIfNeeded } from './util'
 
-const UUID_RE = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
 export const CREATOR_NAME = 'Sofie'
 
 export class MSERep extends EventEmitter implements MSE {
@@ -149,12 +156,8 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async getShow(showId: string): Promise<VShow> {
-		showId = wrapInBracesIfNeeded(showId)
-		if (!UUID_RE.exec(showId)) {
-			return Promise.reject(new Error(`Show id must be a UUID and '${showId}' is not.`))
-		}
 		await this.checkConnection()
-		const show = await this.pep.getJS(`/storage/shows/${showId}`)
+		const show = await this.pep.getJS(`/storage/shows/${wrapInBracesIfNeeded(showId)}`)
 		const flatShow = await flattenEntry(show.js as AtomEntry)
 		return flatShow as VShow
 	}
@@ -173,12 +176,8 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	async getPlaylist(playlistName: string): Promise<VPlaylist> {
-		playlistName = wrapInBracesIfNeeded(playlistName)
-		if (!UUID_RE.exec(playlistName)) {
-			return Promise.reject(new Error(`Playlist name must be a UUID and '${playlistName}' is not.`))
-		}
 		await this.checkConnection()
-		const playlist = await this.pep.getJS(`/storage/playlists/${playlistName}`)
+		const playlist = await this.pep.getJS(`/storage/playlists/${wrapInBracesIfNeeded(playlistName)}`)
 		let flatPlaylist = await flattenEntry(playlist.js as AtomEntry)
 		if (Object.keys(flatPlaylist).length === 1) {
 			flatPlaylist = flatPlaylist[Object.keys(flatPlaylist)[0]] as FlatEntry
@@ -188,9 +187,19 @@ export class MSERep extends EventEmitter implements MSE {
 
 	// Rundown basics task
 	async createRundown(profileName: string, playlistID?: string, description?: string): Promise<VRundown> {
-		let playlistExists = false
-		const date = new Date()
-		description = description ? description : `Sofie Rundown ${date.toISOString()}`
+		await this.assertProfileExists(profileName)
+
+		description = description ? description : `Sofie Rundown ${new Date().toISOString()}`
+		playlistID = playlistID ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
+
+		if (!(await this.doesPlaylistExist(playlistID, profileName))) {
+			await this.createNewPlaylist(playlistID, description, profileName)
+			await this.createPlaylistDirectoryReferenceIfMissing(playlistID)
+		}
+		return new Rundown(this, profileName, playlistID, description)
+	}
+
+	private async assertProfileExists(profileName: string): Promise<void> {
 		try {
 			await this.pep.get(`/config/profiles/${profileName}`, 1)
 		} catch (err) {
@@ -198,33 +207,26 @@ export class MSERep extends EventEmitter implements MSE {
 				`The profile with name '${profileName}' for a new rundown does not exist. Error is: ${getPepErrorMessage(err)}.`
 			)
 		}
-		if (playlistID) {
-			try {
-				const playlist = await this.getPlaylist(playlistID.toUpperCase())
-				if (!playlist.profile.endsWith(`/${profileName}`)) {
-					throw new Error(
-						`Referenced playlist exists but references profile '${playlist.profile}' rather than the given '${profileName}'.`
-					)
-				}
-				playlistExists = true
-			} catch (err) {
-				if (getPepErrorMessage(err).startsWith('Referenced playlist exists but')) {
-					throw err
-				}
-				playlistExists = false
-			}
+	}
+
+	private async doesPlaylistExist(playlistID: string, profileName: string): Promise<boolean> {
+		const playlist = await this.getPlaylist(playlistID.toUpperCase())
+		if (!playlist) {
+			return false
 		}
-		if (!playlistExists) {
-			playlistID = playlistID && UUID_RE.exec(playlistID) ? playlistID.toUpperCase() : uuid.v4().toUpperCase()
-			const modifiedDate = `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1)
-				.toString()
-				.padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date
-				.getMinutes()
-				.toString()
-				.padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
-			await this.pep.insert(
-				`/storage/playlists/{${playlistID}}`,
-				`<playlist description="${description}" modified="${modifiedDate}" profile="/config/profiles/${profileName}" name="{${playlistID}}">
+		if (!playlist.profile.endsWith(`/${profileName}`)) {
+			throw new Error(
+				`Referenced playlist exists but references profile '${playlist.profile}' rather than the given '${profileName}'.`
+			)
+		}
+		return true
+	}
+
+	private async createNewPlaylist(playlistID: string, description: string, profileName: string): Promise<void> {
+		const modifiedDate = this.getCurrentTimeFormatted()
+		await this.pep.insert(
+			`/storage/playlists/{${playlistID}}`,
+			`<playlist description="${description}" modified="${modifiedDate}" profile="/config/profiles/${profileName}" name="{${playlistID}}">
     <elements/>
     <entry name="environment">
         <entry name="alternative_concept"/>
@@ -240,10 +242,45 @@ export class MSERep extends EventEmitter implements MSE {
     <entry name="settings"/>
     <entry name="ncs_cursor"/>
 </playlist>`,
-				LocationType.Last
-			)
+			LocationType.Last
+		)
+	}
+
+	private async createPlaylistDirectoryReferenceIfMissing(playlistID: string): Promise<void> {
+		if (await this.doesPlaylistDirectoryReferenceExists(playlistID)) {
+			return
 		}
-		return new Rundown(this, profileName, playlistID as string, description)
+		await this.insertDirectoryPlaylistReference(playlistID)
+	}
+
+	private async doesPlaylistDirectoryReferenceExists(playlistID: string): Promise<boolean> {
+		await this.checkConnection()
+		const pepResponseJS: PepResponseJS = await this.pep.getJS('/directory/playlists/')
+		const directoryPlaylistRefs: FlatEntry = await flattenEntry(pepResponseJS.js as AtomEntry)
+		return Object.keys(directoryPlaylistRefs)
+			.filter((key) => key.startsWith('ref'))
+			.map((key) => (directoryPlaylistRefs[key] as FlatEntry).value as string)
+			.some((refValue) => !!refValue && refValue.includes(wrapInBracesIfNeeded(playlistID)))
+	}
+
+	private async insertDirectoryPlaylistReference(playlistID: string) {
+		await this.pep.insert(
+			`/directory/playlists/`,
+			`<ref author="${CREATOR_NAME}" description="${playlistID}">/storage/playlists/${wrapInBracesIfNeeded(
+				playlistID
+			)}</ref>`,
+			LocationType.Last
+		)
+	}
+
+	private getCurrentTimeFormatted(): string {
+		const date = new Date()
+		return `${date.getUTCDate().toString().padStart(2, '0')}.${(date.getUTCMonth() + 1)
+			.toString()
+			.padStart(2, '0')}.${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date
+			.getMinutes()
+			.toString()
+			.padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`
 	}
 
 	// Rundown basics task
