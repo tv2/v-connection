@@ -210,7 +210,7 @@ export class MSERep extends EventEmitter implements MSE {
 	}
 
 	private async doesPlaylistExist(playlistID: string, profileName: string): Promise<boolean> {
-		const playlist = await this.getPlaylist(playlistID.toUpperCase())
+		const playlist = await this.getPlaylist(playlistID.toUpperCase()).catch(() => undefined)
 		if (!playlist) {
 			return false
 		}
