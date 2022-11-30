@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.2.1](https://github.com/tv2/v-connection/compare/v7.2.0...v7.2.1) (2022-11-30)
+
+### Bug Fixes
+
+- SOF-1094 Refactor to simpler implementation ([12f55b7](https://github.com/tv2/v-connection/commit/12f55b711e68a6390ba2a7b078ec64cbc1782b57))
+- SOF-1094 return false when playlist doesnt exist in doesPlaylistExist ([3bd497e](https://github.com/tv2/v-connection/commit/3bd497e7a5fa24e6c9c6b59f124924699509cd0f))
+
 ## [7.2.0](https://github.com/tv2/v-connection/compare/v7.1.0...v7.2.0) (2022-11-28)
 
 ### Features
