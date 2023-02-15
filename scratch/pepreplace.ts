@@ -13,23 +13,20 @@ const args = yargs
 	.default('port', 8595)
 	.default('location', 'first')
 	.demandCommand(2, 2)
-	.coerce(
-		'location',
-		(l: string): LocationType => {
-			switch (l.slice(0, 1).toLowerCase()) {
-				case 'f':
-					return LocationType.First
-				case 'l':
-					return LocationType.Last
-				case 'b':
-					return LocationType.Before
-				case 'a':
-					return LocationType.After
-				default:
-					return LocationType.First
-			}
+	.coerce('location', (l: string): LocationType => {
+		switch (l.slice(0, 1).toLowerCase()) {
+			case 'f':
+				return LocationType.First
+			case 'l':
+				return LocationType.Last
+			case 'b':
+				return LocationType.Before
+			case 'a':
+				return LocationType.After
+			default:
+				return LocationType.First
 		}
-	).argv
+	}).argv
 
 console.dir(args)
 

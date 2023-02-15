@@ -395,15 +395,17 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 		// console.log('SAF >>>', split)
 		if (this.leftovers) {
-			this.leftovers.previous = this.leftovers.previous + split[0]
 			if (Array.isArray(split) && split.length > 0) {
+				this.leftovers.previous = this.leftovers.previous + split[0]
 				this.leftovers.remaining -= Buffer.byteLength(split[0], 'utf8')
-			}
-			if (this.leftovers.remaining <= 0) {
-				split[0] = this.leftovers.previous
-				this.leftovers = null
-			} else {
-				return
+				if (this.leftovers.remaining <= 0) {
+					split[0] = this.leftovers.previous
+					this.leftovers = null
+				} else {
+					return
+				}
+			} else if (leftovers) {
+				leftovers.previous = this.leftovers.previous + leftovers.previous
 			}
 		}
 		this.leftovers = leftovers ? leftovers : this.leftovers
@@ -512,7 +514,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 		}
 	}
 
-	private failTimer(c: number, message: string): Promise<PepResponse> {
+	private async failTimer(c: number, message: string): Promise<PepResponse> {
 		return new Promise((_resolve, reject) => {
 			setTimeout(() => {
 				reject(new Error(`Parallel promise to send message ${c} did not resolve in time. Message: ${message}`))
@@ -678,4 +680,9 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 
 export function startPepTalk(hostname: string, port?: number): PepTalkClient & PepTalkJS {
 	return new PepTalk(hostname, port)
+}
+
+/** Converts an error thrown by peptalk into a string */
+export function getPepErrorMessage(err: unknown): string {
+	return (typeof err === 'object' && ((err as any).message || err?.toString())) || `${err}`
 }

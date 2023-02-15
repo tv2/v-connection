@@ -113,6 +113,19 @@ export interface ExternalElement extends VElement {
 	name?: string
 }
 
+/** Object uniquely identifying an internal element loaded into an Engine */
+export interface InternalElementId {
+	/** Unique identifier for the template in its show */
+	instanceName: string
+	/** Show in which the element exists */
+	showId: string
+}
+
+export interface InternalElementIdWithCreator extends InternalElementId {
+	/** Who created the element */
+	creator?: string
+}
+
 /** Object uniquely identifying an external element loaded into an Engine */
 export interface ExternalElementId {
 	/** Unique identifier for the template in the external system. */
@@ -121,6 +134,16 @@ export interface ExternalElementId {
 	 *  Note when `undefined`, the default is the _program_ channel.
 	 */
 	channel?: string
+}
+
+export type ElementId = InternalElementId | ExternalElementId
+
+export function isInternalElement(elementId: ElementId): elementId is InternalElementId {
+	return (elementId as InternalElementId).instanceName !== undefined
+}
+
+export function isExternalElement(elementId: ElementId): elementId is ExternalElementId {
+	return (elementId as ExternalElementId).vcpid !== undefined
 }
 
 /**
@@ -132,8 +155,6 @@ export interface ExternalElementId {
  *  alias can be used to send that command.
  */
 export interface VRundown {
-	/** Identifier for the show containing the [[VTemplate|master templates]] associated with this rundown. */
-	readonly show: string
 	/** Identifier for the playlist built specifically for this rundown. */
 	readonly playlist: string
 	/** Identifier for the profile that is the targer for commands, the link to the Viz Engines being. */
@@ -141,93 +162,89 @@ export interface VRundown {
 	/** Optional description of the rundown. Used as a name for the playlist in Viz Content Pilot. */
 	readonly description?: string
 	/**
-	 *  List all the master templates associated with this rundown.
+	 *  List all the master templates associated with the given show.
+	 *  @param showId Name of the show.
 	 *  @returns Resolves to a list of all template names for this rundown.
 	 */
-	listTemplates(): Promise<string[]>
+	listTemplates(showId: string): Promise<string[]>
 	/**
 	 *  Read details of a specific [[VTemplate|template]].
-	 *  @param templateName Name of the emplate to retrieve the elements from,
+	 *  @param templateName Name of the template to retrieve the details for,
 	 *                      e.g. `bund`.
+	 *  @param showId     Name of the show to retrieve the template from.
 	 *  @returns Resolves to the details of the named template.
 	 */
-	getTemplate(templateName: string): Promise<VTemplate>
+	getTemplate(templateName: string, showId: string): Promise<VTemplate>
 	/**
 	 *  Create a new [[InternalElement|_internal_ graphical element]] that is an
 	 *  instance of the named [[VTemplate|template]].
+	 *  @param elementId Object uniquely identifying an internal or external element.
 	 *  @param templateName Name of the template the element is an instance of.
-	 *  @param elementName  Name of the graphical element to create.
 	 *  @param textFields   List of values for each of the graphical elements.
 	 *  @param channel      Optional channel to play out this graphic. Default is the _program_.
 	 *  @returns Resolves to a newly created element.
 	 */
 	createElement(
+		elementId: InternalElementId,
 		templateName: string,
-		elementName: string,
 		textFields: string[],
 		channel?: string
 	): Promise<InternalElement>
 	/**
 	 *  Create a new [[ExternalElement|_external_ graphical element]] by unique reference number.
-	 *  @param vcpid Unique reference number for the element in the external source,
-	 *               e.g. a pilot database.
-	 *  @param alias Optional name to use to reference the element. Note that this
-	 *               name is stored only within the library and not persisted in
-	 *               the MSE.
-	 *  @param channel Optional channel to play out this graphic. Default is the _program_.
+	 *  @param elementId Object uniquely identifying an external element.
 	 *  @returns Resolves to a newly created element reference.
 	 */
-	createElement(vcpid: number, channel?: string, alias?: string): Promise<ExternalElement>
+	createElement(elementId: ExternalElementId): Promise<ExternalElement>
 	/**
-	 *  List all the graphical elements created for this rundown.
-	 *  @returns Resolves to a list of graphical element names or references for this rundown.
+	 *  List all the internal graphical elements created for a given show.
+	 *  @param showId Name of the show to query, a UUID.
+	 *  @returns Resolves to a list of internal graphical element references.
 	 */
-	listElements(): Promise<Array<string | ExternalElementId>>
+	listInternalElements(showId: string): Promise<Array<InternalElementId>>
+	/**
+	 *  List all the external graphical elements created for this rundown.
+	 *  @returns Resolves to a list of external graphical element ids.
+	 */
+	listExternalElements(): Promise<Array<ExternalElementId>>
 	/**
 	 *  Read the details of a graphical element in this rundown.
-	 *  @param elementName Name or reference (vcpid) for the element to retrieve the details
-	 *                     for.
-	 *  @param channel Optional channel to play out this graphic. Default is the _program_.
+	 *  @param elementId Object uniquely identifying an internal or external element.
 	 *  @returns Resolves to provide the details of the named element.
 	 */
-	getElement(elementName: string | number, channel?: string): Promise<VElement>
+	getElement(elementId: ElementId): Promise<VElement>
 	/**
 	 *  Delete a graphical element from the rundown.
-	 *  @param elementName Name or reference (vcpid) for the element to delete.
-	 *  @param channel Optional channel to play out this graphic. Default is the _program_.
+	 *  @param elementId Object uniquely identifying an internal or external element.
 	 *  @returns Resolves to indicate the delete was successful, otherwise rejects.
 	 */
-	deleteElement(elementName: string | number, channel?: string): Promise<PepResponse>
+	deleteElement(elementId: ElementId): Promise<PepResponse>
 	/**
-	 *  Send a _cue_ command for a named graphical element, preparing it for smooth display.
-	 *  @param elementName Name or reference (vcpid) for the gephical element to cue.
-	 *  @param channel Optional channel to play out this graphic. Default is the _program_.
+	 *  Send a _cue_ command for a graphical element, preparing it for smooth display.
+	 *  @param elementId Object uniquely identifying an internal or external element.
 	 *  @returns Resolves on acceptance of the cue command.
 	 */
-	cue(elementName: string | number, channel?: string): Promise<CommandResult>
+	cue(elementId: ElementId): Promise<CommandResult>
 	/**
-	 *  Send a _take_ command for a named graphical element, requesting that it is displayed.
-	 *  @param elementName Name or reference (vcpid) for the gephical element to take in.
-	 *  @param channel Optional channel to play out this graphic. Default is the _program_.
+	 *  Send a _take_ command for a graphical element, requesting that it is displayed.
+	 *  @param elementId Object uniquely identifying an internal or external element.
 	 *  @returns Resolves on acceptance of the take command.
 	 */
-	take(elementName: string | number, channel?: string): Promise<CommandResult>
+	take(elementId: ElementId): Promise<CommandResult>
 	/**
-	 *  Send a _continue_ command for a named graphical element, causing the next
-	 *  presentation state is to be displayed.
-	 *  @param elementName Name or reference (vcpid) for the gephical element to continue.
-	 *  @param channel Optional channel to play out this graphic. Default is the _program_.
+	 *  Send a _continue_ command for a graphical element, causing the next presentation
+	 *  state to be displayed.
+	 *  @param elementId Object uniquely identifying an internal or external element.
 	 *  @returns Resolves on acceptance of the continue command.
 	 */
-	continue(elementName: string | number, channel?: string): Promise<CommandResult>
+	continue(elementId: ElementId): Promise<CommandResult>
 	/**
-	 *  Send a _continue-reverse_ command for a named graphical element, causing the
+	 *  Send a _continue-reverse_ command for a graphical element, causing the
 	 *  previous presentation state is to be displayed.
-	 *  @param elementName Name or reference (vcpid) for the gephical element to continue.
-	 *  @param channel Optional channel to play out this graphic. Default is the _program_.
+	 *  @param elementId Object uniquely identifying an internal or external element.
 	 *  @returns Resolves on acceptance of the continue command.
 	 */
-	continueReverse(elementName: string | number, channel?: string): Promise<CommandResult>
+	continueReverse(elementId: ElementId): Promise<CommandResult>
 	/**
 	 *  Send an _out_ command for the named graphical element, ending its ongoing
 	 *  display.
@@ -235,7 +252,7 @@ export interface VRundown {
 	 *  @param channel Optional channel to play out this graphic. Default is the _program_.
 	 *  @return Resolves on acceptance of the take-out command.
 	 */
-	out(elementName: string | number, channel?: string): Promise<CommandResult>
+	out(elementId: ElementId): Promise<CommandResult>
 	/**
 	 *  Run the initiaization of an external graphic element. This will cause the
 	 *  element to load all necessary resources onto the assiciated VizEngine ready
@@ -246,7 +263,7 @@ export interface VRundown {
 	 *  @returns Resolves on acceptance of the initialize command. Note that this
 	 *           is not when the element finishes loading on the VizEngine.
 	 */
-	initialize(vcpid: number, channel?: string): Promise<CommandResult>
+	initialize(elementId: ExternalElementId): Promise<CommandResult>
 	/**
 	 *  Activate a rundown, causing all initialisations to be requested prior to
 	 *  the execution of a rundown. Note that experimentation has shown that it
@@ -254,14 +271,12 @@ export interface VRundown {
 	 *  apart.
 	 *  @param twice        Trigger the activations twice, which may cause
 	 *                      graphical elements to start loading.
-	 *  @param initShow     Initialize the show containing internal elements. This
-	 *                      defaults to `true`.
 	 *  @param initPlaylist Initialize the playlist containing external elements.
 	 *                      This defaults to `true`.
 	 *  @returns Resolves on successful rundown activation. Rejects if any step
 	 *           fails.
 	 */
-	activate(twice?: boolean, initShow?: boolean, initPlaylist?: boolean): Promise<CommandResult>
+	activate(twice?: boolean, initPlaylist?: boolean): Promise<CommandResult>
 	/**
 	 *  Deactivate a rundown, cleaning up any transient elements associated with
 	 *  the rundown from the VDOM tree. Those XML elements required for post-rundown
@@ -271,23 +286,52 @@ export interface VRundown {
 	 */
 	deactivate(cleanupShow?: boolean): Promise<CommandResult>
 	/**
+	 *  Start loading templates and Internal Elements of the show to the Engines.
+	 *  @param showId Name (UUID) of the show.
+	 *  @returns Resolves on a successful request to initialize.
+	 */
+	initializeShow(showId: string): Promise<CommandResult>
+	/**
 	 *  Cleanup the show and all associated renderers. This may be necessary if the
 	 *  state of the VizEngine is in a bad or in some way out of step with the automation
 	 *  system.
+	 *  @param showId Name (UUID) of the show.
 	 *  @returns Resolves on a successful request to cleanup.
 	 */
-	cleanup(): Promise<CommandResult>
+	cleanupShow(showId: string): Promise<CommandResult>
+
+	cleanupAllSofieShows(): Promise<CommandResult[]>
+
 	/**
-	 *  Clear up all graphical elements and state associated with a rundown,
+	 *  Clear up all Internal Elements and state associated with given shows,
 	 *  including those required for post-rundown analysis.
+	 *  @param showIds Names (UUIDs) of the shows to purge.
+	 *	@param onlyCreatedByUs Restricted to removing only elements that have a matching creator attribute
+	 *  @param elementsToKeep Elements to omit from deleting.
 	 *  @result Resolves on successful rundown purge.
 	 */
-	purge(elementsToKeep?: ExternalElementId[]): Promise<PepResponse>
+	purgeInternalElements(
+		showIds: string[],
+		onlyCreatedByUs?: boolean,
+		elementsToKeep?: InternalElementId[]
+	): Promise<PepResponse>
+	/**
+	 *  Clear up all External Elements and state associated with a rundown,
+	 *  including those required for post-rundown analysis.
+	 *  @param elementsToKeep Elements to omit from deleting.
+	 *  @result Resolves on successful rundown purge.
+	 */
+	purgeExternalElements(elementsToKeep?: ExternalElementId[]): Promise<PepResponse>
 	/**
 	 *  Is the associated MSE playlist currently active?
 	 *  @returns Resolves with the activation status of the associated MSE playlist.
 	 */
 	isActive(): Promise<boolean>
+
+	/**
+	 * Sets the value of the 'alternative_concept' entry (or creates it if it's missing) on the parsed playlist.
+	 */
+	setAlternativeConcept(concept: string): Promise<void>
 }
 
 /**
@@ -409,11 +453,17 @@ export interface MSE extends EventEmitter {
 	 */
 	listShows(): Promise<string[]>
 	/**
+	 *  List the shows in the MSE's directory.
+	 *  @returns A map of all the shows in the directory (paths relative to /directory/shows/), and their unique IDs.
+	 *           Example entry: ['overlay-shows/sample-show.show', '66E45216-9476-4BDC-9556-C3DB487ED9DF']
+	 */
+	listShowsFromDirectory(): Promise<Map<string, string>>
+	/**
 	 *  Retrieve details of a specific show as stored at this MSE.
-	 *  @param showName Name of the show to query, a UUID.
+	 *  @param showId Name of the show to query, a UUID.
 	 *  @returns Resolves to the details of the named show.
 	 */
-	getShow(showName: string): Promise<VShow>
+	getShow(showId: string): Promise<VShow>
 	/**
 	 *  List the playlists stored for this MSE.
 	 *  @returns Resolves to a list of playlists stored for this MSE.
@@ -427,7 +477,6 @@ export interface MSE extends EventEmitter {
 	getPlaylist(playlistName: string): Promise<VPlaylist>
 	/**
 	 *  Create a new rundown to be executed on this MSE.
-	 *  @param showID       Identifier of the show to create.
 	 *  @param profileName  Name of the profile to send commands to.
 	 *  @param playlistID   Optional UUID identifier for the playlist. If none is
 	 *                      provided, one will be generated.
@@ -435,7 +484,7 @@ export interface MSE extends EventEmitter {
 	 *                      Content Pilot.
 	 *  @return Resolves to a newly created rundown.
 	 */
-	createRundown(showID: string, profile: string, playlistID?: string, description?: string): Promise<VRundown>
+	createRundown(profile: string, playlistID?: string, description?: string): Promise<VRundown>
 	/**
 	 *  Delete a rundown from this MSE. Note that rundowns can only be deleted when
 	 *  they are not activated.
@@ -480,6 +529,7 @@ export interface MSE extends EventEmitter {
 	// Add methods here for MSE configuration
 	/** Add a listener for all non-error messages and events from the server. */
 	on(event: 'connected', listener: () => void): this
+	on(event: 'warning', listener: (message: string) => void): this
 	/** Add a listener for all error messages from the server. */
 	on(event: 'disconnected', listener: (err?: Error) => void): this
 }

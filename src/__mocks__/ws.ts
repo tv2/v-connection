@@ -138,7 +138,7 @@ class WebSocket extends EventEmitter {
 		return this._mockConnected
 	}
 }
-function sleep(ms: number): Promise<void> {
+async function sleep(ms: number): Promise<void> {
 	return new Promise((resolve) => orgSetTimeout(resolve, ms))
 }
 // eslint-disable-next-line @typescript-eslint/no-namespace

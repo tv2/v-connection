@@ -15,3 +15,7 @@ src/types/coverage/
 crash.log
 
 build
+
+# Ignore JetBrains specific configurations
+.idea
+.vscode/settings.json

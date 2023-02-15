@@ -2,6 +2,91 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.2.1](https://github.com/tv2/v-connection/compare/v7.2.0...v7.2.1) (2022-11-30)
+
+### Bug Fixes
+
+- SOF-1094 Refactor to simpler implementation ([12f55b7](https://github.com/tv2/v-connection/commit/12f55b711e68a6390ba2a7b078ec64cbc1782b57))
+- SOF-1094 return false when playlist doesnt exist in doesPlaylistExist ([3bd497e](https://github.com/tv2/v-connection/commit/3bd497e7a5fa24e6c9c6b59f124924699509cd0f))
+
+## [7.2.0](https://github.com/tv2/v-connection/compare/v7.1.0...v7.2.0) (2022-11-28)
+
+### Features
+
+- SOF-1094 PlaylistID is no longer required to be a UUID. If no playlistID is provided it stills defaults to using UUIDs ([c85d06c](https://github.com/tv2/v-connection/commit/c85d06cc7d7d4b83fb6c353581bdb8dce5c88506))
+
+### Bug Fixes
+
+- SOF-1094 Minor name refactor ([2f2b2ff](https://github.com/tv2/v-connection/commit/2f2b2ff5a7fc99bc5ee0bf2559c86f9e2949e39f))
+
+## [7.1.0](https://github.com/tv2/v-connection/compare/v7.0.2...v7.1.0) (2022-11-18)
+
+### Features
+
+- add method to list shows in the MSE's directory ([76b253f](https://github.com/tv2/v-connection/commit/76b253fffc6b57b17f36d79d2452281a4f01d258))
+
+### [7.0.2](https://github.com/tv2/v-connection/compare/v7.0.1...v7.0.2) (2022-11-11)
+
+### [7.0.1](https://github.com/tv2/v-connection/compare/v7.0.0...v7.0.1) (2022-11-11)
+
+## [7.0.0](https://github.com/tv2/v-connection/compare/v6.1.0...v7.0.0) (2022-11-11)
+
+### ⚠ BREAKING CHANGES
+
+- SOF-1081 Only clean Shows that belongs to Sofie
+
+### Features
+
+- SOF-1081 Only clean Shows that belongs to Sofie ([b5889e3](https://github.com/tv2/v-connection/commit/b5889e34d776e36a064820b3ae66ced62c8aa126))
+
+### Bug Fixes
+
+- SOF-1081 Refactor duplicated logic away ([b6737fb](https://github.com/tv2/v-connection/commit/b6737fb64237313692453d0120d08299a44f9fc7))
+- SOF-1081 Refactor for more precise naming ([d50e174](https://github.com/tv2/v-connection/commit/d50e174bf5452a80467255f9ed9f602c825869f5))
+
+## [6.1.0](https://github.com/tv2/v-connection/compare/v6.0.3...v6.1.0) (2022-10-27)
+
+### Features
+
+- SOF-1140 allow creating elements that have more fields than mastertemplate supports ([466c722](https://github.com/tv2/v-connection/commit/466c7228efdda63e8229931dc4e507f4c85c5c51))
+
+### [6.0.3](https://github.com/tv2/v-connection/compare/v6.0.1...v6.0.3) (2022-10-14)
+
+### Bug Fixes
+
+- convert peptalk error message explicit into a string ([b43513b](https://github.com/tv2/v-connection/commit/b43513b7ad4e5f1ea4bd2d449905504b3d80fa50))
+- Functions that return promises must be async ([f737e12](https://github.com/tv2/v-connection/commit/f737e123aa5de2b3426258574d0203b04e75009b))
+- SOF-941 add missing awaits ([7fb1106](https://github.com/tv2/v-connection/commit/7fb110683f9f5f570e97a446752b69ea3d41abc7))
+- solved errors from eslint/prettier VS Code extension. ([489c0ea](https://github.com/tv2/v-connection/commit/489c0eaee84ed37524d33792e062208c326950a8))
+
+### [6.0.2](https://github.com/tv2/v-connection/compare/v6.0.1...v6.0.2) (2022-06-22)
+
+### Bug Fixes
+
+- convert peptalk error message explicit into a string ([b43513b](https://github.com/tv2/v-connection/commit/b43513b7ad4e5f1ea4bd2d449905504b3d80fa50))
+- Functions that return promises must be async ([f737e12](https://github.com/tv2/v-connection/commit/f737e123aa5de2b3426258574d0203b04e75009b))
+- SOF-941 add missing awaits ([7fb1106](https://github.com/tv2/v-connection/commit/7fb110683f9f5f570e97a446752b69ea3d41abc7))
+- solved errors from eslint/prettier VS Code extension. ([489c0ea](https://github.com/tv2/v-connection/commit/489c0eaee84ed37524d33792e062208c326950a8))
+
+### [6.0.1](https://github.com/tv2/v-connection/compare/v6.0.0...v6.0.1) (2022-05-19)
+
+## [6.0.0](https://github.com/tv2/v-connection/compare/v5.1.2...v6.0.0) (2022-03-16)
+
+### ⚠ BREAKING CHANGES
+
+- support internal elements in multiple shows
+
+### Features
+
+- SOF-752 purge internal elements ([2317f79](https://github.com/tv2/v-connection/commit/2317f79dd532aff28fc790ca093d6eeae90ad79c))
+- support internal elements in multiple shows ([fd0e4de](https://github.com/tv2/v-connection/commit/fd0e4de9fd8d2c4255c4afd5eb8d59fa09534df1))
+
+### [5.1.1](https://github.com/tv2/v-connection/compare/v5.1.0...v5.1.1) (2021-10-19)
+
+### Bug Fixes
+
+- don't throw away middle chunks ([62215f1](https://github.com/tv2/v-connection/commit/62215f1ea8733c0e00e65e146cae96a54528074b))
+
 ## [5.1.0](https://github.com/tv2/v-connection/compare/v5.0.1...v5.1.0) (2021-09-20)
 
 ### Features
