@@ -481,20 +481,18 @@ ${entries}
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 
-	async purgeExternalElements(elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
-		// let playlist = await this.mse.getPlaylist(this.playlist)
-		// if (playlist.active_profile.value) {
-		// 	throw new Error(`Cannot purge an active profile.`)
-		// }
-		if (elementsToKeep && elementsToKeep.length) {
-			await this.buildChannelMap()
-			const elementsSet = new Set(
-				elementsToKeep.map((e) => {
-					return Rundown.makeKey(e)
-				})
-			)
-			for (const key in this.channelMap) {
-				if (elementsSet.has(key)) continue
+	async purgeExternalElements(elementsToKeep: ExternalElementId[] = []): Promise<PepResponse> {
+		await this.buildChannelMap()
+		const elementsSet = new Set(
+			elementsToKeep.map((e) => {
+				return Rundown.makeKey(e)
+			})
+		)
+
+		await Promise.all(
+			Object.keys(this.channelMap).map(async (key) => {
+				if (elementsSet.has(key)) return
+
 				try {
 					await this.deleteElement(this.channelMap[key])
 				} catch (e) {
@@ -502,10 +500,9 @@ ${entries}
 						throw e
 					}
 				}
-			}
-		} else {
-			await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>')
-		}
+			})
+		)
+
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 
