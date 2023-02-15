@@ -453,18 +453,14 @@ ${entries}
 	async purgeInternalElements(
 		showIds: string[],
 		onlyCreatedByUs?: boolean,
-		elementsToKeep?: InternalElementId[]
+		elementsToKeep: InternalElementId[] = []
 	): Promise<PepResponse> {
 		const elementsToKeepSet = new Set(
-			elementsToKeep?.map((e) => {
+			elementsToKeep.map((e) => {
 				return Rundown.makeKey(e)
 			})
 		)
 		for (const showId of showIds) {
-			if (!onlyCreatedByUs && !elementsToKeep?.length) {
-				await this.pep.replace(`/storage/shows/{${showId}}/elements`, '<elements/>')
-				continue
-			}
 			const elements = await this.listInternalElements(showId)
 			await Promise.all(
 				elements.map(async (element) => {
@@ -472,9 +468,8 @@ ${entries}
 						(!onlyCreatedByUs || element.creator === CREATOR_NAME) &&
 						!elementsToKeepSet.has(Rundown.makeKey(element))
 					) {
-						return this.deleteElement(element)
+						await this.deleteElement(element)
 					}
-					return Promise.resolve()
 				})
 			)
 		}
