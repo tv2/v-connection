@@ -484,7 +484,7 @@ ${entries}
 			})
 		)
 
-		await Promise.all(
+		const ps = [
 			Object.keys(this.channelMap).map(async (key) => {
 				if (elementsSet.has(key)) return
 
@@ -495,8 +495,10 @@ ${entries}
 						throw e
 					}
 				}
-			})
-		)
+			}),
+		]
+		await Promise.allSettled(ps) // Wait for all Promises
+		await Promise.all(ps) // throw if there are any rejected Promises
 
 		return { id: '*', status: 'ok' } as PepResponse
 	}
