@@ -460,19 +460,24 @@ ${entries}
 				return Rundown.makeKey(e)
 			})
 		)
+
+		const elementsToDelete: InternalElementIdWithCreator[] = []
 		for (const showId of showIds) {
 			const elements = await this.listInternalElements(showId)
-			await Promise.all(
-				elements.map(async (element) => {
-					if (
-						(!onlyCreatedByUs || element.creator === CREATOR_NAME) &&
-						!elementsToKeepSet.has(Rundown.makeKey(element))
-					) {
-						await this.deleteElement(element)
-					}
-				})
-			)
+			for (const element of elements) {
+				if (
+					(!onlyCreatedByUs || element.creator === CREATOR_NAME) &&
+					!elementsToKeepSet.has(Rundown.makeKey(element))
+				) {
+					elementsToDelete.push(element)
+				}
+			}
 		}
+
+		const deletePromises: Promise<any>[] = elementsToDelete.map(async (element) => this.deleteElement(element))
+		await Promise.allSettled(deletePromises) // Wait for all Promises
+		await Promise.all(deletePromises) // throw if there are any rejected Promises
+
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 
