@@ -65,6 +65,13 @@ export class Rundown implements VRundown {
 			? `${elementId.vcpid}_${elementId.channel ?? ''}`
 			: `${elementId.showId}_${elementId.instanceName}`
 	}
+	private static makeKeySet(elementIds: ElementId[]): Set<string> {
+		return new Set(
+			elementIds.map((e) => {
+				return Rundown.makeKey(e)
+			})
+		)
+	}
 
 	private async buildChannelMap(elementId?: ExternalElementId): Promise<boolean> {
 		if (elementId && has(this.channelMap, Rundown.makeKey(elementId))) {
@@ -455,11 +462,7 @@ ${entries}
 		onlyCreatedByUs?: boolean,
 		elementsToKeep: InternalElementId[] = []
 	): Promise<PepResponse> {
-		const elementsToKeepSet = new Set(
-			elementsToKeep.map((e) => {
-				return Rundown.makeKey(e)
-			})
-		)
+		const elementsToKeepSet = Rundown.makeKeySet(elementsToKeep)
 
 		const elementsToDelete: InternalElementIdWithCreator[] = []
 		for (const showId of showIds) {
@@ -483,27 +486,22 @@ ${entries}
 
 	async purgeExternalElements(elementsToKeep: ExternalElementId[] = []): Promise<PepResponse> {
 		await this.buildChannelMap()
-		const elementsSet = new Set(
-			elementsToKeep.map((e) => {
-				return Rundown.makeKey(e)
-			})
-		)
+		const elementsToKeepSet = Rundown.makeKeySet(elementsToKeep)
 
-		const ps = [
-			Object.keys(this.channelMap).map(async (key) => {
-				if (elementsSet.has(key)) return
+		const deletePromises: Promise<void>[] = Object.keys(this.channelMap).map(async (key) => {
+			if (elementsToKeepSet.has(key)) return
 
-				try {
-					await this.deleteElement(this.channelMap[key])
-				} catch (e) {
-					if (!(e instanceof InexistentError)) {
-						throw e
-					}
+			try {
+				await this.deleteElement(this.channelMap[key])
+			} catch (e) {
+				if (!(e instanceof InexistentError)) {
+					throw e
 				}
-			}),
-		]
-		await Promise.allSettled(ps) // Wait for all Promises
-		await Promise.all(ps) // throw if there are any rejected Promises
+			}
+		})
+
+		await Promise.allSettled(deletePromises) // Wait for all Promises
+		await Promise.all(deletePromises) // throw if there are any rejected Promises
 
 		return { id: '*', status: 'ok' } as PepResponse
 	}
