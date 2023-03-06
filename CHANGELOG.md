@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.3.0](https://github.com/tv2/v-connection/compare/v7.2.1...v7.3.0) (2023-03-06)
+
+### Features
+
+- **Purge:** Softer handling of purging internal elements ([af5d006](https://github.com/tv2/v-connection/commit/af5d0063efac30692a771f64532a134cc4262641))
+
+### Bug Fixes
+
+- **Purge:** Softer purging of external elements ([44a6547](https://github.com/tv2/v-connection/commit/44a6547ce855a7ecc55f179326a3e895d3f57387))
+
 ### [7.2.1](https://github.com/tv2/v-connection/compare/v7.2.0...v7.2.1) (2022-11-30)
 
 ### Bug Fixes
