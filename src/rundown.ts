@@ -65,6 +65,13 @@ export class Rundown implements VRundown {
 			? `${elementId.vcpid}_${elementId.channel ?? ''}`
 			: `${elementId.showId}_${elementId.instanceName}`
 	}
+	private static makeKeySet(elementIds: ElementId[]): Set<string> {
+		return new Set(
+			elementIds.map((e) => {
+				return Rundown.makeKey(e)
+			})
+		)
+	}
 
 	private async buildChannelMap(elementId?: ExternalElementId): Promise<boolean> {
 		if (elementId && has(this.channelMap, Rundown.makeKey(elementId))) {
@@ -453,59 +460,49 @@ ${entries}
 	async purgeInternalElements(
 		showIds: string[],
 		onlyCreatedByUs?: boolean,
-		elementsToKeep?: InternalElementId[]
+		elementsToKeep: InternalElementId[] = []
 	): Promise<PepResponse> {
-		const elementsToKeepSet = new Set(
-			elementsToKeep?.map((e) => {
-				return Rundown.makeKey(e)
-			})
-		)
+		const elementsToKeepSet = Rundown.makeKeySet(elementsToKeep)
+
+		const elementsToDelete: InternalElementIdWithCreator[] = []
 		for (const showId of showIds) {
-			if (!onlyCreatedByUs && !elementsToKeep?.length) {
-				await this.pep.replace(`/storage/shows/{${showId}}/elements`, '<elements/>')
-				continue
-			}
 			const elements = await this.listInternalElements(showId)
-			await Promise.all(
-				elements.map(async (element) => {
-					if (
-						(!onlyCreatedByUs || element.creator === CREATOR_NAME) &&
-						!elementsToKeepSet.has(Rundown.makeKey(element))
-					) {
-						return this.deleteElement(element)
-					}
-					return Promise.resolve()
-				})
-			)
+			for (const element of elements) {
+				if (
+					(!onlyCreatedByUs || element.creator === CREATOR_NAME) &&
+					!elementsToKeepSet.has(Rundown.makeKey(element))
+				) {
+					elementsToDelete.push(element)
+				}
+			}
 		}
+
+		const deletePromises: Promise<any>[] = elementsToDelete.map(async (element) => this.deleteElement(element))
+		await Promise.allSettled(deletePromises) // Wait for all Promises
+		await Promise.all(deletePromises) // throw if there are any rejected Promises
+
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 
-	async purgeExternalElements(elementsToKeep?: ExternalElementId[]): Promise<PepResponse> {
-		// let playlist = await this.mse.getPlaylist(this.playlist)
-		// if (playlist.active_profile.value) {
-		// 	throw new Error(`Cannot purge an active profile.`)
-		// }
-		if (elementsToKeep && elementsToKeep.length) {
-			await this.buildChannelMap()
-			const elementsSet = new Set(
-				elementsToKeep.map((e) => {
-					return Rundown.makeKey(e)
-				})
-			)
-			for (const key in this.channelMap) {
-				if (elementsSet.has(key)) continue
-				try {
-					await this.deleteElement(this.channelMap[key])
-				} catch (e) {
-					if (!(e instanceof InexistentError)) {
-						throw e
-					}
+	async purgeExternalElements(elementsToKeep: ExternalElementId[] = []): Promise<PepResponse> {
+		await this.buildChannelMap()
+		const elementsToKeepSet = Rundown.makeKeySet(elementsToKeep)
+
+		const deletePromises: Promise<void>[] = Object.keys(this.channelMap).map(async (key) => {
+			if (elementsToKeepSet.has(key)) return
+
+			try {
+				await this.deleteElement(this.channelMap[key])
+			} catch (e) {
+				if (!(e instanceof InexistentError)) {
+					throw e
 				}
 			}
-		} else {
-			await this.pep.replace(`/storage/playlists/{${this.playlist}}/elements`, '<elements/>')
-		}
+		})
+
+		await Promise.allSettled(deletePromises) // Wait for all Promises
+		await Promise.all(deletePromises) // throw if there are any rejected Promises
+
 		return { id: '*', status: 'ok' } as PepResponse
 	}
 
