@@ -118,7 +118,7 @@
 		"request-promise-native": "^1.0.9",
 		"uuid": "^8.3.2",
 		"ws": "^7.4.6",
-		"xml2js": "^0.4.23"
+		"xml2js": "^0.5.0"
 	},
 	"devDependencies": {
 		"@sofie-automation/code-standard-preset": "^2.0.2",
