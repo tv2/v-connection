@@ -4,7 +4,7 @@
  */
 
 import { URL } from 'url'
-import * as request from 'request-promise-native'
+import got from 'got'
 import { ServerResponse } from 'http'
 
 export const uuidRe = /[a-fA-f0-9]{8}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{4}-[a-fA-f0-9]{12}/
@@ -233,18 +233,18 @@ class MSEHTTP implements HttpMSEClient {
 	async command(path: string | URL, body: string): Promise<CommandResult> {
 		try {
 			if (typeof path === 'string') {
-				const response = await request({
+				const response = await got({
 					method: 'POST',
-					uri: `${this.baseURL}/${path}`,
+					url: `${this.baseURL}/${path}`,
 					body,
 					timeout: this.timeout,
 					headers: {
 						'Content-Type': 'text/plain',
 					},
 				})
-				return { status: 200, response: response.toString() } as CommandResult
+				return { status: 200, response: response.body.toString() } as CommandResult
 			} else {
-				const response = await request({
+				const response = await got({
 					method: 'POST',
 					url: path.toString(),
 					body,
@@ -253,7 +253,7 @@ class MSEHTTP implements HttpMSEClient {
 						'Content-Type': 'text/plain',
 					},
 				})
-				return { status: 200, response: response.toString() } as CommandResult
+				return { status: 200, response: response.body.toString() } as CommandResult
 			}
 		} catch (err) {
 			throw this.processError(err, typeof path === 'string' ? `${this.baseURL}/${path}` : path.toString(), body)
@@ -303,9 +303,9 @@ class MSEHTTP implements HttpMSEClient {
 
 	async ping(): Promise<CommandResult> {
 		try {
-			await request.get({
+			await got({
 				method: 'GET',
-				uri: this.baseURL,
+				url: this.baseURL,
 				timeout: this.timeout,
 			})
 			return { status: 200, response: 'PONG!' } as CommandResult

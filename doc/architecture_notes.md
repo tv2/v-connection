@@ -138,7 +138,7 @@ This might be an option to explore further if other approaches are unsuccessful.
 A simple Node.js application has been written ([`cli_bund.js`](../scratch/cli_bund.js)) that allows interaction with the an MSE to change the text of a lower third overlay, _take-in_ the graphic, wait ten seconds and _take-out_ the graphic. This will be the basis of ongoing development, using the following modules:
 
 - [`ws`](https://www.npmjs.com/package/ws) to connect to the MSE over webscockets with PepTalk. Used for reading and writing data and monitoring events.
-- [`request-promise-native`](https://www.npmjs.com/package/request-promise-native) to POST commands to the REST interface of the MSE.
+- [`got`](https://www.npmjs.com/package/got) to POST commands to the REST interface of the MSE.
 
 So as to work with the XML structures in a Javascript-like format, the following library will be used:
 

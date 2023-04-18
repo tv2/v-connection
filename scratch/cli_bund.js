@@ -1,4 +1,4 @@
-const request = require('request-promise-native')
+const got = require('got')
 const ws = require('ws')
 
 let webby = new ws('ws://1d8dab0e.ngrok.io/')
@@ -19,18 +19,18 @@ webby.on('open', () => {
 	)
 
 	setTimeout(() => {
-		request.post({
+		got({
 			method: 'POST',
-			uri: 'http://62918c05.ngrok.io/profiles/MOSART/take',
+			url: 'http://62918c05.ngrok.io/profiles/MOSART/take',
 			body: '/storage/shows/{239F365A-5671-43F3-AD44-D44EB7C4F206}/elements/100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0',
 		})
 		console.log('>>> Take requested')
 	}, 500)
 
 	setTimeout(() => {
-		request.post({
+		got({
 			method: 'POST',
-			uri: 'http://62918c05.ngrok.io/profiles/MOSART/out',
+			url: 'http://62918c05.ngrok.io/profiles/MOSART/out',
 			body: '/storage/shows/{239F365A-5671-43F3-AD44-D44EB7C4F206}/elements/100_NYHEDERNE-TEST.SOFIE.VIZ-ELEMENTER_271DB363_0',
 		})
 		console.log('>>> Out requested')
