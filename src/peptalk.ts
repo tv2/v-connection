@@ -486,6 +486,7 @@ class PepTalk extends EventEmitter implements PepTalkClient, PepTalkJS {
 			endOfErrorName = endOfErrorName > errorIndex + 6 ? endOfErrorName : m.length
 			switch (m.slice(errorIndex + 6, endOfErrorName)) {
 				case 'inexistent':
+				case 'inexist':
 					error = new InexistentError(c, m.slice(endOfErrorName + 1), pending.sent)
 					break
 				case 'invalid':
