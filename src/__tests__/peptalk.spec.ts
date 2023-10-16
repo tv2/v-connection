@@ -375,6 +375,9 @@ describe('PepTalk with sadness', () => {
 	test('Get inexistent', async () => {
 		await expect(pep.get('/mockError/inexistent', 3)).rejects.toThrow(InexistentError)
 	})
+	test('Get inexist', async () => {
+		await expect(pep.get('/mockError/inexist', 3)).rejects.toThrow(InexistentError)
+	})
 
 	test('Get invalid', async () => {
 		await expect(pep.get('/mockError/invalid', 3)).rejects.toThrow(InvalidError)
