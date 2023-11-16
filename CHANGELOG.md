@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.3.2](https://github.com/tv2/v-connection/compare/v7.3.1...v7.3.2) (2023-11-16)
+
+### Bug Fixes
+
+- Upgraded xml2js to 0.6.2. ([3bed1cc](https://github.com/tv2/v-connection/commit/3bed1cc44bebc26ada543da1123782f6e3ac7910))
+
 ### [7.3.1](https://github.com/tv2/v-connection/compare/v7.3.0...v7.3.1) (2023-11-16)
 
 ### Bug Fixes
