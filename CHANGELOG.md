@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.3.1](https://github.com/tv2/v-connection/compare/v7.3.0...v7.3.1) (2023-11-16)
+
+### Bug Fixes
+
+- treat "inexist" error as InexistentError ([dff8f55](https://github.com/tv2/v-connection/commit/dff8f556861e32ec63ba8affe3ea628d22331b67))
+
 ## [7.3.0](https://github.com/tv2/v-connection/compare/v7.2.1...v7.3.0) (2023-03-06)
 
 ### Features
