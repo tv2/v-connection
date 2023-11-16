@@ -1,6 +1,6 @@
 import * as Koa from 'koa'
 import * as bodyParser from 'koa-bodyparser'
-import * as request from 'request-promise-native'
+import got from 'got'
 import * as http from 'http'
 import * as uuid from 'uuid'
 import { createHTTPContext, HttpMSEClient } from '../msehttp'
@@ -99,8 +99,8 @@ describe('MSE HTTP library when happy', () => {
 	})
 
 	test('Basic connection test', async () => {
-		const fromMe = await request(`http://localhost:${testPort}`)
-		expect(fromMe).toBe('Look at me')
+		const fromMe = await got(`http://localhost:${testPort}`)
+		expect(fromMe.body).toBe('Look at me')
 	})
 
 	test('Ping test', async () => {
@@ -196,7 +196,9 @@ describe('MSE HTTP library when happy', () => {
 	test('Trigger timeout', async () => {
 		msehttp.setHTTPTimeout(300)
 		expect(msehttp.timeout).toBe(300)
-		await expect(msehttp.command('timeout', '/running/out/of/time')).rejects.toThrow('ESOCKETTIMEDOUT')
+		await expect(msehttp.command('timeout', '/running/out/of/time')).rejects.toThrow(
+			"Timeout awaiting 'request' for 300ms"
+		)
 		msehttp.setHTTPTimeout(3000)
 		expect(msehttp.timeout).toBe(3000)
 	})
