@@ -116,7 +116,7 @@
 	"dependencies": {
 		"got": "11.8.6",
 		"uuid": "^8.3.2",
-		"ws": "^7.5.10",
+		"ws": "^8.17.1",
 		"xml2js": "^0.6.2"
 	},
 	"devDependencies": {
