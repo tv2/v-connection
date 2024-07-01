@@ -120,7 +120,7 @@
 		"xml2js": "^0.6.2"
 	},
 	"devDependencies": {
-		"@sofie-automation/code-standard-preset": "^2.0.2",
+		"@sofie-automation/code-standard-preset": "^2.5.2",
 		"@types/jest": "^29.5.12",
 		"@types/koa": "^2.11.6",
 		"@types/koa-bodyparser": "^4.3.0",

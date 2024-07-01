@@ -88,7 +88,7 @@ export interface IInexistentError extends PepError {
 }
 
 export class InexistentError extends PepError implements IInexistentError {
-	readonly status: 'inexistent' = 'inexistent'
+	readonly status = 'inexistent' as const
 	readonly path: string
 	constructor(id: number, path: string, sent?: string) {
 		super('inexistent', id, `PepTalk inexistent error: Could not locate element at ${path}.`, sent)
@@ -106,7 +106,7 @@ export interface IInvalidError extends PepError {
 }
 
 export class InvalidError extends PepError implements IInvalidError {
-	readonly status: 'invalid' = 'invalid'
+	readonly status = 'invalid' as const
 	readonly description: string
 	constructor(id: number, description: string, sent?: string) {
 		super('invalid', id, `Validation error: ${description}.`, sent)
@@ -123,7 +123,7 @@ export interface INotAllowedError extends PepError {
 }
 
 export class NotAllowedError extends PepError implements INotAllowedError {
-	readonly status: 'not_allowed' = 'not_allowed'
+	readonly status = 'not_allowed' as const
 	readonly reason: string
 	constructor(id: number, reason: string, sent?: string) {
 		super('not_allowed', id, `Request understood put not allowed: ${reason}.`, sent)
@@ -140,7 +140,7 @@ export interface ISyntaxError extends PepError {
 }
 
 export class SyntaxError extends PepError implements ISyntaxError {
-	readonly status: 'syntax' = 'syntax'
+	readonly status = 'syntax' as const
 	readonly description: string
 	constructor(id: number, description: string, sent?: string) {
 		super('syntax', id, `Syntax error in request: ${description}.`, sent)
@@ -158,7 +158,7 @@ export interface IUnspecifiedError extends PepError {
 
 export class UnspecifiedError extends PepError implements IUnspecifiedError {
 	readonly description: string
-	readonly status: 'unspecified' = 'unspecified'
+	readonly status = 'unspecified' as const
 	constructor(id: number | '*', description: string, sent?: string) {
 		super('unspecified', id, description, sent)
 		this.description = description
